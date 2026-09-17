@@ -1,0 +1,40 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="phone-metal" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="phone-screen-glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eff6ff"/>
+      <stop offset="50%" stop-color="#dbeafe"/>
+      <stop offset="100%" stop-color="#bfdbfe"/>
+    </linearGradient>
+  </defs>
+  <!-- 스마트폰 외곽 티타늄 프레임 -->
+  <rect x="12" y="4" width="24" height="40" rx="5.5" fill="url(#phone-metal)"/>
+  
+  <!-- 전면 블랙 베젤 -->
+  <rect x="13.2" y="5.2" width="21.6" height="37.6" rx="4.5" fill="#0f172a"/>
+  
+  <!-- 고화질 OLED 디스플레이 -->
+  <rect x="14.5" y="6.8" width="19" height="34.4" rx="3.5" fill="url(#phone-screen-glass)"/>
+  
+  <!-- 상단 다이나믹 아일랜드 / 카메라 펀치홀 -->
+  <rect x="20.5" y="8.2" width="7" height="2.2" rx="1.1" fill="#0f172a"/>
+  <circle cx="25.8" cy="9.3" r="0.6" fill="#334155"/>
+  
+  <!-- 화면 속 모던 앱 그리드 레이아웃 -->
+  <rect x="17" y="14" width="6" height="6" rx="1.8" fill="#3b82f6"/>
+  <rect x="25" y="14" width="6" height="6" rx="1.8" fill="#60a5fa"/>
+  <rect x="17" y="22" width="6" height="6" rx="1.8" fill="#93c5fd"/>
+  <rect x="25" y="22" width="6" height="6" rx="1.8" fill="#2563eb"/>
+  
+  <!-- 하단 독(Dock) 영역 -->
+  <rect x="16.5" y="32" width="15" height="5" rx="1.5" fill="#ffffff" fill-opacity="0.6"/>
+  <circle cx="19.5" cy="34.5" r="1.5" fill="#3b82f6"/>
+  <circle cx="24" cy="34.5" r="1.5" fill="#10b981"/>
+  <circle cx="28.5" cy="34.5" r="1.5" fill="#f59e0b"/>
+  
+  <!-- 하단 홈 인디케이터 바 -->
+  <rect x="20" y="39.2" width="8" height="1.2" rx="0.6" fill="#475569"/>
+</svg>

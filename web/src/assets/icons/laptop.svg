@@ -1,0 +1,20 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="laptop-screen-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="laptop-base" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+  </defs>
+  <rect x="9" y="8" width="30" height="21" rx="3" fill="#334155"/>
+  <rect x="11" y="10" width="26" height="17" rx="1.5" fill="url(#laptop-screen-bg)"/>
+  <path d="M14 14L18 18.5L14 23" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="20" y1="23" x2="27" y2="23" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="24" cy="9" r="0.75" fill="#64748b"/>
+  <path d="M5 32C5 30.8954 5.89543 30 7 30H41C42.1046 30 43 30.8954 43 32L44.5 36C44.5 37.1046 43.6046 38 42.5 38H5.5C4.39543 38 3.5 37.1046 3.5 36L5 32Z" fill="url(#laptop-base)"/>
+  <rect x="20" y="32" width="8" height="2" rx="0.5" fill="#64748b" opacity="0.6"/>
+  <rect x="19" y="34.5" width="10" height="2.5" rx="1" fill="#e2e8f0"/>
+</svg>

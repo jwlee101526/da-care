@@ -1,0 +1,41 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ac-body-bold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <filter id="ac-shadow-bold" x="0" y="3" width="48" height="27" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#0f172a" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- 1. 에어컨 본체 실내기 (크기를 키우고 선명도를 높여 기기가 주인공이 되도록 강조) -->
+  <g filter="url(#ac-shadow-bold)">
+    <rect x="3" y="6" width="42" height="19" rx="4" fill="url(#ac-body-bold)" stroke="#94a3b8" stroke-width="1.4"/>
+  </g>
+
+  <!-- 상단 흡입구 그릴 라인 -->
+  <line x1="6.5" y1="9.5" x2="41.5" y2="9.5" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="6.5" y1="12.5" x2="41.5" y2="12.5" stroke="#e2e8f0" stroke-width="1.2" stroke-linecap="round"/>
+
+  <!-- 전면 메탈릭 수평 트림 라인 -->
+  <line x1="5" y1="18.5" x2="43" y2="18.5" stroke="#cbd5e1" stroke-width="1"/>
+
+  <!-- 우측 스마트 전원 쿨링 LED 인디케이터 램프 -->
+  <circle cx="38" cy="15.5" r="1.5" fill="#38bdf8"/>
+  <circle cx="38" cy="15.5" r="0.6" fill="#ffffff"/>
+
+  <!-- 하단 송풍구 플랩 윙 (에어컨 바람 토출구) -->
+  <rect x="5.5" y="22" width="37" height="3" rx="1.5" fill="#bae6fd" stroke="#7dd3fc" stroke-width="0.8"/>
+
+  <!-- 2. 기기를 가리지 않고 은은하고 얇게 흩날리는 부드러운 바람선 (stroke-width 대폭 축소 & 투명도 적용) -->
+  <!-- 좌측 바람선 -->
+  <path d="M12 28C10 32 9 37 8 42" stroke="#7dd3fc" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="14 2" opacity="0.8"/>
+  
+  <!-- 중앙 바람선 -->
+  <path d="M24 28V43" stroke="#38bdf8" stroke-width="1.6" stroke-linecap="round" opacity="0.85"/>
+  
+  <!-- 우측 바람선 -->
+  <path d="M36 28C38 32 39 37 40 42" stroke="#7dd3fc" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="14 2" opacity="0.8"/>
+</svg>

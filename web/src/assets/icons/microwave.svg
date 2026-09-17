@@ -1,0 +1,44 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mw-clean-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e9eef5"/>
+    </linearGradient>
+    <linearGradient id="mw-glass-pure" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. 전자레인지 외관 본체 (군더더기 없는 미니멀 볼드 프레임) -->
+  <rect x="4" y="9" width="40" height="30" rx="5" fill="url(#mw-clean-body)" stroke="#94a3b8" stroke-width="1.5"/>
+
+  <!-- 2. 좌측 널찍한 블랙 틴티드 글래스 조리실 도어 (컵/음식 제거하여 초깔끔화) -->
+  <rect x="7" y="12" width="24" height="24" rx="3" fill="url(#mw-glass-pure)"/>
+
+  <!-- 은은한 글래스 사선 반사광 디테일 -->
+  <path d="M8.5 13.5L16 13.5L8.5 28.5Z" fill="#334155" fill-opacity="0.35"/>
+
+  <!-- 조리실 하단 미니멀 턴테이블 회전판 라인 -->
+  <line x1="11" y1="28" x2="25" y2="28" stroke="#334155" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- 슬림 메탈 세로 도어 핸들 -->
+  <rect x="28.5" y="15" width="2" height="18" rx="1" fill="#cbd5e1" stroke="#94a3b8" stroke-width="0.5"/>
+
+  <!-- 3. 우측 모던 컨트롤 패널 -->
+  <rect x="33" y="12" width="8" height="24" rx="2" fill="#0f172a"/>
+
+  <!-- 상단 블루 LED 타이머 바 -->
+  <rect x="34.5" y="14" width="5" height="2.5" rx="0.8" fill="#38bdf8"/>
+
+  <!-- 중앙 회전 조작 다이얼 노브 -->
+  <circle cx="37" cy="23" r="2.8" fill="#475569" stroke="#94a3b8" stroke-width="0.8"/>
+  <circle cx="37" cy="23" r="1.2" fill="#38bdf8"/>
+
+  <!-- 하단 원터치 시작 그린 버튼 -->
+  <circle cx="37" cy="30" r="1.4" fill="#10b981"/>
+
+  <!-- 하단 안정적인 고무 받침 다리 -->
+  <rect x="8" y="39" width="4" height="2" rx="1" fill="#475569"/>
+  <rect x="36" y="39" width="4" height="2" rx="1" fill="#475569"/>
+</svg>

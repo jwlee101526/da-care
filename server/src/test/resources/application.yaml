@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:dacare;MODE=MariaDB;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  autoconfigure:
+    exclude: org.springframework.ai.vectorstore.mariadb.autoconfigure.MariaDbStoreAutoConfiguration
+  ai:
+    openai:
+      api-key: test-key
+
+app:
+  jwt:
+    secret: test-secret-that-is-long-enough-for-hmac-signing-key
+    expiration: PT8H
+  admin:
+    email: admin@test.local
+    password: test-admin-password
+  slack:
+    webhook-url:

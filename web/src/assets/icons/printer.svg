@@ -1,0 +1,39 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="printer-body-metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="paper-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. 상단 급지대 용지 (프린터로 들어가는 종이) -->
+  <rect x="14" y="4" width="20" height="16" rx="2" fill="url(#paper-grad)" stroke="#cbd5e1" stroke-width="1.2"/>
+  <line x1="18" y1="9" x2="30" y2="9" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="18" y1="12.5" x2="27" y2="12.5" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- 2. 프린터/복합기 메인 본체 (슬림 라운디드 프레임) -->
+  <rect x="5" y="16" width="38" height="18" rx="4" fill="url(#printer-body-metal)" stroke="#94a3b8" stroke-width="1.2"/>
+  
+  <!-- 전면 스캐너 커버 구분 라인 -->
+  <line x1="5" y1="21" x2="43" y2="21" stroke="#cbd5e1" stroke-width="1"/>
+
+  <!-- 전면 조작부: 스마트 전원 LED & 터치 버튼 -->
+  <circle cx="37" cy="25" r="1.5" fill="#38bdf8"/>
+  <circle cx="37" cy="25" r="0.6" fill="#ffffff"/>
+  <circle cx="32.5" cy="25" r="1.2" fill="#10b981"/>
+
+  <!-- 3. 전면 배지 트레이 슬릿 (용지 토출구) -->
+  <rect x="11" y="27.5" width="26" height="3" rx="1" fill="#1e293b"/>
+
+  <!-- 4. 아래로 인쇄되어 나오는 출력물 문서 (선명한 컬러 차트 & 텍스트) -->
+  <rect x="13" y="28.5" width="22" height="15" rx="2" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+  <!-- 인쇄된 컬러 차트 & 문서 라인 -->
+  <rect x="16" y="32" width="7" height="3" rx="0.8" fill="#3b82f6"/>
+  <rect x="25" y="32" width="7" height="3" rx="0.8" fill="#10b981"/>
+  <line x1="16" y1="37.5" x2="32" y2="37.5" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="16" y1="40.5" x2="28" y2="40.5" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/>
+</svg>

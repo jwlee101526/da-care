@@ -1,0 +1,29 @@
+services:
+  mariadb:
+    image: mariadb:11.7
+    env_file:
+      - ../../.env
+    ports:
+      - "${MARIADB_PORT}:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  server:
+    build:
+      context: ../../server
+    env_file:
+      - ../../.env
+    ports:
+      - "${SERVER_PORT}:8080"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+volumes:
+  mariadb-data:

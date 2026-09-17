@@ -1,0 +1,37 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="controller-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="lightbar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+  </defs>
+  <!-- 컨트롤러 메인 바디 (인체공학 그립 형태) -->
+  <path d="M14 14C10 14 6 18 5 26C4 32 6 38 10 39C13 40 16 35 18 31H30C32 35 35 40 38 39C42 38 44 32 43 26C42 18 38 14 34 14H14Z" fill="url(#controller-body)" stroke="#cbd5e1" stroke-width="1.5"/>
+  
+  <!-- 상단 라이트바 / 터치패드 영역 -->
+  <path d="M19 15H29V19C29 20.1 28.1 21 27 21H21C19.9 21 19 20.1 19 19V15Z" fill="#0f172a"/>
+  <path d="M19.5 15H28.5" stroke="url(#lightbar)" stroke-width="2"/>
+
+  <!-- 좌측 십자키 (D-Pad) -->
+  <path d="M12 21H14V23H16V25H14V27H12V25H10V23H12V21Z" fill="#334155"/>
+
+  <!-- 우측 4버튼 (△, ○, ✕, □) -->
+  <circle cx="35" cy="20" r="1.5" fill="#10b981"/>
+  <circle cx="38" cy="23" r="1.5" fill="#ef4444"/>
+  <circle cx="35" cy="26" r="1.5" fill="#3b82f6"/>
+  <circle cx="32" cy="23" r="1.5" fill="#f59e0b"/>
+
+  <!-- 아날로그 스틱 2개 (Thumbsticks) -->
+  <circle cx="18" cy="30" r="4.5" fill="#334155" stroke="#64748b" stroke-width="1"/>
+  <circle cx="18" cy="30" r="2.5" fill="#1e293b"/>
+
+  <circle cx="30" cy="30" r="4.5" fill="#334155" stroke="#64748b" stroke-width="1"/>
+  <circle cx="30" cy="30" r="2.5" fill="#1e293b"/>
+
+  <!-- 중앙 홈 버튼 -->
+  <circle cx="24" cy="25" r="1.8" fill="#2563eb"/>
+</svg>
