@@ -23,17 +23,17 @@ interface CategoryItem {
 
 const categories: CategoryItem[] = [
   { id: 'phone-tablet', iconSrc: smartphoneTabletIcon, device: 'smartphone' },
-  { id: 'computer', iconSrc: computerIcon, device: 'laptop' },
-  { id: 'tv', iconSrc: smartTvIcon, device: 'appliance' },
-  { id: 'console', iconSrc: consoleIcon, device: 'etc' },
-  { id: 'aircon', iconSrc: airconIcon, device: 'appliance' },
-  { id: 'washing', iconSrc: washingIcon, device: 'appliance' },
-  { id: 'fridge', iconSrc: fridgeIcon, device: 'appliance' },
-  { id: 'microwave', iconSrc: microwaveIcon, device: 'appliance' },
-  { id: 'cleaner', iconSrc: vacuumIcon, device: 'appliance' },
-  { id: 'internet', iconSrc: wifiIcon, device: 'etc' },
-  { id: 'etc', iconSrc: audioIcon, device: 'etc' },
-  { id: 'repair', iconSrc: emergencyAsIcon, device: 'etc' },
+  { id: 'computer', iconSrc: computerIcon, device: 'computer' },
+  { id: 'tv', iconSrc: smartTvIcon, device: 'tv' },
+  { id: 'console', iconSrc: consoleIcon, device: 'console' },
+  { id: 'aircon', iconSrc: airconIcon, device: 'aircon' },
+  { id: 'washing', iconSrc: washingIcon, device: 'washing' },
+  { id: 'fridge', iconSrc: fridgeIcon, device: 'fridge' },
+  { id: 'microwave', iconSrc: microwaveIcon, device: 'microwave' },
+  { id: 'cleaner', iconSrc: vacuumIcon, device: 'cleaner' },
+  { id: 'internet', iconSrc: wifiIcon, device: 'internet' },
+  { id: 'etc', iconSrc: audioIcon, device: 'audio' },
+  { id: 'repair', iconSrc: emergencyAsIcon, device: 'repair' },
 ]
 
 export function ServiceSection({ onSelectCategory }: { onSelectCategory: (selection: ReservationSelection) => void }) {

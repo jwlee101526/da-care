@@ -17,6 +17,8 @@ public class AdminController {
     @DeleteMapping("/engineers/{id}") void delete(@PathVariable Long id) { engineers.deleteById(id); }
     @GetMapping("/reservations") List<ReservationController.ReservationResponse> reservations() { return reservations.all().stream().map(ReservationController.ReservationResponse::from).toList(); }
     @PatchMapping("/reservations/{id}/confirmation") ReservationController.ReservationResponse confirm(@PathVariable Long id, @Valid @RequestBody ConfirmationRequest request) { return ReservationController.ReservationResponse.from(reservations.confirm(id, request.engineerId(), request.confirmedAt())); }
+    @PatchMapping("/reservations/{id}/complete") ReservationController.ReservationResponse complete(@PathVariable Long id) { return ReservationController.ReservationResponse.from(reservations.complete(id)); }
+    @PatchMapping("/reservations/{id}/cancel") ReservationController.ReservationResponse cancel(@PathVariable Long id) { return ReservationController.ReservationResponse.from(reservations.cancelByAdmin(id)); }
     record EngineerRequest(@NotBlank String name, @Pattern(regexp = "^[0-9-]{9,13}$") String phone, @NotBlank String specialty, @NotBlank String region) {}
     record ConfirmationRequest(@NotNull Long engineerId, @NotNull LocalDateTime confirmedAt) {}
     record EngineerResponse(Long id, String name, String phone, String specialty, String region) { static EngineerResponse from(Engineer engineer) { return new EngineerResponse(engineer.getId(), engineer.getName(), engineer.getPhone(), engineer.getSpecialty(), engineer.getRegion()); } }

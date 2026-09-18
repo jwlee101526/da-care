@@ -10,8 +10,17 @@ spring:
       ddl-auto: update
     open-in-view: false
   ai:
+    tools:
+      throw-exception-on-error: true
+      limits:
+        max-total-tool-calls: 8
+        max-calls-per-tool-default: 3
     openai:
       api-key: ${OPENAI_API_KEY}
+      timeout: 30s
+      max-retries: 0
+      chat:
+        reasoning-effort: low
     vectorstore:
       mariadb:
         initialize-schema: true
@@ -20,10 +29,12 @@ spring:
 
 app:
   jwt:
-    secret: ${JWT_SECRET}
-    expiration: ${JWT_EXPIRATION}
+    secret: ${JWT_SECRET:test-secret-that-is-long-enough-for-hmac-signing-key}
+    expiration: ${JWT_EXPIRATION:PT8H}
   admin:
-    email: ${ADMIN_EMAIL}
-    password: ${ADMIN_PASSWORD}
+    email: ${ADMIN_EMAIL:admin@decare.com}
+    password: ${ADMIN_PASSWORD:admin1234}
   slack:
     webhook-url: ${SLACK_WEBHOOK_URL:}
+  web:
+    port: ${WEB_PORT:3000}

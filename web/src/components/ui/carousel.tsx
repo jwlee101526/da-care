@@ -104,9 +104,16 @@ function CarouselPagination({ className, labels }: { className?: string; labels:
   return (
     <div className={cn('carousel-pagination', className)} role="tablist" aria-label="슬라이드 선택">
       {labels.map((label, index) => (
-        <button key={label} type="button" role="tab" aria-selected={selectedIndex === index} onClick={() => scrollTo(index)}>
-          <span>{label}</span>
-          <span className="carousel-pagination-track"><span /></span>
+        <button
+          key={label}
+          type="button"
+          role="tab"
+          aria-selected={selectedIndex === index}
+          aria-label={label}
+          onClick={() => scrollTo(index)}
+        >
+          <span className="sr-only">{label}</span>
+          <span className="carousel-pagination-bar" />
         </button>
       ))}
     </div>
