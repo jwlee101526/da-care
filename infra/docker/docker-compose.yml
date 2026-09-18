@@ -19,6 +19,8 @@ services:
       context: ../../server
     env_file:
       - ../../.env
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
     ports:
       - "${SERVER_PORT:-8080}:8080"
     depends_on:

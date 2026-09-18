@@ -1,0 +1,7 @@
+springdoc:
+  api-docs:
+    enabled: true
+
+scalar:
+  enabled: true
+  path: /scalar

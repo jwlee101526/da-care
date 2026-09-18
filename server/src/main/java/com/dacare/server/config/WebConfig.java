@@ -12,7 +12,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void configureApiVersioning(ApiVersionConfigurer configurer) {
-        configurer.useRequestHeader("API-Version");
+        configurer.useRequestHeader("API-Version").setVersionRequired(false);
     }
 
     @Override
