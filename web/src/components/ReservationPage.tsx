@@ -44,6 +44,14 @@ function getTomorrowDate(): string {
   ].join('-')
 }
 
+function normalizePhone(phone: string): string {
+  return phone.replace(/\D/g, '')
+}
+
+function isValidPhone(phone: string): boolean {
+  return /^0\d{8,10}$/.test(normalizePhone(phone))
+}
+
 export function ReservationPage() {
   const { lang } = useLanguage()
   const { token } = useAuth()
@@ -111,6 +119,10 @@ export function ReservationPage() {
       setError(lang === 'en' ? 'Please enter your phone number.' : '연락처를 입력해 주세요.')
       return
     }
+    if (!isValidPhone(phone)) {
+      setError(lang === 'en' ? 'Enter a valid phone number.' : '연락처를 010-1234-5678 형식으로 입력해 주세요.')
+      return
+    }
     if (!address.trim()) {
       setError(lang === 'en' ? 'Please enter the visit address.' : '방문 주소를 입력해 주세요.')
       return
@@ -136,7 +148,7 @@ export function ReservationPage() {
             deviceType: selectedDevice,
             symptomDescription: symptom,
             contactName: name,
-            contactPhone: phone,
+            contactPhone: normalizePhone(phone),
             visitAddress: address,
             preferredAt: `${date}T${time}:00`,
           }),
@@ -150,7 +162,7 @@ export function ReservationPage() {
             visitAddress: address,
             preferredAt: `${date}T${time}:00`,
             contactName: name,
-            contactPhone: phone,
+            contactPhone: normalizePhone(phone),
             guestPassword: guestPassword || '1234',
           }),
         })
@@ -580,7 +592,7 @@ export function ReservationPage() {
                     <span className="notification-guide-marker pending" aria-hidden="true"><Clock size={14} /></span>
                     <div>
                       <strong>{lang === 'en' ? 'Technician assigned and schedule confirmed' : '기사 배정 및 방문 일정 확정'}</strong>
-                      <p>{lang === 'en' ? 'Once confirmed, the assigned technician and visit time will be sent to your registered phone number by Kakao notification or SMS.' : '확정되면 담당 기사와 방문 일시를 입력하신 연락처로 알림톡 또는 문자로 보내드립니다.'}</p>
+                      <p>{lang === 'en' ? 'Once confirmed, the assigned technician and visit time will be sent to your registered phone number by SMS.' : '확정되면 담당 기사와 방문 일시를 입력하신 연락처로 문자로 보내드립니다.'}</p>
                     </div>
                   </li>
                 </ol>

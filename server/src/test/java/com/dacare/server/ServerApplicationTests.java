@@ -1,7 +1,11 @@
 package com.dacare.server;
 
+import com.dacare.server.service.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:dacare;MODE=MariaDB;DB_CLOSE_DELAY=-1",
@@ -14,17 +18,25 @@ import org.springframework.boot.test.context.SpringBootTest;
         "app.jwt.expiration=PT8H",
         "app.admin.email=admin@test.local",
         "app.admin.password=test-admin-password",
+        "app.demo-data.enabled=true",
         "app.slack.webhook-url=",
         "app.solapi.api-key=",
         "app.solapi.api-secret=",
-        "app.solapi.sender=",
-        "app.solapi.kakao-pf-id=",
-        "app.solapi.kakao-template-id="
+        "app.solapi.sender="
 })
 class ServerApplicationTests {
 
+  @Autowired
+  private AuthService auth;
+
   @Test
   void contextLoads() {
+  }
+
+  @Test
+  void demoAccountsCanLogIn() {
+    assertFalse(auth.login("demo@dacare.com", "password1234").isBlank());
+    assertFalse(auth.login("admin@dacare.com", "admin1234").isBlank());
   }
 
 }

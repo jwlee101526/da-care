@@ -32,7 +32,7 @@ export function AuthPage({ signup = false }: { signup?: boolean }) {
   }
 
   const fillAdminDemo = () => {
-    setEmail('admin@decare.com')
+    setEmail('admin@dacare.com')
     setPassword('admin1234')
     setError('')
   }
@@ -96,7 +96,7 @@ export function AuthPage({ signup = false }: { signup?: boolean }) {
                     {lang === 'en' ? 'Customer: demo@dacare.com' : '고객 계정 자동 입력 (demo@dacare.com)'}
                   </button>
                   <button type="button" className="demo-btn admin" onClick={fillAdminDemo}>
-                    {lang === 'en' ? 'Admin: admin@decare.com' : '관리자 계정 자동 입력 (admin@decare.com)'}
+                    {lang === 'en' ? 'Admin: admin@dacare.com' : '관리자 계정 자동 입력 (admin@dacare.com)'}
                   </button>
                 </div>
               </>

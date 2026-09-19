@@ -8,6 +8,8 @@ import java.util.Arrays;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    private static final String[] DEFAULT_DEVELOPMENT_ORIGINS = { "http://localhost:3000", "http://localhost:5173" };
+
     @Value("${app.cors.allowed-origins:}")
     private String allowedOrigins;
 
@@ -22,7 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .map(String::trim)
                 .filter(origin -> !origin.isBlank())
                 .toArray(String[]::new);
-        if (origins.length == 0) return;
+        if (origins.length == 0) origins = DEFAULT_DEVELOPMENT_ORIGINS;
         registry.addMapping("/api/**")
                 .allowedOrigins(origins)
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")

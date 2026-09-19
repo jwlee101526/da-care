@@ -206,7 +206,7 @@ export function ReservationsPage({ onOpenReservation }: ReservationsPageProps) {
                   {item.status === 'CONFIRMED' && (
                     <section className="reservation-confirmed-notice" aria-label={lang === 'en' ? 'Reservation notification' : '예약 알림 안내'}>
                       <Bell size={18} aria-hidden="true" />
-                      <p>{lang === 'en' ? 'Your technician assignment and confirmed visit time will be delivered to your registered phone number by Kakao notification or SMS.' : '담당 기사 배정과 확정 방문 일시는 등록된 연락처로 알림톡 또는 문자 안내를 받게 됩니다.'}</p>
+                      <p>{lang === 'en' ? 'Your technician assignment and confirmed visit time will be delivered to your registered phone number by SMS.' : '담당 기사 배정과 확정 방문 일시는 등록된 연락처로 문자 안내를 받게 됩니다.'}</p>
                     </section>
                   )}
 

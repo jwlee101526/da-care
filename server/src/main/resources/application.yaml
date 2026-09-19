@@ -51,7 +51,5 @@ app:
     api-key: ${SOLAPI_API_KEY:}
     api-secret: ${SOLAPI_API_SECRET:}
     sender: ${SOLAPI_SENDER:}
-    kakao-pf-id: ${SOLAPI_KAKAO_PF_ID:}
-    kakao-template-id: ${SOLAPI_KAKAO_TEMPLATE_ID:}
   web:
     port: ${WEB_PORT:3000}

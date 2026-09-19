@@ -24,6 +24,15 @@ public class AuthService {
         }
         if (!demoDataEnabled) return;
         String demoCustomerEmail = "demo@dacare.com";
+        String demoAdminEmail = "admin@dacare.com";
+        AppUser demoAdmin = users.findByEmail(demoAdminEmail).orElse(null);
+        if (demoAdmin == null) {
+            users.save(new AppUser(demoAdminEmail, encoder.encode("admin1234"), Role.ADMIN));
+        } else {
+            demoAdmin.updatePassword(encoder.encode("admin1234"));
+            demoAdmin.updateRole(Role.ADMIN);
+            users.save(demoAdmin);
+        }
         AppUser demoUser = users.findByEmail(demoCustomerEmail).orElse(null);
         if (demoUser == null) {
             AppUser saved = users.save(new AppUser(demoCustomerEmail, encoder.encode("password1234"), Role.CUSTOMER));
