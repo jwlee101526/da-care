@@ -14,4 +14,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AuthValue>(() => ({ token, role: roleOf(token), login: async (email, password) => save((await api<{ accessToken: string }>('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) })).accessToken), signup: async data => save((await api<{ accessToken: string }>('/api/auth/signup', { method: 'POST', body: JSON.stringify(data) })).accessToken), logout: () => { localStorage.removeItem(key); setToken(null) } }), [token])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
+// 컨텍스트 hook은 Provider와 동일 모듈에서 공개한다.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() { const value = useContext(AuthContext); if (!value) throw new Error('AuthProvider가 필요합니다.'); return value }

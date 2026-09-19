@@ -1,0 +1,67 @@
+CREATE TABLE app_users (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    email VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT uk_app_users_email UNIQUE (email)
+);
+
+CREATE TABLE customer (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    phone VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT uk_customer_user UNIQUE (user_id),
+    CONSTRAINT fk_customer_user FOREIGN KEY (user_id) REFERENCES app_users (id)
+);
+
+CREATE TABLE engineer (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    phone VARCHAR(255) NOT NULL,
+    specialty VARCHAR(255) NOT NULL,
+    region VARCHAR(255) NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE manual_import (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    source VARCHAR(255) NOT NULL,
+    imported_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT uk_manual_import_source UNIQUE (source)
+);
+
+CREATE TABLE reservation (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    customer_id BIGINT NULL,
+    engineer_id BIGINT NULL,
+    device_type VARCHAR(255) NOT NULL,
+    symptom_description VARCHAR(2000) NOT NULL,
+    visit_address VARCHAR(255) NOT NULL,
+    preferred_at DATETIME(6) NOT NULL,
+    confirmed_at DATETIME(6) NULL,
+    contact_name VARCHAR(255) NULL,
+    contact_phone VARCHAR(255) NULL,
+    guest_password_hash VARCHAR(100) NULL,
+    status VARCHAR(20) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_reservation_customer FOREIGN KEY (customer_id) REFERENCES customer (id),
+    CONSTRAINT fk_reservation_engineer FOREIGN KEY (engineer_id) REFERENCES engineer (id)
+);
+
+CREATE TABLE notification_history (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    reservation_id BIGINT NOT NULL,
+    channel VARCHAR(255) NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    message VARCHAR(2000) NOT NULL,
+    failure_reason VARCHAR(255) NULL,
+    created_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_notification_history_reservation FOREIGN KEY (reservation_id) REFERENCES reservation (id)
+);

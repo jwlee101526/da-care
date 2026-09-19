@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -7,8 +7,8 @@ import type { Engineer, Reservation } from '../lib/api'
 
 export function AdminPage() {
   const { token, logout } = useAuth(); const [engineers, setEngineers] = useState<Engineer[]>([]); const [reservations, setReservations] = useState<Reservation[]>([]); const [error, setError] = useState(''); const [notice, setNotice] = useState(''); const [submitting, setSubmitting] = useState(false)
-  const load = () => Promise.all([api<Engineer[]>('/api/admin/engineers', {}, token), api<Reservation[]>('/api/admin/reservations', {}, token)]).then(([e, r]) => { setEngineers(e); setReservations(r) }).catch(e => setError(e instanceof ApiError ? e.message : '관리자 정보를 불러오지 못했습니다.'))
-  useEffect(() => { void load() }, [token])
+  const load = useCallback(() => Promise.all([api<Engineer[]>('/api/admin/engineers', {}, token), api<Reservation[]>('/api/admin/reservations', {}, token)]).then(([e, r]) => { setEngineers(e); setReservations(r) }).catch(e => setError(e instanceof ApiError ? e.message : '관리자 정보를 불러오지 못했습니다.')), [token])
+  useEffect(() => { void load() }, [load])
   async function addEngineer(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const form = new FormData(event.currentTarget); setSubmitting(true); setError(''); setNotice(''); try { await api('/api/admin/engineers', { method: 'POST', body: JSON.stringify(Object.fromEntries(form)) }, token); event.currentTarget.reset(); setNotice('기사가 등록되었습니다.'); await load() } catch (e) { setError(e instanceof ApiError ? e.message : '기사 등록에 실패했습니다.') } finally { setSubmitting(false) } }
   async function confirm(id: number, form: HTMLFormElement) { const data = new FormData(form); try { await api(`/api/admin/reservations/${id}/confirmation`, { method: 'PATCH', body: JSON.stringify({ engineerId: Number(data.get('engineerId')), confirmedAt: data.get('confirmedAt') }) }, token); load() } catch (e) { setError(e instanceof ApiError ? e.message : '예약 확정에 실패했습니다.') } }
   async function change(id: number, action: 'cancel' | 'complete') { try { await api(`/api/admin/reservations/${id}/${action}`, { method: 'PATCH' }, token); load() } catch (e) { setError(e instanceof ApiError ? e.message : '상태 변경에 실패했습니다.') } }

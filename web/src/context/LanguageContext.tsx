@@ -59,6 +59,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   )
 }
 
+// 컨텍스트 hook은 Provider와 동일 모듈에서 공개한다.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLanguage(): LanguageContextValue {
   const context = useContext(LanguageContext)
   if (!context) {

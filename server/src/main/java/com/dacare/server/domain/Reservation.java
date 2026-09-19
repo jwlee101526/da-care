@@ -3,6 +3,8 @@ package com.dacare.server.domain;
 import jakarta.persistence.*;
 import java.time.*;
 import lombok.*;
+import java.sql.Types;
+import org.hibernate.annotations.JdbcTypeCode;
 
 @Entity @Getter @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Reservation {
@@ -18,7 +20,7 @@ public class Reservation {
     private String contactPhone;
     @Column(length = 100) private String guestPasswordHash;
     public void setContact(String name, String phone) { this.contactName = name; this.contactPhone = phone; }
-    @Enumerated(EnumType.STRING) @Column(nullable = false) private ReservationStatus status;
+    @Enumerated(EnumType.STRING) @JdbcTypeCode(Types.VARCHAR) @Column(nullable = false, length = 20) private ReservationStatus status;
     @Column(nullable = false, updatable = false) private LocalDateTime createdAt = LocalDateTime.now();
     public Reservation(Customer customer, String deviceType, String symptomDescription, String visitAddress, LocalDateTime preferredAt) { this.customer = customer; this.deviceType = deviceType; this.symptomDescription = symptomDescription; this.visitAddress = visitAddress; this.preferredAt = preferredAt; this.status = ReservationStatus.PENDING; }
     public Reservation(String deviceType, String symptomDescription, String visitAddress, LocalDateTime preferredAt, String contactName, String contactPhone, String guestPasswordHash) { this.customer = null; this.deviceType = deviceType; this.symptomDescription = symptomDescription; this.visitAddress = visitAddress; this.preferredAt = preferredAt; this.contactName = contactName; this.contactPhone = contactPhone; this.guestPasswordHash = guestPasswordHash; this.status = ReservationStatus.PENDING; }

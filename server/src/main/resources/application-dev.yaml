@@ -1,7 +1,16 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+app:
+  demo-data:
+    enabled: true
+
 springdoc:
   api-docs:
     enabled: true
 
 scalar:
   enabled: true
-  path: /scalar
+  path: /docs

@@ -2169,6 +2169,96 @@ h2 { font-size: 34px; letter-spacing: -.045em; line-height: 1.35; font-weight: 6
   text-align: left;
 }
 
+.reservation-notification-guide {
+  margin: 0 0 28px;
+  padding: 20px;
+  text-align: left;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.notification-guide-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: #2457d6;
+}
+
+.notification-guide-heading h3 {
+  margin: 0;
+  color: #182946;
+  font-size: 15px;
+}
+
+.notification-guide-heading p {
+  max-width: none;
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.notification-guide-list {
+  display: grid;
+  gap: 16px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notification-guide-list li {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.notification-guide-marker {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: #2457d6;
+  background: #eaf2ff;
+  border-radius: 50%;
+}
+
+.notification-guide-marker.pending {
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+.notification-guide-list strong {
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.notification-guide-list p {
+  max-width: none;
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.reservation-confirmed-notice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  color: #234a9d;
+  background: #f3f7ff;
+  border: 1px solid #d8e5ff;
+  border-radius: 10px;
+}
+
+.reservation-confirmed-notice p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .summary-row {
   display: flex;
   align-items: center;

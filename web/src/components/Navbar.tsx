@@ -10,6 +10,34 @@ interface NavbarProps {
   onOpenChat: () => void
 }
 
+interface LanguageSelectorProps {
+  lang: 'ko' | 'en'
+  setLang: (lang: 'ko' | 'en') => void
+}
+
+function LanguageSelector({ lang, setLang }: LanguageSelectorProps) {
+  return (
+    <div className="lang-toggle" role="group" aria-label="Language selector">
+      <button
+        type="button"
+        className={`lang-btn ${lang === 'ko' ? 'active' : ''}`}
+        onClick={() => setLang('ko')}
+        aria-pressed={lang === 'ko'}
+      >
+        KO
+      </button>
+      <button
+        type="button"
+        className={`lang-btn ${lang === 'en' ? 'active' : ''}`}
+        onClick={() => setLang('en')}
+        aria-pressed={lang === 'en'}
+      >
+        EN
+      </button>
+    </div>
+  )
+}
+
 export function Navbar({ onOpenReservation, onOpenChat }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { lang, setLang, t } = useLanguage()
@@ -48,27 +76,6 @@ export function Navbar({ onOpenReservation, onOpenChat }: NavbarProps) {
     navigate(homePath)
   }
 
-  const LanguageSelector = () => (
-    <div className="lang-toggle" role="group" aria-label="Language selector">
-      <button
-        type="button"
-        className={`lang-btn ${lang === 'ko' ? 'active' : ''}`}
-        onClick={() => setLang('ko')}
-        aria-pressed={lang === 'ko'}
-      >
-        KO
-      </button>
-      <button
-        type="button"
-        className={`lang-btn ${lang === 'en' ? 'active' : ''}`}
-        onClick={() => setLang('en')}
-        aria-pressed={lang === 'en'}
-      >
-        EN
-      </button>
-    </div>
-  )
-
   return (
     <header className="site-header">
       <div className="container header-inner">
@@ -96,7 +103,7 @@ export function Navbar({ onOpenReservation, onOpenChat }: NavbarProps) {
           </button>
         </nav>
         <div className="header-actions">
-          <LanguageSelector />
+          <LanguageSelector lang={lang} setLang={setLang} />
           <Link
             className="button secondary compact"
             to={token ? (role === 'ADMIN' ? '/admin' : (lang === 'en' ? '/en/reservations' : '/reservations')) : (lang === 'en' ? '/en/login' : '/login')}
@@ -183,7 +190,7 @@ export function Navbar({ onOpenReservation, onOpenChat }: NavbarProps) {
           )}
           <div className="mobile-lang-row">
             <span className="mobile-lang-label">Language / 언어</span>
-            <LanguageSelector />
+            <LanguageSelector lang={lang} setLang={setLang} />
           </div>
         </nav>
       )}

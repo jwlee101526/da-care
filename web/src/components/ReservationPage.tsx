@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Check, Clock, AlertCircle, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Check, Clock, AlertCircle, Bell, ChevronRight } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
@@ -72,13 +72,6 @@ export function ReservationPage() {
   const [savedReservation, setSavedReservation] = useState<Reservation | null>(null)
 
   const topRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (initialSelection) {
-      if (initialSelection.device) setSelectedDevice(initialSelection.device)
-      if (initialSelection.symptom) setSymptom(initialSelection.symptom)
-    }
-  }, [initialSelection])
 
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -566,6 +559,32 @@ export function ReservationPage() {
                   </div>
                 </div>
               )}
+
+              <section className="reservation-notification-guide" aria-labelledby="notification-guide-title">
+                <div className="notification-guide-heading">
+                  <Bell size={20} aria-hidden="true" />
+                  <div>
+                    <h3 id="notification-guide-title">{lang === 'en' ? 'What happens next' : '이후 진행 안내'}</h3>
+                    <p>{lang === 'en' ? 'We will keep you informed as the reservation progresses.' : '예약 진행 단계에 맞춰 필요한 내용을 안내해 드립니다.'}</p>
+                  </div>
+                </div>
+                <ol className="notification-guide-list">
+                  <li>
+                    <span className="notification-guide-marker" aria-hidden="true"><Check size={14} /></span>
+                    <div>
+                      <strong>{lang === 'en' ? 'Request received' : '예약 접수 완료'}</strong>
+                      <p>{lang === 'en' ? 'Our operations team reviews your requested schedule and repair details.' : '운영팀에서 희망 일정과 수리 요청 내용을 확인합니다.'}</p>
+                    </div>
+                  </li>
+                  <li>
+                    <span className="notification-guide-marker pending" aria-hidden="true"><Clock size={14} /></span>
+                    <div>
+                      <strong>{lang === 'en' ? 'Technician assigned and schedule confirmed' : '기사 배정 및 방문 일정 확정'}</strong>
+                      <p>{lang === 'en' ? 'Once confirmed, the assigned technician and visit time will be sent to your registered phone number by Kakao notification or SMS.' : '확정되면 담당 기사와 방문 일시를 입력하신 연락처로 알림톡 또는 문자로 보내드립니다.'}</p>
+                    </div>
+                  </li>
+                </ol>
+              </section>
 
               {!token && (
                 <div className="guest-complete-notice">

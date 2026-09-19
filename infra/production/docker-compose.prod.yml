@@ -1,0 +1,51 @@
+services:
+  gateway:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    env_file:
+      - ./deploy.env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - web
+
+  mariadb:
+    image: mariadb:11.7
+    restart: unless-stopped
+    env_file:
+      - ./app.env
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  server:
+    image: ${SERVER_IMAGE}
+    restart: unless-stopped
+    env_file:
+      - ./app.env
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  web:
+    image: ${WEB_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      - server
+
+volumes:
+  caddy-data:
+  caddy-config:
+  mariadb-data:
