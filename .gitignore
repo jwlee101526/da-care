@@ -2,7 +2,3 @@
 .env
 .env.*
 !.env.example
-.terraform/
-*.tfstate
-*.tfstate.*
-crash.log

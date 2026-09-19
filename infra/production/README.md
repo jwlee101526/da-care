@@ -1,13 +1,13 @@
-# 운영 VM 런타임
+# 단일 운영 VM 배포
 
-Terraform cloud-init이 이 디렉터리의 파일을 `/opt/dacare/runtime`과 `/opt/dacare/bin`에 설치한다.
+OCI VM 한 대에서 Docker Compose를 실행한다. `production` 브랜치 push 시 GitHub Actions가 테스트, 이미지 발행, SSH 배포를 순서대로 수행한다.
 
-Vault의 단일 Secret은 dotenv 형식이며 다음 값을 포함한다.
+GitHub `production` Environment Secret `APP_ENV`에는 아래 dotenv 전체를 저장한다.
 
 ```dotenv
-APP_DOMAIN=staging.example.com
+APP_DOMAIN=example.com
 GHCR_USERNAME=github-user
-GHCR_TOKEN=ghp_read_packages_only
+GHCR_TOKEN=github_pat_read_packages_only
 MARIADB_DATABASE=dacare
 MARIADB_USER=dacare
 MARIADB_PASSWORD=replace-me
@@ -26,8 +26,7 @@ SOLAPI_API_SECRET=
 SOLAPI_SENDER=
 SOLAPI_KAKAO_PF_ID=
 SOLAPI_KAKAO_TEMPLATE_ID=
-CORS_ALLOWED_ORIGINS=https://staging.example.com
-OCI_BACKUP_BUCKET=dacare-staging-backups
+CORS_ALLOWED_ORIGINS=https://example.com
 ```
 
-Secret 값은 Terraform, Git 저장소, Actions 로그에 넣지 않는다. VM은 Instance Principal로만 Secret bundle과 백업 버킷에 접근한다.
+VM에는 Ubuntu ARM 이미지와 SSH public key만 설정한다. Docker와 운영 파일은 첫 배포 때 GitHub Actions가 설치한다. DB는 Docker volume에만 저장하며 외부 포트를 열지 않는다.

@@ -10,32 +10,24 @@ readonly SERVER_IMAGE="$1"
 readonly WEB_IMAGE="$2"
 readonly APP_DIR=/opt/dacare
 readonly RUNTIME_DIR="$APP_DIR/runtime"
-readonly VAULT_SECRET_OCID_FILE="$APP_DIR/vault-secret-ocid"
-
-if [[ ! -r "$VAULT_SECRET_OCID_FILE" ]]; then
-  echo "Vault secret OCID가 설정되지 않았습니다." >&2
+if [[ ! -r "$RUNTIME_DIR/app.env" ]]; then
+  echo "app.env가 설정되지 않았습니다." >&2
   exit 65
 fi
 
-mkdir -p "$RUNTIME_DIR"
-NEXT_ENV="$(mktemp "$RUNTIME_DIR/app.env.XXXXXX")"
-cleanup() { rm -f "$NEXT_ENV"; }
-trap cleanup EXIT
+read_env() {
+  sed -n "s/^$1=//p" "$RUNTIME_DIR/app.env" | head -n 1
+}
 
-oci secrets secret-bundle get \
-  --auth instance_principal \
-  --secret-id "$(<"$VAULT_SECRET_OCID_FILE")" \
-  --query 'data."secret-bundle-content".content' \
-  --raw-output | base64 --decode > "$NEXT_ENV"
-
-set -a
-source "$NEXT_ENV"
-set +a
-: "${GHCR_USERNAME:?GHCR_USERNAME is required in Vault secret}"
-: "${GHCR_TOKEN:?GHCR_TOKEN is required in Vault secret}"
-: "${APP_DOMAIN:?APP_DOMAIN is required in Vault secret}"
+GHCR_USERNAME="$(read_env GHCR_USERNAME)"
+GHCR_TOKEN="$(read_env GHCR_TOKEN)"
+APP_DOMAIN="$(read_env APP_DOMAIN)"
+: "${GHCR_USERNAME:?GHCR_USERNAME이 필요합니다}"
+: "${GHCR_TOKEN:?GHCR_TOKEN이 필요합니다}"
+: "${APP_DOMAIN:?APP_DOMAIN이 필요합니다}"
 printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GHCR_USERNAME" --password-stdin
-grep -vE '^(GHCR_USERNAME|GHCR_TOKEN)=' "$NEXT_ENV" > "$RUNTIME_DIR/app.env"
+grep -vE '^(GHCR_USERNAME|GHCR_TOKEN)=' "$RUNTIME_DIR/app.env" > "$RUNTIME_DIR/app.env.next"
+mv "$RUNTIME_DIR/app.env.next" "$RUNTIME_DIR/app.env"
 chmod 600 "$RUNTIME_DIR/app.env"
 
 DEPLOY_ENV="$RUNTIME_DIR/deploy.env"
