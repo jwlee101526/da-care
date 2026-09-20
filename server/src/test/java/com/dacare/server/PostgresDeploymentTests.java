@@ -27,6 +27,8 @@ import static org.junit.jupiter.api.Assertions.*;
         "spring.ai.vectorstore.pgvector.dimensions=1536",
         "spring.ai.vectorstore.pgvector.distance-type=COSINE_DISTANCE",
         "OPENAI_API_KEY=",
+        "management.endpoint.health.probes.enabled=true",
+        "management.endpoint.health.group.readiness.include=readinessState,db",
         "app.demo-data.enabled=false"
 })
 class PostgresDeploymentTests {
@@ -53,5 +55,8 @@ class PostgresDeploymentTests {
         }
         var response = client.send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api/admin/reservations")).build(), HttpResponse.BodyHandlers.ofString());
         assertTrue(response.statusCode() == 401 || response.statusCode() == 403);
+        var health = client.send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/actuator/health/readiness")).build(), HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, health.statusCode());
+        assertTrue(health.body().contains("UP"));
     }
 }

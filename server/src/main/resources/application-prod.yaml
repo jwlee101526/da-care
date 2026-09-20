@@ -11,6 +11,15 @@ server:
   port: ${PORT:8080}
   forward-headers-strategy: framework
 
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+
 springdoc:
   api-docs:
     enabled: false

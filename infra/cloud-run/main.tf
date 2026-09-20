@@ -52,7 +52,7 @@ resource "google_cloud_run_v2_service" "production" {
         timeout_seconds       = 5
         failure_threshold     = 24
         http_get {
-          path = "/actuator/health"
+          path = "/actuator/health/readiness"
           port = 8080
         }
       }
