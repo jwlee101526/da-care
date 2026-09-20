@@ -24,6 +24,22 @@ jobs:
 
   server-test:
     runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_DB: dacare_test
+          POSTGRES_USER: dacare
+          POSTGRES_PASSWORD: ci-test-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dacare -d dacare_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_POSTGRES_URL: jdbc:postgresql://localhost:5432/dacare_test
     defaults:
       run:
         working-directory: server

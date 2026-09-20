@@ -1,0 +1,13 @@
+.git
+.env
+.env.*
+.deployment
+docs
+infra
+**/.terraform
+**/*.tfstate*
+**/node_modules
+**/dist
+**/.gradle
+**/build
+gha-creds-*.json

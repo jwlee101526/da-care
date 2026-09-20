@@ -2,6 +2,14 @@ spring:
   config:
     activate:
       on-profile: prod
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 0
+      connection-timeout: 60000
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
 
 springdoc:
   api-docs:
@@ -12,4 +20,4 @@ scalar:
 
 app:
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:}

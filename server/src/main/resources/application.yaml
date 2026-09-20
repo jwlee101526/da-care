@@ -5,6 +5,8 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+  flyway:
+    locations: classpath:db/postgresql
   jpa:
     hibernate:
       ddl-auto: validate
@@ -22,9 +24,9 @@ spring:
       chat:
         reasoning-effort: low
     vectorstore:
-      mariadb:
+      pgvector:
         initialize-schema: true
-        distance-type: COSINE
+        distance-type: COSINE_DISTANCE
         dimensions: 1536
 
 springdoc:
