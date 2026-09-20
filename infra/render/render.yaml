@@ -44,7 +44,7 @@ services:
     runtime: static
     rootDir: web
     buildCommand: npx --yes pnpm@10.17.1 install --frozen-lockfile && npx --yes pnpm@10.17.1 run build
-    staticPublishPath: ./web/dist
+    staticPublishPath: ./dist
     envVars:
       - key: VITE_API_BASE_URL
         value: https://da-care-api.onrender.com
