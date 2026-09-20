@@ -8,11 +8,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:h2:mem:dacare;MODE=MariaDB;DB_CLOSE_DELAY=-1",
+        "spring.datasource.url=jdbc:h2:mem:dacare;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
         "spring.datasource.username=sa",
         "spring.datasource.password=",
         "spring.jpa.hibernate.ddl-auto=create-drop",
-        "spring.autoconfigure.exclude=org.springframework.ai.vectorstore.mariadb.autoconfigure.MariaDbStoreAutoConfiguration",
+        "spring.autoconfigure.exclude=org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration",
         "spring.ai.openai.api-key=test-key",
         "app.jwt.secret=test-secret-that-is-long-enough-for-hmac-signing-key",
         "app.jwt.expiration=PT8H",

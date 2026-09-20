@@ -22,9 +22,9 @@ spring:
       chat:
         reasoning-effort: low
     vectorstore:
-      mariadb:
+      pgvector:
         initialize-schema: true
-        distance-type: COSINE
+        distance-type: COSINE_DISTANCE
         dimensions: 1536
 
 springdoc:
