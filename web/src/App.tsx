@@ -29,7 +29,7 @@ function LandingContent({
   return (
     <main id="main">
       <BrandHeroSection />
-      <HeroSection onOpenReservation={() => onOpenReservation()} onOpenChat={onOpenChat} />
+      <HeroSection />
       <ServiceSection onSelectCategory={onOpenReservation} />
       <OrderStatusSection />
       <FaqSection />
