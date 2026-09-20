@@ -19,7 +19,7 @@ export const en: LocaleDict = {
   },
   hero: {
     ariaLabel: 'DA-CARE service banners',
-    tabs: ['On-Site Inspection', 'Service Scope', 'AI Smart Diagnosis'],
+    tabs: ['AI Smart Diagnosis', 'Service Scope', 'On-Site Inspection'],
     slide1: {
       eyebrow: 'From Smart Devices to Home Appliances',
       title1: 'Device Trouble?',
@@ -69,8 +69,8 @@ export const en: LocaleDict = {
     eyebrow: 'HOW IT WORKS',
     title1: 'Complex Issues,',
     title2: 'Simple Beginnings.',
-    desc: 'From initial symptom check to professional on-site visit.\nHere is how we deliver seamless care.',
-    note: 'This demo lets you explore the symptom check and booking flow. No real visit or technician dispatch will occur.',
+    desc: 'From checking symptoms to requesting an on-site visit,\nsee how DA-CARE takes care of your device.',
+    note: 'This demo lets you explore the flow from symptom entry to visit request. No real scheduling or technician visit will occur.',
     steps: [
       { title: 'Check Symptoms', text: 'Select your device type and summarize the issues.' },
       { title: 'Request Visit', text: 'Provide your preferred service address, date, and time.' },
@@ -84,24 +84,24 @@ export const en: LocaleDict = {
     intro: 'Helpful details to review before booking.',
     items: [
       {
-        question: 'Can I make an actual reservation on this screen?',
-        answer: 'This is a simulation screen demonstrating the service flow. Your inputs are not transmitted to a server, and no real technician booking, dispatch, or SMS confirmation will occur.',
+        question: 'How do I book an on-site repair visit?',
+        answer: 'Choose the device and describe the issue, then enter your service address and preferred schedule. A service representative will review your request and follow up with visit availability and next steps.',
       },
       {
         question: 'Which devices can I choose from?',
-        answer: 'We cover smartphones, tablets, laptops, and desktop PCs, as well as major home appliances such as air conditioners, washers, and refrigerators. Selecting any category opens a pre-filled booking demo.',
+        answer: 'We support smartphones and tablets, laptops and PCs, smart TVs, game consoles, air conditioners, washers, refrigerators, kitchen appliances, and vacuum cleaners. For other devices, please select Other Electronics.',
       },
       {
         question: 'Where can I check estimated repair costs?',
-        answer: 'Pricing estimates are not provided in this demo. Actual repair costs depend on the specific device model, fault severity, and required replacement parts following on-site diagnostics.',
+        answer: 'Repair costs vary by device model, cause of failure, required parts, and the scope of work. After inspecting the device, we will explain the recommended repair and expected cost.',
       },
       {
-        question: 'Can I perform DIY repairs based on self-diagnosis results?',
-        answer: 'Self-diagnosis responses are simulated sample guides, not official engineering or manufacturer analyses. Please do not disassemble or perform self-repairs based on these mockups.',
+        question: 'How does AI self-diagnosis work?',
+        answer: 'Enter the symptoms to receive possible causes and initial checks. If the issue remains unresolved or requires disassembly, request an on-site inspection from a qualified technician.',
       },
       {
-        question: 'Is my personal information stored?',
-        answer: 'Your entries are strictly temporary for this interactive demo and are never stored on servers or browser storage. All inputs reset upon closing the modal. Feel free to use mock sample data.',
+        question: 'What should I prepare before the visit?',
+        answer: 'Note the device model, when the issue started, and any error messages or unusual sounds. Photos or videos showing the problem can also help us understand the symptoms more quickly.',
       },
     ],
   },
@@ -131,7 +131,7 @@ export const en: LocaleDict = {
     guideTitle: 'Before You Book',
     guide1: 'Having your model name and specific symptoms ready\nhelps expedite technical consultation.',
     guide2: 'Repair estimates may vary depending on device condition\nand required replacement parts.',
-    disclaimer: 'This website is an interactive prototype and does not accept live bookings.',
+    disclaimer: 'DA-CARE keeps your everyday devices working comfortably, from smart gadgets to home appliances.',
     copyright: '© 2026 DA-CARE',
   },
   modal: {
