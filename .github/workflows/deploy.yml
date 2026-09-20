@@ -3,6 +3,8 @@ name: Deploy application
 on:
   push:
     branches: [production]
+  pull_request:
+    branches: [production]
   workflow_dispatch:
 
 concurrency:
@@ -46,6 +48,7 @@ jobs:
         working-directory: web
 
   build-and-deploy:
+    if: github.event_name != 'pull_request'
     needs: [secret-scan, verify]
     runs-on: ubuntu-24.04
     environment: production
