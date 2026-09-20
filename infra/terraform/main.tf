@@ -70,6 +70,11 @@ resource "oci_core_subnet" "production" {
 }
 
 resource "oci_core_instance" "production" {
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [source_details[0].source_id]
+  }
+
   availability_domain = data.oci_identity_availability_domains.available.availability_domains[0].name
   compartment_id      = var.compartment_id
   display_name        = "dacare-production"
@@ -119,6 +124,10 @@ data "oci_core_private_ips" "production" {
 }
 
 resource "oci_core_public_ip" "production" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   compartment_id = var.compartment_id
   display_name   = "dacare-production-ip"
   lifetime       = "RESERVED"
