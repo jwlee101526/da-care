@@ -4,6 +4,7 @@ variable "region" {
   default = "asia-northeast3"
 }
 variable "image" { type = string }
+variable "revision" { type = string }
 
 resource "google_cloud_run_v2_service" "production" {
   name                 = "dacare"
@@ -36,6 +37,10 @@ resource "google_cloud_run_v2_service" "production" {
       env {
         name  = "SPRING_PROFILES_ACTIVE"
         value = "prod"
+      }
+      env {
+        name  = "APP_REVISION"
+        value = var.revision
       }
       env {
         name = "SPRING_APPLICATION_JSON"

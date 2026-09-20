@@ -28,6 +28,7 @@ jobs:
       TF_IN_AUTOMATION: 'true'
       TF_VAR_project_id: ${{ vars.GCP_PROJECT_ID }}
       TF_VAR_region: ${{ vars.GCP_REGION || 'asia-northeast3' }}
+      TF_VAR_revision: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
       - name: 최초 설정 확인
