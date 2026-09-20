@@ -43,7 +43,7 @@ services:
     name: da-care-web
     runtime: static
     rootDir: web
-    buildCommand: corepack enable && corepack prepare pnpm@10.17.1 --activate && pnpm install --frozen-lockfile && pnpm run build
+    buildCommand: npx --yes pnpm@10.17.1 install --frozen-lockfile && npx --yes pnpm@10.17.1 run build
     staticPublishPath: ./web/dist
     envVars:
       - key: VITE_API_BASE_URL
