@@ -101,6 +101,9 @@ resource "oci_core_instance" "production" {
         - curl
       runcmd:
         - systemctl enable --now docker
+        - sed -ri 's/^#?PasswordAuthentication .*/PasswordAuthentication no/' /etc/ssh/sshd_config
+        - sed -ri 's/^#?PermitRootLogin .*/PermitRootLogin no/' /etc/ssh/sshd_config
+        - systemctl reload ssh
     CLOUD_INIT
     )
   }
