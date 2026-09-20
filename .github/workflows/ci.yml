@@ -14,6 +14,9 @@ permissions:
 jobs:
   secret-scan:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,9 +24,26 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: 'false'
 
   server-test:
     runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_DB: dacare_test
+          POSTGRES_USER: dacare
+          POSTGRES_PASSWORD: ci-test-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dacare -d dacare_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_POSTGRES_URL: jdbc:postgresql://localhost:5432/dacare_test
     defaults:
       run:
         working-directory: server
@@ -54,3 +74,19 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm build
+
+  deployment-check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.12.2'
+          terraform_wrapper: false
+      - run: |
+          terraform -chdir=infra/cloud-run init -backend=false -input=false -lockfile=readonly
+          terraform -chdir=infra/cloud-run fmt -check
+          terraform -chdir=infra/cloud-run validate
+          bash -n infra/cloud-run/bootstrap.sh
+          python3 -m py_compile infra/cloud-run/configure-secrets.py
+      - run: docker build --tag dacare-check .
