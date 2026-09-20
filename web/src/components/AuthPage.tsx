@@ -7,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext'
 import dacareLogo from '../assets/brand/dacare-logo.svg'
 
 export function AuthPage({ signup = false }: { signup?: boolean }) {
+  const showDemoAccount = import.meta.env.DEV
   const auth = useAuth()
   const { lang } = useLanguage()
   const navigate = useNavigate()
@@ -78,41 +79,42 @@ export function AuthPage({ signup = false }: { signup?: boolean }) {
             </p>
           </div>
 
-          {/* Demo Account Callout */}
-          <div className="demo-account-box">
-            <div className="demo-account-header">
-              <span className="demo-badge">DEMO</span>
-              <strong>{lang === 'en' ? 'Quick Demo Login / Autofill' : '체험용 데모 계정 안내'}</strong>
+          {showDemoAccount && (
+            <div className="demo-account-box">
+              <div className="demo-account-header">
+                <span className="demo-badge">DEMO</span>
+                <strong>{lang === 'en' ? 'Quick Demo Login / Autofill' : '체험용 데모 계정 안내'}</strong>
+              </div>
+              {!signup ? (
+                <>
+                  <p className="demo-account-desc">
+                    {lang === 'en'
+                      ? 'Use pre-registered test accounts for instant access.'
+                      : '등록된 테스트 계정으로 원클릭 로그인을 하실 수 있습니다.'}
+                  </p>
+                  <div className="demo-btn-group">
+                    <button type="button" className="demo-btn customer" onClick={fillCustomerDemo}>
+                      {lang === 'en' ? 'Customer: demo@dacare.com' : '고객 계정 자동 입력 (demo@dacare.com)'}
+                    </button>
+                    <button type="button" className="demo-btn admin" onClick={fillAdminDemo}>
+                      {lang === 'en' ? 'Admin: admin@dacare.com' : '관리자 계정 자동 입력 (admin@dacare.com)'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="demo-account-desc">
+                    {lang === 'en'
+                      ? 'Quickly fill demo registration values for testing.'
+                      : '회원가입 테스트를 위해 샘플 고객 정보를 한 번에 채웁니다.'}
+                  </p>
+                  <button type="button" className="demo-btn customer full" onClick={fillSignupDemo}>
+                    {lang === 'en' ? 'Auto-fill Demo Signup Data' : '샘플 회원 정보 자동 채우기'}
+                  </button>
+                </>
+              )}
             </div>
-            {!signup ? (
-              <>
-                <p className="demo-account-desc">
-                  {lang === 'en'
-                    ? 'Use pre-registered test accounts for instant access.'
-                    : '등록된 테스트 계정으로 원클릭 로그인을 하실 수 있습니다.'}
-                </p>
-                <div className="demo-btn-group">
-                  <button type="button" className="demo-btn customer" onClick={fillCustomerDemo}>
-                    {lang === 'en' ? 'Customer: demo@dacare.com' : '고객 계정 자동 입력 (demo@dacare.com)'}
-                  </button>
-                  <button type="button" className="demo-btn admin" onClick={fillAdminDemo}>
-                    {lang === 'en' ? 'Admin: admin@dacare.com' : '관리자 계정 자동 입력 (admin@dacare.com)'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="demo-account-desc">
-                  {lang === 'en'
-                    ? 'Quickly fill demo registration values for testing.'
-                    : '회원가입 테스트를 위해 샘플 고객 정보를 한 번에 채웁니다.'}
-                </p>
-                <button type="button" className="demo-btn customer full" onClick={fillSignupDemo}>
-                  {lang === 'en' ? 'Auto-fill Demo Signup Data' : '샘플 회원 정보 자동 채우기'}
-                </button>
-              </>
-            )}
-          </div>
+          )}
 
           {error && (
             <div className="form-error" role="alert">
