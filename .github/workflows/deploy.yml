@@ -76,6 +76,7 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/da-care-web:${{ github.sha }}
       - name: 배포 키 설정
+        if: vars.DEPLOY_HOST != ''
         shell: bash
         env:
           SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
@@ -87,12 +88,14 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           printf '%s %s\n' "$DEPLOY_HOST" "$DEPLOY_SSH_HOST_KEY" > ~/.ssh/known_hosts
       - name: 운영 파일 전송
+        if: vars.DEPLOY_HOST != ''
         env:
           DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
           DEPLOY_USER: ${{ vars.DEPLOY_USER }}
         run: |
           scp infra/production/bootstrap.sh infra/production/deploy.sh infra/production/Caddyfile infra/docker/docker-compose.prod.yml "$DEPLOY_USER@$DEPLOY_HOST:/tmp/"
       - name: 운영 런타임 초기화
+        if: vars.DEPLOY_HOST != ''
         env:
           DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
           DEPLOY_USER: ${{ vars.DEPLOY_USER }}
@@ -100,6 +103,7 @@ jobs:
         run: |
           printf '%s' "$APP_ENV" | base64 -w 0 | ssh "$DEPLOY_USER@$DEPLOY_HOST" 'base64 --decode > /tmp/app.env && sudo bash /tmp/bootstrap.sh && sudo install -m 750 /tmp/deploy.sh /opt/dacare/bin/deploy && sudo install -m 644 /tmp/Caddyfile /opt/dacare/runtime/Caddyfile && sudo install -m 644 /tmp/docker-compose.prod.yml /opt/dacare/runtime/docker-compose.yml && sudo install -m 600 /tmp/app.env /opt/dacare/runtime/app.env'
       - name: digest 배포 및 원격 헬스체크
+        if: vars.DEPLOY_HOST != ''
         shell: bash
         env:
           DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
