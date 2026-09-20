@@ -6,6 +6,9 @@ on:
       public_ip:
         description: 운영 VM 공인 IP
         value: ${{ jobs.apply.outputs.public_ip }}
+      recovery_only:
+        description: state 복구만 실행했는지 여부
+        value: ${{ jobs.apply.outputs.recovery_only }}
 
 concurrency:
   group: production-infrastructure
@@ -19,8 +22,11 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       public_ip: ${{ steps.outputs.outputs.public_ip }}
+      recovery_only: ${{ steps.terraform.outputs.recovery_only }}
     env:
       TF_IN_AUTOMATION: 'true'
+      AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
+      AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
     defaults:
       run:
         working-directory: infra/terraform
@@ -39,7 +45,9 @@ jobs:
           printf '%s\n' "$OCI_API_PRIVATE_KEY" > "$RUNNER_TEMP/oci_api_key.pem"
           chmod 600 "$RUNNER_TEMP/oci_api_key.pem"
       - name: Terraform 초기화와 적용
+        id: terraform
         env:
+          TF_RECOVERY_IMPORTS: ${{ vars.TF_RECOVERY_IMPORTS }}
           TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
           TF_STATE_REGION: ${{ vars.OCI_REGION }}
           TF_STATE_NAMESPACE: ${{ vars.TF_STATE_NAMESPACE }}
@@ -76,6 +84,12 @@ jobs:
           terraform init -input=false -backend-config="$RUNNER_TEMP/backend.hcl"
           terraform fmt -check
           terraform validate
+          if [[ -n "$TF_RECOVERY_IMPORTS" ]]; then
+            echo 'recovery_only=true' >> "$GITHUB_OUTPUT"
+            bash recover-state.sh
+            echo 'state 복구 완료. TF_RECOVERY_IMPORTS 변수를 삭제한 뒤에만 일반 배포를 진행하세요.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           terraform plan -input=false -out="$RUNNER_TEMP/production.tfplan"
           terraform show -json "$RUNNER_TEMP/production.tfplan" | jq -e '
             [.resource_changes[]? | select(.change.actions | index("delete"))] | length == 0
@@ -83,10 +97,27 @@ jobs:
           terraform apply -input=false "$RUNNER_TEMP/production.tfplan"
       - name: 운영 IP 전달
         id: outputs
+        if: steps.terraform.outputs.recovery_only != 'true'
         run: |
           public_ip=$(terraform output -raw public_ip)
           echo "public_ip=$public_ip" >> "$GITHUB_OUTPUT"
           printf '운영 공인 IP: %s\n' "$public_ip"
+      - name: 실패한 state 보관
+        if: failure() && hashFiles('infra/terraform/errored.tfstate') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-recovery-${{ github.run_id }}-${{ github.run_attempt }}
+          path: infra/terraform/errored.tfstate
+          retention-days: 3
+          if-no-files-found: error
+      - name: 복구 전 state 보관
+        if: always() && steps.terraform.outputs.recovery_only == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-before-recovery-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/state-before-recovery.tfstate
+          retention-days: 3
+          if-no-files-found: ignore
       - name: 임시 자격증명 정리
         if: always()
         run: rm -f "$RUNNER_TEMP/oci_api_key.pem" "$RUNNER_TEMP/backend.hcl" "$RUNNER_TEMP/production.tfplan"

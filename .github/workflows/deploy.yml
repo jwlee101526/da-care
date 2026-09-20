@@ -23,7 +23,7 @@ jobs:
     secrets: inherit
 
   deploy:
-    if: github.ref == 'refs/heads/production'
+    if: github.ref == 'refs/heads/production' && needs.infrastructure.outputs.recovery_only != 'true'
     needs: infrastructure
     runs-on: ubuntu-24.04
     timeout-minutes: 45
