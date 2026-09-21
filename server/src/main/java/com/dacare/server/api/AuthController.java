@@ -1,6 +1,7 @@
 package com.dacare.server.api;
 
 import com.dacare.server.service.AuthService;
+import com.dacare.server.api.docs.AuthApiDocs;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(path = "/api/auth", version = "1")
-public class AuthController {
+public class AuthController implements AuthApiDocs {
 
   private final AuthService service;
 
@@ -22,28 +23,28 @@ public class AuthController {
   }
 
   @PostMapping("/signup")
-  TokenResponse signup(@Valid @RequestBody SignupRequest request) {
+  public TokenResponse signup(@Valid @RequestBody SignupRequest request) {
     return new TokenResponse(
         service.signup(request.email(), request.password(), request.name(), request.phone(),
             request.address()));
   }
 
   @PostMapping("/login")
-  TokenResponse login(@Valid @RequestBody LoginRequest request) {
+  public TokenResponse login(@Valid @RequestBody LoginRequest request) {
     return new TokenResponse(service.login(request.email(), request.password()));
   }
 
-  record SignupRequest(@NotBlank @Email String email, @Size(min = 8) String password,
+  public record SignupRequest(@NotBlank @Email String email, @Size(min = 8) String password,
                        @NotBlank String name, @Pattern(regexp = "^[0-9-]{9,13}$") String phone,
                        @NotBlank String address) {
 
   }
 
-  record LoginRequest(@NotBlank @Email String email, @NotBlank String password) {
+  public record LoginRequest(@NotBlank @Email String email, @NotBlank String password) {
 
   }
 
-  record TokenResponse(String accessToken) {
+  public record TokenResponse(String accessToken) {
 
   }
 }

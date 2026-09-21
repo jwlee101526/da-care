@@ -1,6 +1,7 @@
 package com.dacare.server.api;
 
 import com.dacare.server.domain.Engineer;
+import com.dacare.server.api.docs.AdminApiDocs;
 import com.dacare.server.repository.EngineerRepository;
 import com.dacare.server.service.ReservationService;
 import jakarta.validation.Valid;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(path = "/api/admin", version = "1")
-public class AdminController {
+public class AdminController implements AdminApiDocs {
 
   private final EngineerRepository engineers;
   private final ReservationService reservations;
@@ -33,18 +34,18 @@ public class AdminController {
   }
 
   @GetMapping("/engineers")
-  List<EngineerResponse> engineers() {
+  public List<EngineerResponse> engineers() {
     return engineers.findAll().stream().map(EngineerResponse::from).toList();
   }
 
   @PostMapping("/engineers")
-  EngineerResponse create(@Valid @RequestBody EngineerRequest request) {
+  public EngineerResponse create(@Valid @RequestBody EngineerRequest request) {
     return EngineerResponse.from(engineers.save(
         new Engineer(request.name(), request.phone(), request.specialty(), request.region())));
   }
 
   @PutMapping("/engineers/{id}")
-  EngineerResponse update(@PathVariable Long id, @Valid @RequestBody EngineerRequest request) {
+  public EngineerResponse update(@PathVariable Long id, @Valid @RequestBody EngineerRequest request) {
     Engineer engineer = engineers.findById(id)
         .orElseThrow(() -> new NoSuchElementException("기사를 찾을 수 없습니다."));
     engineer.update(request.name(), request.phone(), request.specialty(), request.region());
@@ -52,43 +53,43 @@ public class AdminController {
   }
 
   @DeleteMapping("/engineers/{id}")
-  void delete(@PathVariable Long id) {
+  public void delete(@PathVariable Long id) {
     engineers.deleteById(id);
   }
 
   @GetMapping("/reservations")
-  List<ReservationController.ReservationResponse> reservations() {
+  public List<ReservationController.ReservationResponse> reservations() {
     return reservations.all().stream().map(ReservationController.ReservationResponse::from)
         .toList();
   }
 
   @PatchMapping("/reservations/{id}/confirmation")
-  ReservationController.ReservationResponse confirm(@PathVariable Long id,
+  public ReservationController.ReservationResponse confirm(@PathVariable Long id,
       @Valid @RequestBody ConfirmationRequest request) {
     return ReservationController.ReservationResponse.from(
         reservations.confirm(id, request.engineerId(), request.confirmedAt()));
   }
 
   @PatchMapping("/reservations/{id}/complete")
-  ReservationController.ReservationResponse complete(@PathVariable Long id) {
+  public ReservationController.ReservationResponse complete(@PathVariable Long id) {
     return ReservationController.ReservationResponse.from(reservations.complete(id));
   }
 
   @PatchMapping("/reservations/{id}/cancel")
-  ReservationController.ReservationResponse cancel(@PathVariable Long id) {
+  public ReservationController.ReservationResponse cancel(@PathVariable Long id) {
     return ReservationController.ReservationResponse.from(reservations.cancelByAdmin(id));
   }
 
-  record EngineerRequest(@NotBlank String name, @Pattern(regexp = "^[0-9-]{9,13}$") String phone,
+  public record EngineerRequest(@NotBlank String name, @Pattern(regexp = "^[0-9-]{9,13}$") String phone,
                          @NotBlank String specialty, @NotBlank String region) {
 
   }
 
-  record ConfirmationRequest(@NotNull Long engineerId, @NotNull LocalDateTime confirmedAt) {
+  public record ConfirmationRequest(@NotNull Long engineerId, @NotNull LocalDateTime confirmedAt) {
 
   }
 
-  record EngineerResponse(Long id, String name, String phone, String specialty, String region) {
+  public record EngineerResponse(Long id, String name, String phone, String specialty, String region) {
 
     static EngineerResponse from(Engineer engineer) {
       return new EngineerResponse(engineer.getId(), engineer.getName(), engineer.getPhone(),

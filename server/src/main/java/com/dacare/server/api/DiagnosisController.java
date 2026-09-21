@@ -2,6 +2,7 @@ package com.dacare.server.api;
 
 import com.dacare.server.service.DiagnosisService;
 import com.dacare.server.service.DiagnosisService.ConversationTurn;
+import com.dacare.server.api.docs.DiagnosisApiDocs;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,7 +21,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping(path = "/api/diagnosis", version = "1")
-public class DiagnosisController {
+public class DiagnosisController implements DiagnosisApiDocs {
 
   private final DiagnosisService service;
 
@@ -29,7 +30,7 @@ public class DiagnosisController {
   }
 
   @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  SseEmitter stream(@Valid @RequestBody QuestionRequest request, Authentication authentication) {
+  public SseEmitter stream(@Valid @RequestBody QuestionRequest request, Authentication authentication) {
     SseEmitter emitter = new SseEmitter(100_000L);
     CompletableFuture.runAsync(() -> {
       try {
@@ -58,7 +59,7 @@ public class DiagnosisController {
     }
   }
 
-  record QuestionRequest(@NotBlank @Size(max = 2000) String question,
+  public record QuestionRequest(@NotBlank @Size(max = 2000) String question,
                          @Size(max = 12) List<@NotNull @Valid ConversationTurn> history) {
 
   }

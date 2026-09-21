@@ -1,6 +1,7 @@
 package com.dacare.server.api;
 
 import com.dacare.server.domain.Reservation;
+import com.dacare.server.api.docs.ReservationApiDocs;
 import com.dacare.server.service.ReservationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(path = "/api/reservations", version = "1")
-public class ReservationController {
+public class ReservationController implements ReservationApiDocs {
 
   private final ReservationService service;
 
@@ -29,7 +30,7 @@ public class ReservationController {
   }
 
   @PostMapping
-  ReservationResponse create(Authentication authentication,
+  public ReservationResponse create(Authentication authentication,
       @Valid @RequestBody ReservationRequest request) {
     return ReservationResponse.from(
         service.create(authentication.getName(), request.deviceType(), request.symptomDescription(),
@@ -38,7 +39,7 @@ public class ReservationController {
   }
 
   @PostMapping("/guest")
-  ReservationResponse createGuest(@Valid @RequestBody GuestReservationRequest request) {
+  public ReservationResponse createGuest(@Valid @RequestBody GuestReservationRequest request) {
     return ReservationResponse.from(
         service.createGuest(request.deviceType(), request.symptomDescription(),
             request.visitAddress(), request.preferredAt(), request.contactName(),
@@ -46,35 +47,35 @@ public class ReservationController {
   }
 
   @PostMapping("/guest/lookup")
-  ReservationResponse lookupGuest(@Valid @RequestBody GuestLookupRequest request) {
+  public ReservationResponse lookupGuest(@Valid @RequestBody GuestLookupRequest request) {
     return ReservationResponse.from(
         service.findGuest(request.reservationId(), request.contactPhone(),
             request.guestPassword()));
   }
 
   @PatchMapping("/guest/{id}/cancel")
-  ReservationResponse cancelGuest(@PathVariable Long id,
+  public ReservationResponse cancelGuest(@PathVariable Long id,
       @Valid @RequestBody GuestCancelRequest request) {
     return ReservationResponse.from(
         service.cancelGuest(id, request.contactPhone(), request.guestPassword()));
   }
 
   @GetMapping("/me")
-  List<ReservationResponse> mine(Authentication authentication) {
+  public List<ReservationResponse> mine(Authentication authentication) {
     return service.mine(authentication.getName()).stream().map(ReservationResponse::from).toList();
   }
 
   @GetMapping("/{id}")
-  ReservationResponse mineOne(Authentication authentication, @PathVariable Long id) {
+  public ReservationResponse mineOne(Authentication authentication, @PathVariable Long id) {
     return ReservationResponse.from(service.mineOne(authentication.getName(), id));
   }
 
   @PatchMapping("/{id}/cancel")
-  ReservationResponse cancel(Authentication authentication, @PathVariable Long id) {
+  public ReservationResponse cancel(Authentication authentication, @PathVariable Long id) {
     return ReservationResponse.from(service.cancel(authentication.getName(), id));
   }
 
-  record ReservationRequest(@NotBlank @Size(max = 50) String deviceType,
+  public record ReservationRequest(@NotBlank @Size(max = 50) String deviceType,
                             @NotBlank @Size(max = 2000) String symptomDescription,
                             @NotBlank @Size(max = 200) String visitAddress,
                             @NotNull LocalDateTime preferredAt,
@@ -83,7 +84,7 @@ public class ReservationController {
 
   }
 
-  record GuestReservationRequest(@NotBlank @Size(max = 50) String deviceType,
+  public record GuestReservationRequest(@NotBlank @Size(max = 50) String deviceType,
                                  @NotBlank @Size(max = 2000) String symptomDescription,
                                  @NotBlank @Size(max = 200) String visitAddress,
                                  @NotNull LocalDateTime preferredAt,
@@ -93,13 +94,13 @@ public class ReservationController {
 
   }
 
-  record GuestLookupRequest(@NotNull Long reservationId,
+  public record GuestLookupRequest(@NotNull Long reservationId,
                             @NotBlank @Pattern(regexp = "^[0-9-]{9,13}$") String contactPhone,
                             String guestPassword) {
 
   }
 
-  record GuestCancelRequest(@NotBlank @Pattern(regexp = "^[0-9-]{9,13}$") String contactPhone,
+  public record GuestCancelRequest(@NotBlank @Pattern(regexp = "^[0-9-]{9,13}$") String contactPhone,
                             String guestPassword) {
 
   }
