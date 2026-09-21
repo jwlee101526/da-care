@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
-@Tag(name = "관리자", description = "기사 및 예약 운영")
+@Tag(name = "Admin", description = "기사 및 예약 운영 API")
 @SecurityRequirement(name = "bearerAuth")
 public interface AdminApiDocs {
 
