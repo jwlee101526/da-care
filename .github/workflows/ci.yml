@@ -75,18 +75,12 @@ jobs:
       - run: pnpm lint
       - run: pnpm build
 
-  deployment-check:
+  render-config-check:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: '1.12.2'
-          terraform_wrapper: false
       - run: |
-          terraform -chdir=infra/cloud-run init -backend=false -input=false -lockfile=readonly
-          terraform -chdir=infra/cloud-run fmt -check
-          terraform -chdir=infra/cloud-run validate
-          bash -n infra/cloud-run/bootstrap.sh
-          python3 -m py_compile infra/cloud-run/configure-secrets.py
-      - run: docker build --tag dacare-check .
+          test -f infra/render/render.yaml
+          grep -q 'runtime: docker' infra/render/render.yaml
+          grep -q 'runtime: static' infra/render/render.yaml
+      - run: docker build --file server/Dockerfile --tag dacare-server-check server
