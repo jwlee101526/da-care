@@ -6,6 +6,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import java.io.IOException;
 import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -16,12 +17,13 @@ import org.springframework.security.web.*;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 public class SecurityConfig {
     @Bean PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
     @Bean SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
-        return http.csrf(csrf -> csrf.disable()).sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authorizeHttpRequests(a -> a.requestMatchers("/api/auth/**", "/api/diagnosis/**", "/api/reservations/guest/**", "/actuator/health", "/actuator/health/readiness", "/docs", "/docs/**", "/v3/api-docs", "/v3/api-docs/**").permitAll().requestMatchers("/api/admin/**").hasRole("ADMIN").requestMatchers("/api/**", "/actuator/**").authenticated().requestMatchers("/", "/index.html", "/assets/**", "/en", "/ko", "/reserve", "/reservations", "/reservations/new", "/order", "/login", "/signup", "/admin", "/en/reserve", "/en/reservations", "/en/reservations/new", "/en/login", "/en/signup").permitAll().anyRequest().denyAll()).addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();
+        return http.csrf(csrf -> csrf.disable()).cors(withDefaults()).sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authorizeHttpRequests(a -> a.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll().requestMatchers("/api/auth/**", "/api/diagnosis/**", "/api/reservations/guest/**", "/actuator/health", "/actuator/health/readiness", "/docs", "/docs/**", "/v3/api-docs", "/v3/api-docs/**").permitAll().requestMatchers("/api/admin/**").hasRole("ADMIN").requestMatchers("/api/**", "/actuator/**").authenticated().requestMatchers("/", "/index.html", "/assets/**", "/en", "/ko", "/reserve", "/reservations", "/reservations/new", "/order", "/login", "/signup", "/admin", "/en/reserve", "/en/reservations", "/en/reservations/new", "/en/login", "/en/signup").permitAll().anyRequest().denyAll()).addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();
     }
 }
 
