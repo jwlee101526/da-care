@@ -9,7 +9,7 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
-        value: prod
+        value: dev
       - key: SERVER_PORT
         value: "10000"
       - key: DB_URL
@@ -48,6 +48,8 @@ services:
     envVars:
       - key: VITE_API_BASE_URL
         value: https://da-care-api.onrender.com
+      - key: VITE_SHOW_DEMO_ACCOUNT
+        value: "true"
     routes:
       - type: rewrite
         source: /*
