@@ -36,7 +36,7 @@ resource "google_cloud_run_v2_service" "production" {
       }
       env {
         name  = "SPRING_PROFILES_ACTIVE"
-        value = "prod"
+        value = "dev"
       }
       env {
         name  = "APP_REVISION"

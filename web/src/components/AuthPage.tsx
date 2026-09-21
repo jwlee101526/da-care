@@ -7,7 +7,7 @@ import { useLanguage } from '../context/LanguageContext'
 import dacareLogo from '../assets/brand/dacare-logo.svg'
 
 export function AuthPage({ signup = false }: { signup?: boolean }) {
-  const showDemoAccount = import.meta.env.DEV
+  const showDemoAccount = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO_ACCOUNT === 'true'
   const auth = useAuth()
   const { lang } = useLanguage()
   const navigate = useNavigate()

@@ -1,5 +1,7 @@
 FROM node:22-bookworm-slim AS web
 WORKDIR /web
+ARG VITE_SHOW_DEMO_ACCOUNT=false
+ENV VITE_SHOW_DEMO_ACCOUNT=$VITE_SHOW_DEMO_ACCOUNT
 RUN npm install --global pnpm@10.17.1
 COPY web/package.json web/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
