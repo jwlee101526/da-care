@@ -14,19 +14,19 @@ services:
     depends_on:
       - web
 
-  mariadb:
-    image: mariadb:11.7
+  postgres:
+    image: pgvector/pgvector:pg17
     restart: unless-stopped
     env_file:
       - ./app.env
     volumes:
-      - mariadb-data:/var/lib/mysql
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 30s
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 10s
 
   server:
     image: ${SERVER_IMAGE}
@@ -36,7 +36,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
-      mariadb:
+      postgres:
         condition: service_healthy
 
   web:
@@ -48,4 +48,4 @@ services:
 volumes:
   caddy-data:
   caddy-config:
-  mariadb-data:
+  postgres-data:
