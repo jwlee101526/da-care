@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.security.core.Authentication;
 
-@Tag(name = "reservation", description = "회원/비회원 방문 점검 예약 관리 API")
+@Tag(name = "Reservation", description = "회원/비회원 방문 점검 예약 관리 API")
 public interface ReservationApiDocs {
 
   @Operation(summary = "회원 예약 접수", description = "로그인한 회원의 방문 점검 예약을 접수합니다.")
