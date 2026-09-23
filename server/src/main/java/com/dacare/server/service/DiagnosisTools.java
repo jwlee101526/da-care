@@ -58,7 +58,7 @@ public class DiagnosisTools {
     return result;
   }
 
-  @Tool(description = "검색된 매뉴얼에 근거한 점검 카드를 표시합니다. sourceIds에는 searchManuals가 반환한 문서 ID만 전달하세요. 서버가 해당 원문을 근거로 첨부합니다. 근거가 없으면 호출하지 마세요.")
+  @Tool(description = "검색된 매뉴얼에 근거한 점검 안내를 표시합니다. sourceIds에는 searchManuals가 반환한 문서 ID만 전달하세요. 서버가 해당 원문을 근거로 첨부합니다. 근거가 없으면 호출하지 마세요.")
   public synchronized InspectionCard showInspectionCard(
       @ToolParam(description = "사용자에게 표시할 점검 제목") String title,
       DeviceType deviceType,
@@ -96,7 +96,7 @@ public class DiagnosisTools {
     return card;
   }
 
-  @Tool(description = "방문 예약 입력 카드를 준비합니다. 예약을 저장하거나 일정과 기사 배정을 확정하지 않습니다. 기기 분류가 불분명하면 etc를 사용하세요.")
+  @Tool(description = "방문 점검 예약 입력을 준비합니다. 예약을 저장하거나 일정과 기사 배정을 확정하지 않습니다. 기기 분류가 불분명하면 etc를 사용하세요.")
   public synchronized BookingCard prepareReservation(DeviceType deviceType) {
     started("prepareReservation");
     countCall();
@@ -126,7 +126,7 @@ public class DiagnosisTools {
     return card;
   }
 
-  @Tool(description = "사용자가 요청한 실제 서비스 페이지로 이동하는 카드를 표시합니다. 예약 페이지, 예약 내역, 점검 신청 현황은 reservations를 사용하세요.")
+  @Tool(description = "사용자가 요청한 실제 서비스 페이지로 안내합니다. 예약 페이지, 예약 내역, 점검 신청 현황은 reservations를 사용하세요.")
   public synchronized NavigationCard navigateTo(Page page) {
     started("navigateTo");
     countCall();

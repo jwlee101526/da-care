@@ -588,20 +588,20 @@ function ToolCallingIndicator({ progress = [] }: { progress?: DiagnosisToolProgr
     ? {
         searchManuals: ['매뉴얼을 검색하고 있습니다', '관련 문서를 확인하고 있습니다.'],
         showInspectionCard: ['점검 안내를 만들고 있습니다', '매뉴얼 근거를 정리하고 있습니다.'],
-        prepareReservation: ['예약 안내를 준비하고 있습니다', '예약 입력 카드를 만들고 있습니다.'],
+        prepareReservation: ['예약 안내를 준비하고 있습니다', '예약 정보를 입력하고 있습니다.'],
         getReservationStatus: ['예약 상태를 조회하고 있습니다', '실제 접수 정보를 확인하고 있습니다.'],
         navigateTo: ['이동 안내를 준비하고 있습니다', '요청한 페이지를 확인하고 있습니다.'],
       }[latest.tool]
     : latest?.tool === 'searchManuals'
       ? ['검색 결과를 분석하고 있습니다', '점검 안내 또는 다음 행동을 준비하고 있습니다.']
       : latest?.tool === 'showInspectionCard'
-        ? ['답변을 정리하고 있습니다', '점검 카드 내용을 바탕으로 안내를 작성하고 있습니다.']
+        ? ['답변을 정리하고 있습니다', '점검 안내 내용을 바탕으로 다음 절차를 정리하고 있습니다.']
         : latest?.tool === 'prepareReservation'
           ? ['예약 안내를 정리하고 있습니다', '다음 절차를 안내하고 있습니다.']
           : latest?.tool === 'getReservationStatus'
             ? ['조회 결과를 정리하고 있습니다', '예약 상태 안내를 작성하고 있습니다.']
             : latest?.tool === 'navigateTo'
-              ? ['이동 안내를 정리하고 있습니다', '페이지 이동 카드를 준비하고 있습니다.']
+              ? ['이동 안내를 정리하고 있습니다', '요청한 페이지로 안내하고 있습니다.']
               : ['요청을 분석하고 있습니다', '필요한 매뉴얼과 다음 행동을 확인하고 있습니다.']
   const [title, description] = status ?? ['요청을 처리하고 있습니다', '다음 단계를 준비하고 있습니다.']
   return (
@@ -651,7 +651,7 @@ function DiagnosisCards({ cards, onBook, onRequestTool, onNavigate }: {
             <details className="diagnosis-evidence"><summary><BookOpen size={15} aria-hidden="true" />참고 매뉴얼 <span>{card.evidence.length}건</span></summary>{card.evidence.map((source, sourceIndex) => <div className="diagnosis-source" key={source.sourceId}><strong>근거 {sourceIndex + 1}</strong><blockquote>{source.quote}</blockquote><small>문서 {source.sourceId}</small></div>)}</details>
             <CardNextAction
               label="방문 점검 준비"
-              detail="예약 입력 카드를 만들고 다음 절차를 안내합니다."
+              detail="예약 정보를 미리 입력하고 다음 절차를 안내합니다."
               onClick={() => onRequestTool('방문 점검 예약을 준비해 주세요.', false)}
             />
           </article>
