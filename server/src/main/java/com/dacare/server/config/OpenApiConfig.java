@@ -16,11 +16,17 @@ public class OpenApiConfig {
   @Bean
   OpenAPI openAPI() {
     return new OpenAPI()
-        .info(new Info().title("다케어 API").version("v1")
-            .description("스마트 기기·생활 가전 AI 진단 및 방문 점검 예약 API입니다."))
-        .components(new Components().addSecuritySchemes("bearerAuth",
-            new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer")
-                .bearerFormat("JWT")))
+        .info(
+            new Info().title("DACARE API").version("v1")
+            .description("Device & Appliance Care Service API")
+        )
+        .components(
+            new Components().addSecuritySchemes("bearerAuth",
+                new SecurityScheme().type(SecurityScheme.Type.HTTP)
+                    .scheme("bearer")
+                    .bearerFormat("JWT")
+            )
+        )
         .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
   }
 }

@@ -24,6 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         "app.solapi.api-secret=",
         "app.solapi.sender="
 })
+
+/**
+ * 외부 PostgreSQL·OpenAI 의존성 없이 H2로 스프링 컨텍스트와 데모 계정 초기화를 검증한다.
+ */
 class ServerApplicationTests {
 
   @Autowired

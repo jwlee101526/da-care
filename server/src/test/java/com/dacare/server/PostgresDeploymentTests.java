@@ -31,6 +31,11 @@ import static org.junit.jupiter.api.Assertions.*;
         "management.endpoint.health.group.readiness.include=readinessState,db",
         "app.demo-data.enabled=false"
 })
+
+/**
+ * CI의 PostgreSQL/pgvector 컨테이너에서 마이그레이션, 벡터 저장소, 정적 페이지와 보안 경계를 검증한다.
+ * TEST_POSTGRES_URL이 설정된 환경에서만 실행한다.
+ */
 class PostgresDeploymentTests {
     @Autowired JdbcTemplate jdbc;
     @Autowired AuthService auth;
