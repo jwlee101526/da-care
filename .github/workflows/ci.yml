@@ -1,12 +1,14 @@
 name: CI
 
 on:
-  push:
-    branches: [develop]
   pull_request:
     branches: [production]
   workflow_dispatch:
   workflow_call:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
