@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Size;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.RejectedExecutionException;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,30 +24,37 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class DiagnosisController implements DiagnosisApiDocs {
 
   private final DiagnosisService service;
+  private final DiagnosisTaskRunner runner;
 
-  public DiagnosisController(DiagnosisService service) {
+  public DiagnosisController(DiagnosisService service, DiagnosisTaskRunner runner) {
     this.service = service;
+    this.runner = runner;
   }
 
   @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter stream(@Valid @RequestBody QuestionRequest request, Authentication authentication) {
     SseEmitter emitter = new SseEmitter(100_000L);
-    CompletableFuture.runAsync(() -> {
-      try {
-        DiagnosisService.DiagnosisResult result = service.diagnose(request.question(),
-            request.history() == null ? List.of() : request.history(),
-            authentication == null ? null : authentication.getName(),
-            progress -> send(emitter, "tool", progress));
-        send(emitter, "completed", result);
-        emitter.complete();
-      } catch (DiagnosisService.DiagnosisUnavailableException exception) {
-        send(emitter, "error", Map.of("message", exception.getMessage()));
-        emitter.complete();
-      } catch (RuntimeException exception) {
-        send(emitter, "error", Map.of("message", "진단 요청을 처리하지 못했습니다."));
-        emitter.complete();
-      }
-    });
+    try {
+      runner.submit(() -> {
+        try {
+          DiagnosisService.DiagnosisResult result = service.diagnose(request.question(),
+              request.history() == null ? List.of() : request.history(),
+              authentication == null ? null : authentication.getName(),
+              progress -> send(emitter, "tool", progress));
+          send(emitter, "completed", result);
+          emitter.complete();
+        } catch (DiagnosisService.DiagnosisUnavailableException exception) {
+          send(emitter, "error", Map.of("message", exception.getMessage()));
+          emitter.complete();
+        } catch (RuntimeException exception) {
+          send(emitter, "error", Map.of("message", "진단 요청을 처리하지 못했습니다."));
+          emitter.complete();
+        }
+      });
+    } catch (RejectedExecutionException exception) {
+      send(emitter, "error", Map.of("message", "상담 요청이 많아 처리하지 못했습니다. 잠시 후 다시 시도해 주세요."));
+      emitter.complete();
+    }
     return emitter;
   }
 
