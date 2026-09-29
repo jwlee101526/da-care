@@ -1,8 +1,12 @@
 package com.dacare.server.api;
 
+import java.time.Duration;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,6 +24,7 @@ import org.springframework.stereotype.Component;
 public class DiagnosisTaskRunner implements DisposableBean {
 
   private final ThreadPoolExecutor executor;
+  private final ScheduledExecutorService scheduler;
 
   public DiagnosisTaskRunner(@Value("${app.diagnosis.max-concurrency:8}") int maxConcurrency,
       @Value("${app.diagnosis.queue-capacity:16}") int queueCapacity) {
@@ -31,6 +36,11 @@ public class DiagnosisTaskRunner implements DisposableBean {
       return thread;
     });
     this.executor.allowCoreThreadTimeOut(true);
+    this.scheduler = Executors.newSingleThreadScheduledExecutor(task -> {
+      Thread thread = new Thread(task, "diagnosis-deadline");
+      thread.setDaemon(true);
+      return thread;
+    });
   }
 
   /**
@@ -40,8 +50,13 @@ public class DiagnosisTaskRunner implements DisposableBean {
     return executor.submit(task);
   }
 
+  public ScheduledFuture<?> schedule(Runnable task, Duration delay) {
+    return scheduler.schedule(task, delay.toMillis(), TimeUnit.MILLISECONDS);
+  }
+
   @Override
   public void destroy() {
+    scheduler.shutdownNow();
     executor.shutdownNow();
   }
 }

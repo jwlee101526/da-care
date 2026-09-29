@@ -407,6 +407,7 @@ function ChatPanel({
     if (!symptom || requestRef.current) return
     const controller = new AbortController()
     requestRef.current = controller
+    // 서버 상담 기한(75초) 이후 도착하는 시간 초과 안내를 받을 수 있도록 여유를 둔다.
     const timeout = window.setTimeout(() => controller.abort(), 90000)
     const userMessage: Message = { id: nextId.current++, sender: 'user', text: symptom }
     const responseId = nextId.current++
