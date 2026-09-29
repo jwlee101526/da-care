@@ -1,4 +1,4 @@
-# 다케어 (DACARE)
+# DA-CARE
 
 ## 개요
 
@@ -23,7 +23,7 @@
 
 ## 주요 기능
 
-- **AI 증상 상담**: OpenAI와 PDF 매뉴얼 검색(RAG)을 이용해 증상 관련 정보를 스트리밍으로 안내합니다.
+- **AI 증상 상담**: OpenAI Tool Calling과 증상별 매뉴얼 검색(RAG)으로 점검 안내, 방문 예약 준비, 예약 상태 조회를 제공하고 진행 상황을 SSE로 전달합니다.
 - **예약 관리**: 회원과 비회원 모두 방문 수리를 예약하고, 예약 상태를 조회하거나 취소할 수 있습니다.
 - **관리자 업무**: 관리자가 기사 정보를 관리하고 예약에 기사를 배정,완료,취소 처리합니다.
 - **다국어 UI**: 한국어와 영어 화면을 제공합니다.
@@ -53,7 +53,7 @@ flowchart LR
     A --> P[(PostgreSQL <br/>pgvector)]
     A <--> O[OpenAI]
     A <--> N[Slack / SMS Notification]
-    P <--> M[PDF Embedded Data]
+    P <--> M[Manual Embeddings]
 ```
 
 <p align="center">
@@ -79,7 +79,7 @@ da-care/
 │       │   │   ├── service/      # 예약, AI 상담 비즈니스 로직
 │       │   │   ├── repository/   # 데이터 접근 계층
 │       │   │   └── notification/ # Slack, SMS 알림 전송
-│       │   └── resources/ # Spring 설정, Flyway, PDF Manual
+│       │   └── resources/ # Spring 설정, Flyway, 증상별 매뉴얼(manual/*.md)
 │       └── test/        # 단위, 통합 테스트
 ├── infra/
 │   ├── docker/          # Docker
@@ -109,6 +109,27 @@ Copy-Item .env.example .env
 ```
 
 `.env`의 `JWT_SECRET`, 관리자 계정 정보, `OPENAI_API_KEY`를 로컬 환경에 맞게 변경합니다. 예시 값은 개발 전용이며 운영 환경에서 사용하면 안 됩니다.
+
+### AI 상담 매뉴얼과 설정
+
+상담 근거 매뉴얼은 `server/src/main/resources/manual/`에 증상당 Markdown 파일 하나로 작성합니다. 파일 하나가 벡터 하나로 저장되며, 머리말의 `device`는 `laptop`, `smartphone`, `appliance`, `etc` 중 하나입니다.
+
+```markdown
+---
+device: laptop
+title: 노트북 전원이 켜지지 않음 (Laptop does not turn on)
+---
+증상: ...
+점검 절차:
+1. ...
+```
+
+서버는 시작할 때 매뉴얼 내용과 임베딩 모델(`text-embedding-3-small`)로 버전을 계산하고, 버전이 바뀌면 기존 벡터를 교체합니다. 매뉴얼을 수정한 뒤 서버를 재시작하면 반영됩니다.
+
+| 환경 변수 | 기본값 | 설명 |
+|---|---|---|
+| `DIAGNOSIS_SIMILARITY_THRESHOLD` | `0.4` | 매뉴얼 검색 유사도 하한. 관련 없는 문서가 검색되면 올리고, 관련 문서가 누락되면 낮춥니다. |
+| `DIAGNOSIS_TIMEOUT` | `75s` | 상담 요청 1건의 전체 처리 기한. 웹 클라이언트 제한 시간(90초)보다 짧게 유지합니다. |
 
 ### Docker Compose로 실행
 
@@ -198,6 +219,8 @@ ADMIN_PASSWORD=admin1234
 CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 
 OPENAI_API_KEY=(replace-with-openai-api-key)
+# DIAGNOSIS_SIMILARITY_THRESHOLD=0.4
+# DIAGNOSIS_TIMEOUT=75s
 SLACK_WEBHOOK_URL=(replace-with-slack-webhook-url)
 
 SOLAPI_API_KEY=(replace-with-solapi-api-key)
