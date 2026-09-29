@@ -146,6 +146,9 @@ public class DiagnosisTools {
   }
 
   private void started(String tool) {
+    if (Thread.currentThread().isInterrupted()) {
+      throw new DiagnosisService.DiagnosisCancelledException();
+    }
     progress.accept(new ToolProgress(tool, "started"));
   }
 
