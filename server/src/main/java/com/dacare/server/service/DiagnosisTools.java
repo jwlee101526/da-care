@@ -16,7 +16,6 @@ public class DiagnosisTools {
 
   private final VectorStore vectorStore;
   private final ReservationService reservations;
-  private final String question;
   private final String email;
   private final Consumer<ToolProgress> progress;
   private final double similarityThreshold;
@@ -25,11 +24,10 @@ public class DiagnosisTools {
   private final List<String> executedTools = new ArrayList<>();
   private int calls;
 
-  public DiagnosisTools(VectorStore vectorStore, ReservationService reservations, String question,
-      String email, double similarityThreshold, Consumer<ToolProgress> progress) {
+  public DiagnosisTools(VectorStore vectorStore, ReservationService reservations, String email,
+      double similarityThreshold, Consumer<ToolProgress> progress) {
     this.vectorStore = vectorStore;
     this.reservations = reservations;
-    this.question = question;
     this.email = email;
     this.similarityThreshold = similarityThreshold;
     this.progress = progress;
@@ -94,11 +92,13 @@ public class DiagnosisTools {
   }
 
   @Tool(description = "방문 점검 예약 입력을 준비합니다. 예약을 저장하거나 일정과 기사 배정을 확정하지 않습니다. 기기 분류가 불분명하면 etc를 사용하세요.")
-  public synchronized BookingCard prepareReservation(DeviceType deviceType) {
+  public synchronized BookingCard prepareReservation(DeviceType deviceType,
+      @ToolParam(description = "예약 입력에 미리 채울 기기 증상. 사용자가 설명한 증상만 한두 문장으로 정리하고, 예약 방법 문의나 예약 준비 요청 문구는 제외하세요.") String symptom) {
     started("prepareReservation");
     countCall();
     Objects.requireNonNull(deviceType);
-    BookingCard card = new BookingCard("booking", deviceType, question, email == null);
+    requireText(symptom, 2000);
+    BookingCard card = new BookingCard("booking", deviceType, symptom.strip(), email == null);
     cards.put("booking", card);
     executedTools.add("prepareReservation");
     completed("prepareReservation", card);

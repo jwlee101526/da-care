@@ -20,7 +20,7 @@ class DiagnosisToolsTests {
       .description("test").inputSchema("{}").build();
 
   private DiagnosisTools tools() {
-    return new DiagnosisTools(null, null, "노트북 전원이 켜지지 않아요", null, 0.4, ignored -> {
+    return new DiagnosisTools(null, null, null, 0.4, ignored -> {
     });
   }
 
@@ -36,6 +36,21 @@ class DiagnosisToolsTests {
   void cancellationIsRethrownInsteadOfReturnedToModel() {
     assertThrows(DiagnosisService.DiagnosisCancelledException.class, () -> processor.process(
         new ToolExecutionException(definition, new DiagnosisService.DiagnosisCancelledException())));
+  }
+
+  @Test
+  void bookingCardUsesSymptomSummarizedByModel() {
+    DiagnosisTools.BookingCard card = tools().prepareReservation(DiagnosisTools.DeviceType.laptop,
+        " 충전 표시등이 깜빡이고 전원이 켜지지 않습니다. ");
+
+    assertEquals("충전 표시등이 깜빡이고 전원이 켜지지 않습니다.", card.symptom());
+    assertEquals(true, card.loginRequired());
+  }
+
+  @Test
+  void bookingCardRequiresSymptom() {
+    assertThrows(IllegalArgumentException.class,
+        () -> tools().prepareReservation(DiagnosisTools.DeviceType.laptop, " "));
   }
 
   @Test

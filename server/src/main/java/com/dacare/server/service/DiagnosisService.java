@@ -26,6 +26,7 @@ public class DiagnosisService {
       사용자가 페이지 위치나 이동을 요청하면 navigateTo를 호출하세요. 예약 페이지, 예약 내역, 점검 신청 현황은 reservations 페이지로 안내합니다.
       이 페이지 이동 요청에는 searchManuals 또는 showInspectionCard를 호출하지 마세요.
       사용자가 "방문 점검 예약을 준비"해 달라고 명시하면, 이전 대화의 점검 맥락을 사용해 반드시 prepareReservation만 호출하세요.
+      prepareReservation의 symptom에는 대화에서 사용자가 설명한 기기 증상만 정리하세요. 예약 방법·페이지 위치 문의나 예약 준비 요청 문구는 넣지 마세요.
       이 예약 준비 요청에는 searchManuals 또는 showInspectionCard를 다시 호출하지 마세요.
       매뉴얼에 해당 기기와 증상의 근거가 있을 때만 showInspectionCard를 호출하세요.
       원인과 점검 내용을 추측하지 말고, 검색 결과에 있는 근거 문서 ID를 전달하세요. 원문 인용은 서버가 첨부합니다.
@@ -70,23 +71,8 @@ public class DiagnosisService {
           throw new DiagnosisUnavailableException();
       }
     List<ConversationTurn> turns = history == null ? List.of() : history;
-    List<String> userMessages = java.util.stream.Stream.concat(
-        turns.stream().filter(turn -> turn.role() == Role.user)
-            .map(ConversationTurn::text), java.util.stream.Stream.of(question)).toList();
-    String symptoms = String.join("\n", userMessages);
-      if (symptoms.length() > 2000) {
-          symptoms = symptoms.substring(symptoms.length() - 2000);
-      }
-    String bookingSymptom = userMessages.stream().filter(message -> !isToolActionRequest(message))
-        .collect(java.util.stream.Collectors.joining("\n"));
-      if (bookingSymptom.isBlank()) {
-          bookingSymptom = question;
-      }
-      if (bookingSymptom.length() > 2000) {
-          bookingSymptom = bookingSymptom.substring(bookingSymptom.length() - 2000);
-      }
-    DiagnosisTools tools = new DiagnosisTools(vectorStore.getIfAvailable(), reservations,
-        bookingSymptom, email, similarityThreshold, progress);
+    DiagnosisTools tools = new DiagnosisTools(vectorStore.getIfAvailable(), reservations, email,
+        similarityThreshold, progress);
     List<Message> messages = new java.util.ArrayList<>();
     turns.forEach(turn -> messages.add(turn.role() == Role.user ? new UserMessage(turn.text())
         : new AssistantMessage(turn.text())));
@@ -145,9 +131,5 @@ public class DiagnosisService {
     public DiagnosisCancelledException() {
       super("진단 요청이 취소되었습니다.");
     }
-  }
-
-  private boolean isToolActionRequest(String message) {
-    return message.contains("prepareReservation") || message.contains("방문 점검 예약을 준비해 주세요");
   }
 }
