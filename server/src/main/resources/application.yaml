@@ -14,9 +14,11 @@ spring:
   ai:
     tools:
       throw-exception-on-error: false
+      # 상담 1회의 도구 호출 한도. 초과하면 요청을 실패시키지 않고 모델에 한도 초과를 알려 답변을 마무리하게 한다.
       limits:
         max-total-tool-calls: 8
         max-calls-per-tool-default: 3
+        on-limit-exceeded: return-error-response
     openai:
       api-key: ${OPENAI_API_KEY}
       # 모델 호출 1회 기준. 도구 호출마다 모델을 다시 호출하므로 전체 상담 기한은 app.diagnosis.timeout으로 제한한다.
