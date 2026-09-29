@@ -27,6 +27,8 @@ interface Message {
   toolProgress?: DiagnosisToolProgress[]
   streaming?: boolean
   error?: boolean
+  /** 카드 버튼으로 보낸 요청. 화면에는 표시하지 않지만 다음 요청의 대화 이력에는 포함한다. */
+  hidden?: boolean
 }
 
 const CHAT_SESSION_KEY = 'dacare.chat.messages.v1'
@@ -409,11 +411,11 @@ function ChatPanel({
     requestRef.current = controller
     // 서버 상담 기한(75초) 이후 도착하는 시간 초과 안내를 받을 수 있도록 여유를 둔다.
     const timeout = window.setTimeout(() => controller.abort(), 90000)
-    const userMessage: Message = { id: nextId.current++, sender: 'user', text: symptom }
+    const userMessage: Message = { id: nextId.current++, sender: 'user', text: symptom, hidden: !showUserMessage }
     const responseId = nextId.current++
     const history = messages.filter(message => message.id !== 0 && !message.error).slice(-12)
       .map(message => ({ role: message.sender === 'bot' ? 'assistant' as const : 'user' as const, text: message.text.slice(0, 4000) }))
-    setMessages(previous => [...previous.filter(message => message.id !== 0), ...(showUserMessage ? [userMessage] : []), {
+    setMessages(previous => [...previous.filter(message => message.id !== 0), userMessage, {
       id: responseId, sender: 'bot', text: '', toolProgress: [], streaming: true,
     }])
     setInput('')
@@ -537,7 +539,7 @@ function ChatPanel({
         <p id="chat-notice" className="chat-notice">{t.chat.notice}</p>
       </div>
       <div className="chat-messages" role="log" aria-label="Messages" aria-live="polite" aria-relevant="additions" ref={messagesRef}>
-        {messages.map(message => (
+        {messages.filter(message => !message.hidden).map(message => (
           <div key={message.id} className={'chat-message ' + message.sender}>
             <div className="chat-message-content">
               {Boolean(message.executedTools?.length || message.toolProgress?.length) && <ToolResults tools={message.executedTools} progress={message.toolProgress} />}
