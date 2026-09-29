@@ -13,7 +13,7 @@ spring:
     open-in-view: false
   ai:
     tools:
-      throw-exception-on-error: true
+      throw-exception-on-error: false
       limits:
         max-total-tool-calls: 8
         max-calls-per-tool-default: 3
