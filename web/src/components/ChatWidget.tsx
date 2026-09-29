@@ -268,7 +268,7 @@ function ChatPanel({
   isOpen: boolean
   onClose: () => void
   onBookWithSymptom: ChatWidgetProps['onBookWithSymptom']
-  onNavigate: (page: 'reservations') => void
+  onNavigate: (page: Extract<DiagnosisCard, { type: 'navigation' }>['page']) => void
   currentX: number
   currentY: number
   panelRef: React.RefObject<HTMLElement | null>
@@ -638,7 +638,7 @@ function DiagnosisCards({ cards, onBook, onRequestTool, onNavigate }: {
   cards: DiagnosisCard[]
   onBook: ChatWidgetProps['onBookWithSymptom']
   onRequestTool: (message: string, showUserMessage?: boolean) => void
-  onNavigate: (page: 'reservations') => void
+  onNavigate: (page: Extract<DiagnosisCard, { type: 'navigation' }>['page']) => void
 }) {
   const { t } = useLanguage()
   const statusLabels = { PENDING: '접수 대기', CONFIRMED: '예약 확정', COMPLETED: '점검 완료', CANCELLED: '취소됨' }

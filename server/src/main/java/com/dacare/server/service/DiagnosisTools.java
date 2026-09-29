@@ -123,7 +123,7 @@ public class DiagnosisTools {
     return card;
   }
 
-  @Tool(description = "사용자가 요청한 실제 서비스 페이지로 안내합니다. 예약 페이지, 예약 내역, 점검 신청 현황은 reservations를 사용하세요.")
+  @Tool(description = "사용자가 요청한 실제 서비스 페이지로 안내합니다. 방문 점검 예약 신청 방법이나 신청 페이지는 reserve, 예약 내역과 점검 신청 현황은 reservations를 사용하세요.")
   public synchronized NavigationCard navigateTo(Page page) {
     started("navigateTo");
     countCall();
@@ -132,6 +132,9 @@ public class DiagnosisTools {
       case reservations ->
           new NavigationCard("navigation", page, "예약 내역 조회", "접수한 방문 점검의 상태와 확정 일정을 확인할 수 있습니다.",
               "예약 내역으로 이동");
+      case reserve ->
+          new NavigationCard("navigation", page, "방문 점검 신청", "기기와 증상, 방문 희망 일시와 장소를 입력해 방문 점검을 신청할 수 있습니다.",
+              "예약 신청하기");
     };
     cards.put("navigation:" + page, card);
     executedTools.add("navigateTo");
@@ -176,7 +179,7 @@ public class DiagnosisTools {
 
   public enum DeviceType {laptop, smartphone, appliance, etc}
 
-  public enum Page {reservations}
+  public enum Page {reservations, reserve}
 
   public sealed interface Card permits InspectionCard, BookingCard, ReservationStatusCard,
       NavigationCard {

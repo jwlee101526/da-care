@@ -54,6 +54,14 @@ class DiagnosisToolsTests {
   }
 
   @Test
+  void reservationRequestGuideNavigatesToNewReservationPage() {
+    DiagnosisTools.NavigationCard card = tools().navigateTo(DiagnosisTools.Page.reserve);
+
+    assertEquals(DiagnosisTools.Page.reserve, card.page());
+    assertEquals("방문 점검 신청", card.title());
+  }
+
+  @Test
   void interruptedRequestStopsBeforeRunningTool() {
     Thread.currentThread().interrupt();
     try {
