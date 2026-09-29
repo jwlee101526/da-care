@@ -126,6 +126,8 @@ title: 노트북 전원이 켜지지 않음 (Laptop does not turn on)
 
 서버는 시작할 때 매뉴얼 내용과 임베딩 모델(`text-embedding-3-small`)로 버전을 계산하고, 버전이 바뀌면 기존 벡터를 교체합니다. 매뉴얼을 수정한 뒤 서버를 재시작하면 반영됩니다.
 
+다음 값은 기본값이 있어 `.env`에 넣지 않아도 되며, 조정이 필요할 때만 설정합니다.
+
 | 환경 변수 | 기본값 | 설명 |
 |---|---|---|
 | `DIAGNOSIS_SIMILARITY_THRESHOLD` | `0.4` | 매뉴얼 검색 유사도 하한. 관련 없는 문서가 검색되면 올리고, 관련 문서가 누락되면 낮춥니다. |
@@ -219,8 +221,6 @@ ADMIN_PASSWORD=admin1234
 CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 
 OPENAI_API_KEY=(replace-with-openai-api-key)
-# DIAGNOSIS_SIMILARITY_THRESHOLD=0.4
-# DIAGNOSIS_TIMEOUT=75s
 SLACK_WEBHOOK_URL=(replace-with-slack-webhook-url)
 
 SOLAPI_API_KEY=(replace-with-solapi-api-key)
