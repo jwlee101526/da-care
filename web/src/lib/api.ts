@@ -12,7 +12,7 @@ export type DiagnosisCard =
   | { type: 'inspection'; title: string; deviceType: import('../types').DeviceType; deviceName: string; suspectedCause: string | null; inspectionDetails: string; evidence: { sourceId: string; quote: string }[] }
   | { type: 'booking'; deviceType: import('../types').DeviceType; symptom: string; loginRequired: boolean }
   | { type: 'reservation_status'; reservationId: number; status: Reservation['status']; preferredAt: string; confirmedAt: string | null; engineerName: string | null }
-  | { type: 'navigation'; page: 'reservations'; title: string; description: string; actionLabel: string }
+  | { type: 'navigation'; page: 'reservations' | 'reserve'; title: string; description: string; actionLabel: string }
 export type Diagnosis = { answer: string; cards: DiagnosisCard[]; executedTools: string[] }
 export type DiagnosisToolProgress = { tool: string; status: 'started' | 'completed'; card?: DiagnosisCard | null }
 export type DiagnosisStreamEvent =

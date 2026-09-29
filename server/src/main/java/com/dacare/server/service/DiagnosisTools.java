@@ -16,39 +16,32 @@ public class DiagnosisTools {
 
   private final VectorStore vectorStore;
   private final ReservationService reservations;
-  private final String question;
   private final String email;
   private final Consumer<ToolProgress> progress;
+  private final double similarityThreshold;
   private final Map<String, ManualSource> sources = new LinkedHashMap<>();
   private final Map<String, Card> cards = new LinkedHashMap<>();
   private final List<String> executedTools = new ArrayList<>();
-  private int calls;
 
-  public DiagnosisTools(VectorStore vectorStore, ReservationService reservations, String question,
-      String email) {
-    this(vectorStore, reservations, question, email, ignored -> {
-    });
-  }
-
-  public DiagnosisTools(VectorStore vectorStore, ReservationService reservations, String question,
-      String email, Consumer<ToolProgress> progress) {
+  public DiagnosisTools(VectorStore vectorStore, ReservationService reservations, String email,
+      double similarityThreshold, Consumer<ToolProgress> progress) {
     this.vectorStore = vectorStore;
     this.reservations = reservations;
-    this.question = question;
     this.email = email;
+    this.similarityThreshold = similarityThreshold;
     this.progress = progress;
   }
 
   @Tool(description = "기기 증상에 해당하는 실제 매뉴얼을 검색합니다. 빈 결과이면 근거가 없습니다.")
   public synchronized List<ManualSource> searchManuals(String query) {
     started("searchManuals");
-    countCall();
     requireText(query, 2000);
     if (vectorStore == null) {
       throw new IllegalStateException("매뉴얼 검색 서비스를 사용할 수 없습니다.");
     }
     var documents = vectorStore.similaritySearch(
-        SearchRequest.builder().query(query).topK(3).similarityThreshold(0.65).build());
+        SearchRequest.builder().query(query).topK(3).similarityThreshold(similarityThreshold)
+            .build());
     List<ManualSource> result = documents == null ? List.of() : documents.stream()
         .filter(document -> document.getText() != null && !document.getText().isBlank())
         .map(document -> new ManualSource(document.getId(), document.getText())).toList();
@@ -58,7 +51,7 @@ public class DiagnosisTools {
     return result;
   }
 
-  @Tool(description = "검색된 매뉴얼에 근거한 점검 카드를 표시합니다. sourceIds에는 searchManuals가 반환한 문서 ID만 전달하세요. 서버가 해당 원문을 근거로 첨부합니다. 근거가 없으면 호출하지 마세요.")
+  @Tool(description = "검색된 매뉴얼에 근거한 점검 안내를 표시합니다. sourceIds에는 searchManuals가 반환한 문서 ID만 전달하세요. 서버가 해당 원문을 근거로 첨부합니다. 근거가 없으면 호출하지 마세요.")
   public synchronized InspectionCard showInspectionCard(
       @ToolParam(description = "사용자에게 표시할 점검 제목") String title,
       DeviceType deviceType,
@@ -67,7 +60,6 @@ public class DiagnosisTools {
       @ToolParam(description = "매뉴얼에 근거한 점검 절차. 문서 ID 대신 사용자가 이해할 설명을 작성하세요.") String inspectionDetails,
       @ToolParam(description = "searchManuals 결과의 근거 문서 ID 목록") List<String> sourceIds) {
     started("showInspectionCard");
-    countCall();
     requireText(title, 100);
     Objects.requireNonNull(deviceType);
     requireText(deviceName, 100);
@@ -96,12 +88,13 @@ public class DiagnosisTools {
     return card;
   }
 
-  @Tool(description = "방문 예약 입력 카드를 준비합니다. 예약을 저장하거나 일정과 기사 배정을 확정하지 않습니다. 기기 분류가 불분명하면 etc를 사용하세요.")
-  public synchronized BookingCard prepareReservation(DeviceType deviceType) {
+  @Tool(description = "방문 점검 예약 입력을 준비합니다. 예약을 저장하거나 일정과 기사 배정을 확정하지 않습니다. 기기 분류가 불분명하면 etc를 사용하세요.")
+  public synchronized BookingCard prepareReservation(DeviceType deviceType,
+      @ToolParam(description = "예약 입력에 미리 채울 기기 증상. 사용자가 설명한 증상만 한두 문장으로 정리하고, 예약 방법 문의나 예약 준비 요청 문구는 제외하세요.") String symptom) {
     started("prepareReservation");
-    countCall();
     Objects.requireNonNull(deviceType);
-    BookingCard card = new BookingCard("booking", deviceType, question, email == null);
+    requireText(symptom, 2000);
+    BookingCard card = new BookingCard("booking", deviceType, symptom.strip(), email == null);
     cards.put("booking", card);
     executedTools.add("prepareReservation");
     completed("prepareReservation", card);
@@ -111,7 +104,6 @@ public class DiagnosisTools {
   @Tool(description = "로그인한 사용자의 예약 번호로 실제 예약 상태와 배정된 엔지니어를 조회합니다. 다른 사용자의 예약에는 접근할 수 없습니다.")
   public synchronized ReservationStatusCard getReservationStatus(long reservationId) {
     started("getReservationStatus");
-    countCall();
     if (email == null) {
       throw new IllegalStateException("예약 조회는 로그인이 필요합니다.");
     }
@@ -126,15 +118,17 @@ public class DiagnosisTools {
     return card;
   }
 
-  @Tool(description = "사용자가 요청한 실제 서비스 페이지로 이동하는 카드를 표시합니다. 예약 페이지, 예약 내역, 점검 신청 현황은 reservations를 사용하세요.")
+  @Tool(description = "사용자가 요청한 실제 서비스 페이지로 안내합니다. 방문 점검 예약 신청 방법이나 신청 페이지는 reserve, 예약 내역과 점검 신청 현황은 reservations를 사용하세요.")
   public synchronized NavigationCard navigateTo(Page page) {
     started("navigateTo");
-    countCall();
     Objects.requireNonNull(page);
     NavigationCard card = switch (page) {
       case reservations ->
           new NavigationCard("navigation", page, "예약 내역 조회", "접수한 방문 점검의 상태와 확정 일정을 확인할 수 있습니다.",
               "예약 내역으로 이동");
+      case reserve ->
+          new NavigationCard("navigation", page, "방문 점검 신청", "기기와 증상, 방문 희망 일시와 장소를 입력해 방문 점검을 신청할 수 있습니다.",
+              "예약 신청하기");
     };
     cards.put("navigation:" + page, card);
     executedTools.add("navigateTo");
@@ -142,13 +136,10 @@ public class DiagnosisTools {
     return card;
   }
 
-  private void countCall() {
-    if (++calls > 8) {
-      throw new IllegalStateException("도구 호출 횟수를 초과했습니다.");
-    }
-  }
-
   private void started(String tool) {
+    if (Thread.currentThread().isInterrupted()) {
+      throw new DiagnosisService.DiagnosisCancelledException();
+    }
     progress.accept(new ToolProgress(tool, "started"));
   }
 
@@ -176,7 +167,7 @@ public class DiagnosisTools {
 
   public enum DeviceType {laptop, smartphone, appliance, etc}
 
-  public enum Page {reservations}
+  public enum Page {reservations, reserve}
 
   public sealed interface Card permits InspectionCard, BookingCard, ReservationStatusCard,
       NavigationCard {

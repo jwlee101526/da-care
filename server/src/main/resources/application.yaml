@@ -13,16 +13,21 @@ spring:
     open-in-view: false
   ai:
     tools:
-      throw-exception-on-error: true
+      throw-exception-on-error: false
+      # 상담 1회의 도구 호출 한도. 초과하면 요청을 실패시키지 않고 모델에 한도 초과를 알려 답변을 마무리하게 한다.
       limits:
         max-total-tool-calls: 8
         max-calls-per-tool-default: 3
+        on-limit-exceeded: return-error-response
     openai:
       api-key: ${OPENAI_API_KEY}
-      timeout: 30s
-      max-retries: 0
+      # 모델 호출 1회 기준. 도구 호출마다 모델을 다시 호출하므로 전체 상담 기한은 app.diagnosis.timeout으로 제한한다.
+      timeout: 25s
+      max-retries: 1
       chat:
         reasoning-effort: low
+      embedding:
+        model: text-embedding-3-small
     vectorstore:
       pgvector:
         initialize-schema: true
@@ -55,3 +60,8 @@ app:
     sender: ${SOLAPI_SENDER:}
   web:
     port: ${WEB_PORT:3000}
+  diagnosis:
+    # 상담 요청 전체 기한. 웹 클라이언트 제한 시간(90초)보다 짧아야 서버의 시간 초과 안내가 전달된다.
+    timeout: ${DIAGNOSIS_TIMEOUT:75s}
+    # text-embedding-3-small 기준 관련 문서 유사도 하한. 모델 변경 시 운영 질의로 재조정한다.
+    similarity-threshold: ${DIAGNOSIS_SIMILARITY_THRESHOLD:0.4}

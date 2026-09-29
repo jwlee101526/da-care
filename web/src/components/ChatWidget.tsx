@@ -27,6 +27,8 @@ interface Message {
   toolProgress?: DiagnosisToolProgress[]
   streaming?: boolean
   error?: boolean
+  /** 카드 버튼으로 보낸 요청. 화면에는 표시하지 않지만 다음 요청의 대화 이력에는 포함한다. */
+  hidden?: boolean
 }
 
 const CHAT_SESSION_KEY = 'dacare.chat.messages.v1'
@@ -268,7 +270,7 @@ function ChatPanel({
   isOpen: boolean
   onClose: () => void
   onBookWithSymptom: ChatWidgetProps['onBookWithSymptom']
-  onNavigate: (page: 'reservations') => void
+  onNavigate: (page: Extract<DiagnosisCard, { type: 'navigation' }>['page']) => void
   currentX: number
   currentY: number
   panelRef: React.RefObject<HTMLElement | null>
@@ -407,12 +409,13 @@ function ChatPanel({
     if (!symptom || requestRef.current) return
     const controller = new AbortController()
     requestRef.current = controller
+    // 서버 상담 기한(75초) 이후 도착하는 시간 초과 안내를 받을 수 있도록 여유를 둔다.
     const timeout = window.setTimeout(() => controller.abort(), 90000)
-    const userMessage: Message = { id: nextId.current++, sender: 'user', text: symptom }
+    const userMessage: Message = { id: nextId.current++, sender: 'user', text: symptom, hidden: !showUserMessage }
     const responseId = nextId.current++
     const history = messages.filter(message => message.id !== 0 && !message.error).slice(-12)
       .map(message => ({ role: message.sender === 'bot' ? 'assistant' as const : 'user' as const, text: message.text.slice(0, 4000) }))
-    setMessages(previous => [...previous.filter(message => message.id !== 0), ...(showUserMessage ? [userMessage] : []), {
+    setMessages(previous => [...previous.filter(message => message.id !== 0), userMessage, {
       id: responseId, sender: 'bot', text: '', toolProgress: [], streaming: true,
     }])
     setInput('')
@@ -536,7 +539,7 @@ function ChatPanel({
         <p id="chat-notice" className="chat-notice">{t.chat.notice}</p>
       </div>
       <div className="chat-messages" role="log" aria-label="Messages" aria-live="polite" aria-relevant="additions" ref={messagesRef}>
-        {messages.map(message => (
+        {messages.filter(message => !message.hidden).map(message => (
           <div key={message.id} className={'chat-message ' + message.sender}>
             <div className="chat-message-content">
               {Boolean(message.executedTools?.length || message.toolProgress?.length) && <ToolResults tools={message.executedTools} progress={message.toolProgress} />}
@@ -588,20 +591,20 @@ function ToolCallingIndicator({ progress = [] }: { progress?: DiagnosisToolProgr
     ? {
         searchManuals: ['매뉴얼을 검색하고 있습니다', '관련 문서를 확인하고 있습니다.'],
         showInspectionCard: ['점검 안내를 만들고 있습니다', '매뉴얼 근거를 정리하고 있습니다.'],
-        prepareReservation: ['예약 안내를 준비하고 있습니다', '예약 입력 카드를 만들고 있습니다.'],
+        prepareReservation: ['예약 안내를 준비하고 있습니다', '예약 정보를 입력하고 있습니다.'],
         getReservationStatus: ['예약 상태를 조회하고 있습니다', '실제 접수 정보를 확인하고 있습니다.'],
         navigateTo: ['이동 안내를 준비하고 있습니다', '요청한 페이지를 확인하고 있습니다.'],
       }[latest.tool]
     : latest?.tool === 'searchManuals'
       ? ['검색 결과를 분석하고 있습니다', '점검 안내 또는 다음 행동을 준비하고 있습니다.']
       : latest?.tool === 'showInspectionCard'
-        ? ['답변을 정리하고 있습니다', '점검 카드 내용을 바탕으로 안내를 작성하고 있습니다.']
+        ? ['답변을 정리하고 있습니다', '점검 안내 내용을 바탕으로 다음 절차를 정리하고 있습니다.']
         : latest?.tool === 'prepareReservation'
           ? ['예약 안내를 정리하고 있습니다', '다음 절차를 안내하고 있습니다.']
           : latest?.tool === 'getReservationStatus'
             ? ['조회 결과를 정리하고 있습니다', '예약 상태 안내를 작성하고 있습니다.']
             : latest?.tool === 'navigateTo'
-              ? ['이동 안내를 정리하고 있습니다', '페이지 이동 카드를 준비하고 있습니다.']
+              ? ['이동 안내를 정리하고 있습니다', '요청한 페이지로 안내하고 있습니다.']
               : ['요청을 분석하고 있습니다', '필요한 매뉴얼과 다음 행동을 확인하고 있습니다.']
   const [title, description] = status ?? ['요청을 처리하고 있습니다', '다음 단계를 준비하고 있습니다.']
   return (
@@ -637,7 +640,7 @@ function DiagnosisCards({ cards, onBook, onRequestTool, onNavigate }: {
   cards: DiagnosisCard[]
   onBook: ChatWidgetProps['onBookWithSymptom']
   onRequestTool: (message: string, showUserMessage?: boolean) => void
-  onNavigate: (page: 'reservations') => void
+  onNavigate: (page: Extract<DiagnosisCard, { type: 'navigation' }>['page']) => void
 }) {
   const { t } = useLanguage()
   const statusLabels = { PENDING: '접수 대기', CONFIRMED: '예약 확정', COMPLETED: '점검 완료', CANCELLED: '취소됨' }
@@ -651,7 +654,7 @@ function DiagnosisCards({ cards, onBook, onRequestTool, onNavigate }: {
             <details className="diagnosis-evidence"><summary><BookOpen size={15} aria-hidden="true" />참고 매뉴얼 <span>{card.evidence.length}건</span></summary>{card.evidence.map((source, sourceIndex) => <div className="diagnosis-source" key={source.sourceId}><strong>근거 {sourceIndex + 1}</strong><blockquote>{source.quote}</blockquote><small>문서 {source.sourceId}</small></div>)}</details>
             <CardNextAction
               label="방문 점검 준비"
-              detail="예약 입력 카드를 만들고 다음 절차를 안내합니다."
+              detail="예약 정보를 미리 입력하고 다음 절차를 안내합니다."
               onClick={() => onRequestTool('방문 점검 예약을 준비해 주세요.', false)}
             />
           </article>
