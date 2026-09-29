@@ -13,6 +13,7 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -46,12 +47,15 @@ public class DiagnosisService {
   private final ObjectProvider<VectorStore> vectorStore;
   private final ObjectProvider<ChatClient.Builder> chatClientBuilder;
   private final ReservationService reservations;
+  private final double similarityThreshold;
 
   public DiagnosisService(ObjectProvider<VectorStore> vectorStore,
-      ObjectProvider<ChatClient.Builder> chatClientBuilder, ReservationService reservations) {
+      ObjectProvider<ChatClient.Builder> chatClientBuilder, ReservationService reservations,
+      @Value("${app.diagnosis.similarity-threshold}") double similarityThreshold) {
     this.vectorStore = vectorStore;
     this.chatClientBuilder = chatClientBuilder;
     this.reservations = reservations;
+    this.similarityThreshold = similarityThreshold;
   }
 
   public DiagnosisResult diagnose(String question, List<ConversationTurn> history, String email) {
@@ -82,7 +86,7 @@ public class DiagnosisService {
           bookingSymptom = bookingSymptom.substring(bookingSymptom.length() - 2000);
       }
     DiagnosisTools tools = new DiagnosisTools(vectorStore.getIfAvailable(), reservations,
-        bookingSymptom, email, progress);
+        bookingSymptom, email, similarityThreshold, progress);
     List<Message> messages = new java.util.ArrayList<>();
     turns.forEach(turn -> messages.add(turn.role() == Role.user ? new UserMessage(turn.text())
         : new AssistantMessage(turn.text())));

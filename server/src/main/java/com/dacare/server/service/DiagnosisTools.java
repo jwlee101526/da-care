@@ -19,23 +19,19 @@ public class DiagnosisTools {
   private final String question;
   private final String email;
   private final Consumer<ToolProgress> progress;
+  private final double similarityThreshold;
   private final Map<String, ManualSource> sources = new LinkedHashMap<>();
   private final Map<String, Card> cards = new LinkedHashMap<>();
   private final List<String> executedTools = new ArrayList<>();
   private int calls;
 
   public DiagnosisTools(VectorStore vectorStore, ReservationService reservations, String question,
-      String email) {
-    this(vectorStore, reservations, question, email, ignored -> {
-    });
-  }
-
-  public DiagnosisTools(VectorStore vectorStore, ReservationService reservations, String question,
-      String email, Consumer<ToolProgress> progress) {
+      String email, double similarityThreshold, Consumer<ToolProgress> progress) {
     this.vectorStore = vectorStore;
     this.reservations = reservations;
     this.question = question;
     this.email = email;
+    this.similarityThreshold = similarityThreshold;
     this.progress = progress;
   }
 
@@ -48,7 +44,8 @@ public class DiagnosisTools {
       throw new IllegalStateException("매뉴얼 검색 서비스를 사용할 수 없습니다.");
     }
     var documents = vectorStore.similaritySearch(
-        SearchRequest.builder().query(query).topK(3).similarityThreshold(0.65).build());
+        SearchRequest.builder().query(query).topK(3).similarityThreshold(similarityThreshold)
+            .build());
     List<ManualSource> result = documents == null ? List.of() : documents.stream()
         .filter(document -> document.getText() != null && !document.getText().isBlank())
         .map(document -> new ManualSource(document.getId(), document.getText())).toList();

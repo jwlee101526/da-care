@@ -23,3 +23,5 @@ app:
     password: test-admin-password
   slack:
     webhook-url:
+  diagnosis:
+    similarity-threshold: 0.4
