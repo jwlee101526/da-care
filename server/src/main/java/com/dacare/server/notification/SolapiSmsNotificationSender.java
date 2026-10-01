@@ -1,8 +1,10 @@
 package com.dacare.server.notification;
 
 import com.dacare.server.domain.NotificationHistory;
+import com.dacare.server.domain.PaidApi;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.repository.NotificationHistoryRepository;
+import com.dacare.server.service.ApiUsageService;
 import com.solapi.sdk.SolapiClient;
 import com.solapi.sdk.message.model.Message;
 import com.solapi.sdk.message.service.DefaultMessageService;
@@ -19,16 +21,18 @@ public class SolapiSmsNotificationSender {
   private final String apiSecret;
   private final String sender;
   private final NotificationHistoryRepository histories;
+  private final ApiUsageService usage;
 
   public SolapiSmsNotificationSender(
       @Value("${app.solapi.api-key:}") String apiKey,
       @Value("${app.solapi.api-secret:}") String apiSecret,
       @Value("${app.solapi.sender:}") String sender,
-      NotificationHistoryRepository histories) {
+      NotificationHistoryRepository histories, ApiUsageService usage) {
     this.apiKey = apiKey;
     this.apiSecret = apiSecret;
     this.sender = sender;
     this.histories = histories;
+    this.usage = usage;
   }
 
   public void sendReservationConfirmed(Reservation reservation) {
@@ -36,6 +40,11 @@ public class SolapiSmsNotificationSender {
     if (!isConfigured()) {
       histories.save(
           new NotificationHistory(reservation, "SMS", "SKIPPED", message, "SOLAPI 설정 미완료"));
+      return;
+    }
+    if (!usage.tryAcquire(PaidApi.SMS)) {
+      histories.save(
+          new NotificationHistory(reservation, "SMS", "SKIPPED", message, "일일 SMS 한도 초과"));
       return;
     }
     try {

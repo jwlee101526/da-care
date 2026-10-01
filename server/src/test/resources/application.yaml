@@ -25,3 +25,7 @@ app:
     webhook-url:
   diagnosis:
     similarity-threshold: 0.4
+  usage:
+    daily-limit:
+      diagnosis: 200
+      sms: 30

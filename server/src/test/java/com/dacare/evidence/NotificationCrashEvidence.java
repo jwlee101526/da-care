@@ -4,6 +4,8 @@ import com.dacare.server.domain.Reservation;
 import com.dacare.server.notification.SlackNotificationSender;
 import com.dacare.server.notification.SolapiSmsNotificationSender;
 import com.dacare.server.repository.ReservationRepository;
+import com.dacare.server.config.ClockConfig;
+import com.dacare.server.service.ApiUsageService;
 import com.dacare.server.service.ReservationService;
 import com.dacare.server.service.OutboxExperimentHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -51,6 +53,7 @@ public class NotificationCrashEvidence {
   @EntityScan(basePackageClasses = Reservation.class)
   @EnableJpaRepositories(basePackageClasses = ReservationRepository.class)
   @Import({ReservationService.class, SlackNotificationSender.class, SolapiSmsNotificationSender.class,
+      ApiUsageService.class, ClockConfig.class,
       BaselineConfiguration.class, PrototypeConfiguration.class})
   public static class EvidenceConfiguration {
     @Bean

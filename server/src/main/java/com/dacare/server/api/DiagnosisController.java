@@ -1,5 +1,7 @@
 package com.dacare.server.api;
 
+import com.dacare.server.domain.PaidApi;
+import com.dacare.server.service.ApiUsageService;
 import com.dacare.server.service.DiagnosisService;
 import com.dacare.server.service.DiagnosisService.ConversationTurn;
 import com.dacare.server.api.docs.DiagnosisApiDocs;
@@ -31,12 +33,14 @@ public class DiagnosisController implements DiagnosisApiDocs {
 
   private final DiagnosisService service;
   private final DiagnosisTaskRunner runner;
+  private final ApiUsageService usage;
   private final Duration timeout;
 
   public DiagnosisController(DiagnosisService service, DiagnosisTaskRunner runner,
-      @Value("${app.diagnosis.timeout:75s}") Duration timeout) {
+      ApiUsageService usage, @Value("${app.diagnosis.timeout:75s}") Duration timeout) {
     this.service = service;
     this.runner = runner;
+    this.usage = usage;
     this.timeout = timeout;
   }
 
@@ -44,6 +48,11 @@ public class DiagnosisController implements DiagnosisApiDocs {
   public SseEmitter stream(@Valid @RequestBody QuestionRequest request, Authentication authentication) {
     // 서버 기한 이후 오류 이벤트를 보낼 수 있도록 SSE 연결 자체는 조금 더 길게 유지한다.
     Stream stream = new Stream(new SseEmitter(timeout.plusSeconds(10).toMillis()));
+    if (!usage.tryAcquire(PaidApi.DIAGNOSIS)) {
+      stream.finish("error", Map.of("code", "DAILY_LIMIT_EXCEEDED",
+          "message", "오늘 AI 상담 가능 횟수를 모두 사용했습니다. 내일 다시 이용해 주세요."));
+      return stream.emitter;
+    }
     try {
       stream.start(runner.submit(() -> {
         try {
@@ -64,6 +73,7 @@ public class DiagnosisController implements DiagnosisApiDocs {
         stream.finish("error", Map.of("message", "진단 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요."));
       }, timeout));
     } catch (RejectedExecutionException exception) {
+      usage.release(PaidApi.DIAGNOSIS);
       stream.finish("error", Map.of("message", "상담 요청이 많아 처리하지 못했습니다. 잠시 후 다시 시도해 주세요."));
     }
     return stream.emitter;
