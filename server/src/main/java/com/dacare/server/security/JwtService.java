@@ -1,4 +1,4 @@
-package com.dacare.server.config;
+package com.dacare.server.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

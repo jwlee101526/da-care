@@ -1,6 +1,6 @@
 package com.dacare.server.service;
 
-import com.dacare.server.config.JwtService;
+import com.dacare.server.security.JwtService;
 import com.dacare.server.domain.AppUser;
 import com.dacare.server.domain.Customer;
 import com.dacare.server.domain.Role;
