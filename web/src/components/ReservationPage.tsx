@@ -25,6 +25,8 @@ const QUICK_SYMPTOMS_EN = [
   'Part replacement requested',
 ]
 
+const SYMPTOM_MAX_LENGTH = 2000
+
 const TIME_SLOTS = [
   '09:00',
   '10:30',
@@ -46,6 +48,22 @@ function getTomorrowDate(): string {
 
 function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, '')
+}
+
+function formatPhone(value: string): string {
+  const digits = normalizePhone(value)
+  if (digits.startsWith('02')) {
+    const local = digits.slice(0, 10)
+    if (local.length <= 2) return local
+    if (local.length <= 5) return `${local.slice(0, 2)}-${local.slice(2)}`
+    if (local.length <= 9) return `${local.slice(0, 2)}-${local.slice(2, 5)}-${local.slice(5)}`
+    return `${local.slice(0, 2)}-${local.slice(2, 6)}-${local.slice(6)}`
+  }
+  const local = digits.slice(0, 11)
+  if (local.length <= 3) return local
+  if (local.length <= 6) return `${local.slice(0, 3)}-${local.slice(3)}`
+  if (local.length <= 10) return `${local.slice(0, 3)}-${local.slice(3, 6)}-${local.slice(6)}`
+  return `${local.slice(0, 3)}-${local.slice(3, 7)}-${local.slice(7)}`
 }
 
 function isValidPhone(phone: string): boolean {
@@ -85,7 +103,14 @@ export function ReservationPage() {
     topRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [step])
 
+  useEffect(() => {
+    if (error) topRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [error])
+
   const selectedCategory = getCategoryDefinition(selectedDevice) || DEVICE_CATEGORIES[0]
+  const progressSteps = lang === 'en'
+    ? ['Details', 'Review', 'Complete']
+    : ['정보 입력', '내용 확인', '접수 완료']
 
   const handleQuickSymptom = (text: string) => {
     setSymptom(prev => {
@@ -120,7 +145,7 @@ export function ReservationPage() {
       return
     }
     if (!isValidPhone(phone)) {
-      setError(lang === 'en' ? 'Enter a valid phone number.' : '연락처를 010-1234-5678 형식으로 입력해 주세요.')
+      setError(lang === 'en' ? 'Enter a valid phone number.' : '올바른 연락처를 입력해 주세요. (숫자만 입력해도 됩니다)')
       return
     }
     if (!address.trim()) {
@@ -200,8 +225,23 @@ export function ReservationPage() {
               ? (lang === 'en' ? 'Confirm Reservation' : '예약 내용 확인')
               : (lang === 'en' ? 'Book Repair Service' : '서비스 예약 신청')}
           </h1>
-          <div style={{ width: 36 }} /> {/* Balance Spacer */}
+          <div aria-hidden="true" />
         </header>
+
+        <ol className="order-progress" aria-label={lang === 'en' ? 'Reservation steps' : '예약 진행 단계'}>
+          {progressSteps.map((label, index) => {
+            const stepNumber = index + 1
+            const state = stepNumber < step || step === 3 ? 'done' : stepNumber === step ? 'current' : ''
+            return (
+              <li key={label} className={state} aria-current={state === 'current' ? 'step' : undefined}>
+                <span className="order-step-badge">
+                  {state === 'done' ? <Check size={13} /> : stepNumber}
+                </span>
+                {label}
+              </li>
+            )
+          })}
+        </ol>
 
         {/* Global Error Banner */}
         {error && (
@@ -261,6 +301,9 @@ export function ReservationPage() {
               <div className="order-section-title">
                 <span className="order-step-badge">2</span>
                 <h3>{lang === 'en' ? 'Symptom & Description' : '고장 증상 및 요청 사항'}</h3>
+                <span className="time-selected-badge">
+                  {lang === 'en' ? selectedCategory.labelEn : selectedCategory.labelKo}
+                </span>
               </div>
               <p className="order-section-sub">
                 {lang === 'en'
@@ -288,10 +331,12 @@ export function ReservationPage() {
                 className="order-textarea"
                 rows={4}
                 required
+                maxLength={SYMPTOM_MAX_LENGTH}
                 placeholder={lang === 'en' ? 'Describe symptoms, model name, or special requests...' : '기기 모델명이나 구체적인 고장 증상을 적어주시면 엔지니어가 부품을 미리 준비할 수 있습니다.'}
                 value={symptom}
                 onChange={e => setSymptom(e.target.value)}
               />
+              <span className="order-textarea-count">{symptom.length} / {SYMPTOM_MAX_LENGTH}</span>
             </section>
 
             {/* Split Row for Schedule and Customer Info */}
@@ -379,11 +424,14 @@ export function ReservationPage() {
                       id="client-phone"
                       required
                       type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel"
                       pattern="[0-9-]{9,13}"
+                      maxLength={13}
                       className="order-input"
                       placeholder="010-1234-5678"
                       value={phone}
-                      onChange={e => setPhone(e.target.value)}
+                      onChange={e => setPhone(formatPhone(e.target.value))}
                     />
                   </div>
                   <div className="customer-field full">
