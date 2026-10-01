@@ -13,8 +13,15 @@ public class WebConfig implements WebMvcConfigurer {
   private static final String[] DEFAULT_DEVELOPMENT_ORIGINS = {"http://localhost:3000",
       "http://localhost:5173"};
 
-  @Value("${app.cors.allowed-origins:}")
-  private String allowedOrigins;
+  private final String[] allowedOrigins;
+
+  public WebConfig(@Value("${app.cors.allowed-origins:}") String allowedOrigins) {
+    String[] origins = Arrays.stream(allowedOrigins.split(","))
+        .map(String::trim)
+        .filter(origin -> !origin.isBlank())
+        .toArray(String[]::new);
+    this.allowedOrigins = origins.length == 0 ? DEFAULT_DEVELOPMENT_ORIGINS : origins;
+  }
 
   @Override
   public void configureApiVersioning(ApiVersionConfigurer configurer) {
@@ -23,15 +30,8 @@ public class WebConfig implements WebMvcConfigurer {
 
   @Override
   public void addCorsMappings(CorsRegistry registry) {
-    String[] origins = Arrays.stream(allowedOrigins.split(","))
-        .map(String::trim)
-        .filter(origin -> !origin.isBlank())
-        .toArray(String[]::new);
-      if (origins.length == 0) {
-          origins = DEFAULT_DEVELOPMENT_ORIGINS;
-      }
     registry.addMapping("/api/**")
-        .allowedOrigins(origins)
+        .allowedOrigins(allowedOrigins)
         .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
         .allowedHeaders("Authorization", "Content-Type", "Accept", "API-Version");
   }
