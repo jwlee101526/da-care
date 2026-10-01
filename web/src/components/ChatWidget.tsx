@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   DndContext,
   useDraggable,
@@ -12,11 +12,11 @@ import { ArrowRight, ArrowUp, CalendarDays, CheckCircle2, ChevronDown, Clipboard
 import brandLogo from '../assets/brand/dacare-logo.svg'
 import type { ReservationSelection } from '../types'
 import { useLanguage } from '../context/LanguageContext'
-import { ApiError, streamDiagnosis } from '../lib/api'
+import { ApiError, fetchMyUsage, streamDiagnosis } from '../lib/api'
 import type { DiagnosisCard, DiagnosisToolProgress, UsageItem } from '../lib/api'
 import { getCategoryInfo } from '../lib/categories'
 import { useAuth } from '../context/AuthContext'
-import { useDailyUsage } from '../hooks/useDailyUsage'
+import { useUsage } from '../hooks/useUsage'
 import { notifyUsage } from '../lib/usageToast'
 import type { LocaleDict } from '../locales/ko'
 import { toast } from 'sonner'
@@ -303,8 +303,9 @@ function ChatPanel({
   const messagesRef = useRef<HTMLDivElement>(null)
   const nextId = useRef(Math.max(0, ...messages.map(message => message.id)) + 1)
   const requestRef = useRef<AbortController | null>(null)
-  const { usage, refresh: refreshUsage } = useDailyUsage()
+  const { usage, refresh: refreshUsage } = useUsage(useCallback(() => fetchMyUsage(token), [token]))
   const usageExhausted = usage?.diagnosis.remaining === 0
+  const exhaustedText = usage && usageExhausted ? exhaustedMessage(usage.diagnosis, !token, t.chat.usage) : ''
 
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, isDragging } = useDraggable({
     id: 'chat-panel',
@@ -436,7 +437,7 @@ function ChatPanel({
     setInput('')
     setLoading(true)
     let completed = false
-    let limitExceeded = false
+    let limitMessage = ''
     try {
       let failed = false
       await streamDiagnosis(symptom, history, token, controller.signal, event => {
@@ -463,7 +464,7 @@ function ChatPanel({
           return
         }
         failed = true
-        limitExceeded = event.data.code === 'DAILY_LIMIT_EXCEEDED'
+        if (event.data.code === 'WEEKLY_LIMIT_EXCEEDED' || event.data.code === 'SERVICE_LIMIT_EXCEEDED') limitMessage = event.data.message
         setMessages(previous => previous.map(message => message.id === responseId ? {
           ...message, error: true, text: event.data.message, streaming: false,
         } : message))
@@ -482,9 +483,9 @@ function ChatPanel({
         setLoading(false)
       }
     }
-    // 상담 1건이 끝나면 오늘 사용량을 다시 조회해 남은 횟수 표시와 알림에 반영한다.
+    // 상담 1건이 끝나면 이번 주 사용량을 다시 조회해 남은 횟수 표시와 알림에 반영한다.
     const nextUsage = await refreshUsage()
-    if (limitExceeded) toast.error(t.chat.usage.exhausted, { description: t.chat.usage.exhaustedPlaceholder })
+    if (limitMessage) toast.error(t.chat.usage.exhausted, { description: limitMessage })
     else if (completed && nextUsage) notifyUsage(nextUsage.diagnosis, t.chat.usage)
     inputRef.current?.focus()
   }
@@ -586,7 +587,7 @@ function ChatPanel({
           maxLength={2000}
           value={input}
           onChange={event => setInput(event.target.value)}
-          placeholder={usageExhausted ? t.chat.usage.exhaustedPlaceholder : t.chat.inputPlaceholder}
+          placeholder={exhaustedText || t.chat.inputPlaceholder}
           disabled={usageExhausted}
           autoComplete="off"
         />
@@ -610,6 +611,14 @@ function ChatPanel({
 /**
  * 오늘 남은 상담 횟수. 배지 대신 문구와 얇은 막대로 남은 비율을 보여 주고, 얼마 남지 않으면 색으로 알린다.
  */
+/**
+ * 상담을 더 할 수 없는 이유. 개인 한도가 남았는데 막혔다면 서비스 전체 한도가 소진된 것이다.
+ */
+function exhaustedMessage(item: UsageItem, guest: boolean, text: ChatText['usage']) {
+  if (item.used < item.limit) return text.serviceExhausted
+  return guest ? text.guestExhausted : text.exhaustedPlaceholder
+}
+
 function ChatUsage({ item, text }: { item: UsageItem; text: ChatText['usage'] }) {
   const ratio = item.limit > 0 ? item.remaining / item.limit : 0
   const level = item.remaining === 0 ? ' is-exhausted' : ratio <= 0.2 ? ' is-low' : ''

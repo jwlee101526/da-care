@@ -251,12 +251,14 @@ export const ko = {
       network: '진단 서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.',
     },
     usage: {
-      label: '오늘 남은 상담',
+      label: '이번 주 남은 상담',
       count: (remaining: number, limit: number) => `${remaining} / ${limit}회`,
-      used: (used: number, limit: number) => `오늘 AI 상담 ${used}/${limit}회 사용`,
+      used: (used: number, limit: number) => `이번 주 AI 상담 ${used}/${limit}회 사용`,
       remaining: (remaining: number) => `남은 상담은 ${remaining}회입니다.`,
-      exhausted: '오늘 AI 상담 가능 횟수를 모두 사용했습니다.',
-      exhaustedPlaceholder: '오늘 상담 한도가 소진되었습니다. 내일 다시 이용해 주세요.',
+      exhausted: '이번 주 AI 상담 가능 횟수를 모두 사용했습니다.',
+      exhaustedPlaceholder: '이번 주 한도를 다 썼습니다. 월요일에 초기화됩니다.',
+      guestExhausted: '비로그인 한도를 다 썼습니다. 로그인 후 이용해 주세요.',
+      serviceExhausted: '이번 주 상담이 마감되었습니다. 월요일에 초기화됩니다.',
     },
   },
 }

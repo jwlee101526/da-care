@@ -14,7 +14,10 @@ export type DiagnosisCard =
   | { type: 'reservation_status'; reservationId: number; status: Reservation['status']; preferredAt: string; confirmedAt: string | null; engineerName: string | null }
   | { type: 'navigation'; page: 'reservations' | 'reserve'; title: string; description: string; actionLabel: string }
 export type UsageItem = { used: number; limit: number; remaining: number }
-export type DailyUsage = { date: string; diagnosis: UsageItem; sms: UsageItem }
+/** 요청자(로그인 계정 또는 비로그인 IP) 기준 이번 주 AI 상담 사용량. remaining은 서비스 전체 잔여량을 넘지 않는다. */
+export type MyUsage = { periodStart: string; resetsAt: string; diagnosis: UsageItem }
+/** 서비스 전체 이번 주 사용량(관리자 전용). */
+export type TotalUsage = { periodStart: string; resetsAt: string; diagnosis: UsageItem; sms: UsageItem }
 export type Diagnosis = { answer: string; cards: DiagnosisCard[]; executedTools: string[] }
 export type DiagnosisToolProgress = { tool: string; status: 'started' | 'completed'; card?: DiagnosisCard | null }
 export type DiagnosisStreamEvent =
@@ -31,8 +34,12 @@ export async function api<T>(path: string, options: RequestInit = {}, token?: st
   return response.status === 204 ? undefined as T : response.json() as Promise<T>
 }
 
-export function fetchUsage() {
-  return api<DailyUsage>('/api/usage')
+export function fetchMyUsage(token?: string | null) {
+  return api<MyUsage>('/api/usage', {}, token)
+}
+
+export function fetchTotalUsage(token?: string | null) {
+  return api<TotalUsage>('/api/admin/usage', {}, token)
 }
 
 export async function streamDiagnosis(
