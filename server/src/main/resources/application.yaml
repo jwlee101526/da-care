@@ -25,6 +25,7 @@ spring:
       timeout: 25s
       max-retries: 1
       chat:
+        model: gpt-5-mini
         reasoning-effort: low
       embedding:
         model: text-embedding-3-small
