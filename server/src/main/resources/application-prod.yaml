@@ -9,7 +9,9 @@ spring:
       connection-timeout: 60000
 server:
   port: ${PORT:8080}
-  forward-headers-strategy: framework
+  # Tomcat RemoteIpValve: 신뢰하는 내부 프록시(사설 대역)만 건너뛰고 X-Forwarded-For에서 실제 클라이언트 IP를 구한다.
+  # framework 전략은 X-Forwarded-For의 첫 값을 그대로 믿어 클라이언트가 IP를 위조할 수 있다.
+  forward-headers-strategy: native
 
 management:
   endpoint:

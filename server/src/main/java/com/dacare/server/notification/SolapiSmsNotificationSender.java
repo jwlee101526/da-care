@@ -1,7 +1,6 @@
 package com.dacare.server.notification;
 
 import com.dacare.server.domain.NotificationHistory;
-import com.dacare.server.domain.PaidApi;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.repository.NotificationHistoryRepository;
 import com.dacare.server.service.ApiUsageService;
@@ -42,9 +41,9 @@ public class SolapiSmsNotificationSender {
           new NotificationHistory(reservation, "SMS", "SKIPPED", message, "SOLAPI 설정 미완료"));
       return;
     }
-    if (!usage.tryAcquire(PaidApi.SMS)) {
+    if (!usage.tryAcquireSms()) {
       histories.save(
-          new NotificationHistory(reservation, "SMS", "SKIPPED", message, "일일 SMS 한도 초과"));
+          new NotificationHistory(reservation, "SMS", "SKIPPED", message, "주간 SMS 한도 초과"));
       return;
     }
     try {

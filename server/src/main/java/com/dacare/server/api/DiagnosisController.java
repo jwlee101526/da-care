@@ -1,10 +1,15 @@
 package com.dacare.server.api;
 
-import com.dacare.server.domain.PaidApi;
+import com.dacare.server.api.docs.DiagnosisApiDocs;
+import com.dacare.server.api.error.ErrorResponse;
 import com.dacare.server.service.ApiUsageService;
+import com.dacare.server.service.ApiUsageService.AcquireResult;
+import com.dacare.server.service.DiagnosisExecutor;
 import com.dacare.server.service.DiagnosisService;
 import com.dacare.server.service.DiagnosisService.ConversationTurn;
-import com.dacare.server.api.docs.DiagnosisApiDocs;
+import com.dacare.server.service.UsageSubject;
+import com.dacare.server.web.UsageSubjectResolver;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +17,6 @@ import jakarta.validation.constraints.Size;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
@@ -32,29 +36,34 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class DiagnosisController implements DiagnosisApiDocs {
 
   private final DiagnosisService service;
-  private final DiagnosisTaskRunner runner;
+  private final DiagnosisExecutor executor;
   private final ApiUsageService usage;
+  private final UsageSubjectResolver subjects;
   private final Duration timeout;
 
-  public DiagnosisController(DiagnosisService service, DiagnosisTaskRunner runner,
-      ApiUsageService usage, @Value("${app.diagnosis.timeout:75s}") Duration timeout) {
+  public DiagnosisController(DiagnosisService service, DiagnosisExecutor executor,
+      ApiUsageService usage, UsageSubjectResolver subjects,
+      @Value("${app.diagnosis.timeout:75s}") Duration timeout) {
     this.service = service;
-    this.runner = runner;
+    this.executor = executor;
     this.usage = usage;
+    this.subjects = subjects;
     this.timeout = timeout;
   }
 
   @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  public SseEmitter stream(@Valid @RequestBody QuestionRequest request, Authentication authentication) {
+  public SseEmitter stream(@Valid @RequestBody QuestionRequest request,
+      Authentication authentication, HttpServletRequest servletRequest) {
     // 서버 기한 이후 오류 이벤트를 보낼 수 있도록 SSE 연결 자체는 조금 더 길게 유지한다.
     Stream stream = new Stream(new SseEmitter(timeout.plusSeconds(10).toMillis()));
-    if (!usage.tryAcquire(PaidApi.DIAGNOSIS)) {
-      stream.finish("error", Map.of("code", "DAILY_LIMIT_EXCEEDED",
-          "message", "오늘 AI 상담 가능 횟수를 모두 사용했습니다. 내일 다시 이용해 주세요."));
+    UsageSubject subject = subjects.resolve(authentication, servletRequest);
+    AcquireResult acquired = usage.tryAcquireDiagnosis(subject);
+    if (acquired != AcquireResult.ACQUIRED) {
+      stream.fail(limitCode(acquired), limitMessage(acquired, subject));
       return stream.emitter;
     }
     try {
-      stream.start(runner.submit(() -> {
+      stream.start(executor.submit(() -> {
         try {
           DiagnosisService.DiagnosisResult result = service.diagnose(request.question(),
               request.history() == null ? List.of() : request.history(),
@@ -64,19 +73,34 @@ public class DiagnosisController implements DiagnosisApiDocs {
         } catch (DiagnosisService.DiagnosisCancelledException exception) {
           stream.close();
         } catch (DiagnosisService.DiagnosisUnavailableException exception) {
-          stream.finish("error", Map.of("message", exception.getMessage()));
+          stream.fail("DIAGNOSIS_UNAVAILABLE", exception.getMessage());
         } catch (RuntimeException exception) {
-          stream.finish("error", Map.of("message", "진단 요청을 처리하지 못했습니다."));
+          stream.fail("DIAGNOSIS_FAILED", "진단 요청을 처리하지 못했습니다.");
         }
-      }), runner.schedule(() -> {
+      }), executor.schedule(() -> {
+        // 작업 중단보다 안내를 먼저 보낸다. 중단된 작업이 먼저 스트림을 닫으면 안내가 유실된다.
+        stream.fail("DIAGNOSIS_TIMEOUT", "진단 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.");
         stream.cancel();
-        stream.finish("error", Map.of("message", "진단 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요."));
       }, timeout));
     } catch (RejectedExecutionException exception) {
-      usage.release(PaidApi.DIAGNOSIS);
-      stream.finish("error", Map.of("message", "상담 요청이 많아 처리하지 못했습니다. 잠시 후 다시 시도해 주세요."));
+      usage.releaseDiagnosis(subject);
+      stream.fail("DIAGNOSIS_BUSY", "상담 요청이 많아 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.");
     }
     return stream.emitter;
+  }
+
+  private static String limitCode(AcquireResult result) {
+    return result == AcquireResult.TOTAL_LIMIT_REACHED ? "SERVICE_LIMIT_EXCEEDED"
+        : "WEEKLY_LIMIT_EXCEEDED";
+  }
+
+  private static String limitMessage(AcquireResult result, UsageSubject subject) {
+    if (result == AcquireResult.TOTAL_LIMIT_REACHED) {
+      return "이번 주 서비스 전체 AI 상담 한도가 소진되었습니다. 다음 주 월요일에 다시 이용해 주세요.";
+    }
+    return subject.isGuest()
+        ? "이번 주 비로그인 상담 가능 횟수를 모두 사용했습니다. 로그인하면 상담을 계속 이용할 수 있습니다."
+        : "이번 주 AI 상담 가능 횟수를 모두 사용했습니다. 다음 주 월요일에 다시 이용해 주세요.";
   }
 
   /**
@@ -116,6 +140,10 @@ public class DiagnosisController implements DiagnosisApiDocs {
         send(name, data);
         emitter.complete();
       }
+    }
+
+    void fail(String code, String message) {
+      finish("error", ErrorResponse.of(code, message));
     }
 
     void close() {

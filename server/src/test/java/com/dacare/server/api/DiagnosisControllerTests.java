@@ -12,9 +12,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
-import com.dacare.server.domain.PaidApi;
 import com.dacare.server.service.ApiUsageService;
+import com.dacare.server.service.ApiUsageService.AcquireResult;
+import com.dacare.server.service.DiagnosisExecutor;
 import com.dacare.server.service.DiagnosisService;
+import com.dacare.server.service.UsageSubject;
+import com.dacare.server.web.UsageSubjectResolver;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -36,22 +39,23 @@ import org.springframework.web.accept.ApiVersionResolver;
 class DiagnosisControllerTests {
 
   private final DiagnosisService service = mock(DiagnosisService.class);
-  private final DiagnosisTaskRunner runner = new DiagnosisTaskRunner(2, 2);
+  private final DiagnosisExecutor executor = new DiagnosisExecutor(2, 2);
   private final ApiUsageService usage = mock(ApiUsageService.class);
+  private final UsageSubjectResolver subjects = new UsageSubjectResolver("", "test-secret");
 
   @BeforeEach
   void setUp() {
-    when(usage.tryAcquire(PaidApi.DIAGNOSIS)).thenReturn(true);
+    when(usage.tryAcquireDiagnosis(any(UsageSubject.class))).thenReturn(AcquireResult.ACQUIRED);
   }
 
   @AfterEach
   void tearDown() {
-    runner.destroy();
+    executor.destroy();
   }
 
   private MockMvc mvc(Duration timeout) {
     ApiVersionResolver header = request -> request.getHeader("API-Version");
-    return MockMvcBuilders.standaloneSetup(new DiagnosisController(service, runner, usage, timeout))
+    return MockMvcBuilders.standaloneSetup(new DiagnosisController(service, executor, usage, subjects, timeout))
         .setApiVersionStrategy(new DefaultApiVersionStrategy(List.of(header),
             new SemanticApiVersionParser(), false, null, true, null, null))
         .build();
@@ -100,10 +104,22 @@ class DiagnosisControllerTests {
 
   @Test
   void dailyLimitSendsErrorWithoutCallingModel() throws Exception {
-    when(usage.tryAcquire(PaidApi.DIAGNOSIS)).thenReturn(false);
+    when(usage.tryAcquireDiagnosis(any(UsageSubject.class)))
+        .thenReturn(AcquireResult.SUBJECT_LIMIT_REACHED);
 
     assertThat(stream(mvc(Duration.ofSeconds(5))))
-        .contains("event:error").contains("DAILY_LIMIT_EXCEEDED")
+        .contains("event:error").contains("WEEKLY_LIMIT_EXCEEDED").contains("로그인하면")
+        .doesNotContain("event:completed");
+    verifyNoInteractions(service);
+  }
+
+  @Test
+  void serviceLimitSendsDistinctCode() throws Exception {
+    when(usage.tryAcquireDiagnosis(any(UsageSubject.class)))
+        .thenReturn(AcquireResult.TOTAL_LIMIT_REACHED);
+
+    assertThat(stream(mvc(Duration.ofSeconds(5))))
+        .contains("event:error").contains("SERVICE_LIMIT_EXCEEDED")
         .doesNotContain("event:completed");
     verifyNoInteractions(service);
   }

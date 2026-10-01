@@ -1,7 +1,8 @@
 package com.dacare.server.api;
 
-import com.dacare.server.domain.Reservation;
 import com.dacare.server.api.docs.ReservationApiDocs;
+import com.dacare.server.domain.Reservation;
+import com.dacare.server.service.ReservationDraft;
 import com.dacare.server.service.ReservationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -32,18 +33,13 @@ public class ReservationController implements ReservationApiDocs {
   @PostMapping
   public ReservationResponse create(Authentication authentication,
       @Valid @RequestBody ReservationRequest request) {
-    return ReservationResponse.from(
-        service.create(authentication.getName(), request.deviceType(), request.symptomDescription(),
-            request.visitAddress(), request.preferredAt(), request.contactName(),
-            request.contactPhone()));
+    return ReservationResponse.from(service.create(authentication.getName(), request.toDraft()));
   }
 
   @PostMapping("/guest")
   public ReservationResponse createGuest(@Valid @RequestBody GuestReservationRequest request) {
     return ReservationResponse.from(
-        service.createGuest(request.deviceType(), request.symptomDescription(),
-            request.visitAddress(), request.preferredAt(), request.contactName(),
-            request.contactPhone(), request.guestPassword()));
+        service.createGuest(request.toDraft(), request.guestPassword()));
   }
 
   @PostMapping("/guest/lookup")
@@ -82,6 +78,10 @@ public class ReservationController implements ReservationApiDocs {
                             @Size(min = 1, max = 50) String contactName,
                             @Pattern(regexp = "^[0-9-]{9,13}$") String contactPhone) {
 
+    ReservationDraft toDraft() {
+      return new ReservationDraft(deviceType, symptomDescription, visitAddress, preferredAt,
+          contactName, contactPhone);
+    }
   }
 
   public record GuestReservationRequest(@NotBlank @Size(max = 50) String deviceType,
@@ -92,6 +92,10 @@ public class ReservationController implements ReservationApiDocs {
                                  @NotBlank @Pattern(regexp = "^[0-9-]{9,13}$") String contactPhone,
                                  @Size(max = 20) String guestPassword) {
 
+    ReservationDraft toDraft() {
+      return new ReservationDraft(deviceType, symptomDescription, visitAddress, preferredAt,
+          contactName, contactPhone);
+    }
   }
 
   public record GuestLookupRequest(@NotNull Long reservationId,
