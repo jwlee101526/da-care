@@ -20,7 +20,7 @@ export type DiagnosisToolProgress = { tool: string; status: 'started' | 'complet
 export type DiagnosisStreamEvent =
   | { type: 'tool'; data: DiagnosisToolProgress }
   | { type: 'completed'; data: Diagnosis }
-  | { type: 'error'; data: { message: string; code?: 'DAILY_LIMIT_EXCEEDED' } }
+  | { type: 'error'; data: { code: string; message: string } }
 
 export async function api<T>(path: string, options: RequestInit = {}, token?: string | null): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers: { 'Content-Type': 'application/json', 'API-Version': '1', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers } })

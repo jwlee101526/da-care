@@ -8,15 +8,17 @@ import {
   type DragEndEvent,
   type DragMoveEvent,
 } from '@dnd-kit/core'
-import { ArrowRight, ArrowUp, BookOpen, CalendarDays, CheckCircle2, ClipboardCheck, LoaderCircle, MessageCircle, RotateCcw, Wrench, X } from 'lucide-react'
+import { ArrowRight, ArrowUp, CalendarDays, CheckCircle2, ChevronDown, ClipboardCheck, LoaderCircle, MessageCircle, RotateCcw, Wrench, X } from 'lucide-react'
 import brandLogo from '../assets/brand/dacare-logo.svg'
 import type { ReservationSelection } from '../types'
 import { useLanguage } from '../context/LanguageContext'
 import { ApiError, streamDiagnosis } from '../lib/api'
-import type { DiagnosisCard, DiagnosisToolProgress } from '../lib/api'
+import type { DiagnosisCard, DiagnosisToolProgress, UsageItem } from '../lib/api'
+import { getCategoryInfo } from '../lib/categories'
 import { useAuth } from '../context/AuthContext'
 import { useDailyUsage } from '../hooks/useDailyUsage'
 import { notifyUsage } from '../lib/usageToast'
+import type { LocaleDict } from '../locales/ko'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 import './ChatWidget.css'
@@ -32,6 +34,14 @@ interface Message {
   error?: boolean
   /** 카드 버튼으로 보낸 요청. 화면에는 표시하지 않지만 다음 요청의 대화 이력에는 포함한다. */
   hidden?: boolean
+}
+
+type ChatText = LocaleDict['chat']
+type ToolName = keyof ChatText['tools']['labels']
+type NavigationPage = Extract<DiagnosisCard, { type: 'navigation' }>['page']
+
+function isToolName(tool: string, labels: ChatText['tools']['labels']): tool is ToolName {
+  return tool in labels
 }
 
 const CHAT_SESSION_KEY = 'dacare.chat.messages.v1'
@@ -273,7 +283,7 @@ function ChatPanel({
   isOpen: boolean
   onClose: () => void
   onBookWithSymptom: ChatWidgetProps['onBookWithSymptom']
-  onNavigate: (page: Extract<DiagnosisCard, { type: 'navigation' }>['page']) => void
+  onNavigate: (page: NavigationPage) => void
   currentX: number
   currentY: number
   panelRef: React.RefObject<HTMLElement | null>
@@ -458,13 +468,12 @@ function ChatPanel({
           ...message, error: true, text: event.data.message, streaming: false,
         } : message))
       })
-      if (!completed && !failed) throw new ApiError(500, '실시간 응답이 예기치 않게 종료되었습니다.')
+      if (!completed && !failed) throw new ApiError(500, t.chat.errors.interrupted)
     } catch (error) {
       setMessages(previous => previous.map(message => message.id === responseId ? {
         ...message, error: true, streaming: false,
-        text: error instanceof ApiError ? error.message : controller.signal.aborted
-          ? '진단 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.'
-          : '진단 서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+        text: error instanceof ApiError ? error.message
+          : controller.signal.aborted ? t.chat.errors.timeout : t.chat.errors.network,
       } : message))
     } finally {
       window.clearTimeout(timeout)
@@ -473,7 +482,7 @@ function ChatPanel({
         setLoading(false)
       }
     }
-    // 상담 1건이 끝나면 오늘 사용량을 다시 조회해 배지와 알림에 반영한다.
+    // 상담 1건이 끝나면 오늘 사용량을 다시 조회해 남은 횟수 표시와 알림에 반영한다.
     const nextUsage = await refreshUsage()
     if (limitExceeded) toast.error(t.chat.usage.exhausted, { description: t.chat.usage.exhaustedPlaceholder })
     else if (completed && nextUsage) notifyUsage(nextUsage.diagnosis, t.chat.usage)
@@ -528,8 +537,8 @@ function ChatPanel({
           <button
             className="icon-button"
             type="button"
-            aria-label="새 대화 시작"
-            title="새 대화 시작"
+            aria-label={t.chat.newChat}
+            title={t.chat.newChat}
             onClick={startNewChat}
             onPointerDown={event => event.stopPropagation()}
           >
@@ -548,25 +557,21 @@ function ChatPanel({
       <div className="chat-intro">
         <h2 id="chat-title">{t.chat.headerTitle}</h2>
         <p id="chat-notice" className="chat-notice">{t.chat.notice}</p>
-        {usage && (
-          <p className={'chat-usage' + (usageExhausted ? ' exhausted' : '')} aria-live="polite">
-            {t.chat.usage.badge(usage.diagnosis.used, usage.diagnosis.limit)}
-          </p>
-        )}
+        {usage && <ChatUsage item={usage.diagnosis} text={t.chat.usage} />}
       </div>
-      <div className="chat-messages" role="log" aria-label="Messages" aria-live="polite" aria-relevant="additions" ref={messagesRef}>
+      <div className="chat-messages" role="log" aria-label={t.chat.messagesAria} aria-live="polite" aria-relevant="additions" ref={messagesRef}>
         {messages.filter(message => !message.hidden).map(message => (
           <div key={message.id} className={'chat-message ' + message.sender}>
             <div className="chat-message-content">
-              {Boolean(message.executedTools?.length || message.toolProgress?.length) && <ToolResults tools={message.executedTools} progress={message.toolProgress} />}
-              {message.streaming && <ToolCallingIndicator progress={message.toolProgress} />}
+              {Boolean(message.executedTools?.length || message.toolProgress?.length) && <ToolResults tools={message.executedTools} progress={message.toolProgress} text={t.chat.tools} />}
+              {message.streaming && <ToolCallingIndicator progress={message.toolProgress} text={t.chat.progress} />}
               {(message.id === 0 || message.text) && <p role={message.error ? 'alert' : undefined}>{message.id === 0 ? t.chat.welcome : message.text}</p>}
-              {message.cards && <DiagnosisCards cards={message.cards} onBook={onBookWithSymptom} onRequestTool={send} onNavigate={onNavigate} />}
+              {message.cards && <DiagnosisCards cards={message.cards} text={t.chat.card} onBook={onBookWithSymptom} onRequestTool={send} onNavigate={onNavigate} />}
             </div>
           </div>
         ))}
       </div>
-      <div className="quick-questions" aria-label="Quick questions">
+      <div className="quick-questions" aria-label={t.chat.quickQuestionsAria}>
         {t.chat.quickQuestions.map(question => (
           <button key={question.label} disabled={loading || usageExhausted} onClick={() => send(question.symptom)}>
             {question.label}
@@ -574,7 +579,7 @@ function ChatPanel({
         ))}
       </div>
       <form className="chat-form" onSubmit={event => { event.preventDefault(); send(input) }}>
-        <label className="sr-only" htmlFor="chat-input">{t.modal.symptomLegend}</label>
+        <label className="sr-only" htmlFor="chat-input">{t.chat.inputLabel}</label>
         <input
           id="chat-input"
           ref={inputRef}
@@ -602,28 +607,32 @@ function ChatPanel({
   )
 }
 
-function ToolCallingIndicator({ progress = [] }: { progress?: DiagnosisToolProgress[] }) {
+/**
+ * 오늘 남은 상담 횟수. 배지 대신 문구와 얇은 막대로 남은 비율을 보여 주고, 얼마 남지 않으면 색으로 알린다.
+ */
+function ChatUsage({ item, text }: { item: UsageItem; text: ChatText['usage'] }) {
+  const ratio = item.limit > 0 ? item.remaining / item.limit : 0
+  const level = item.remaining === 0 ? ' is-exhausted' : ratio <= 0.2 ? ' is-low' : ''
+  return (
+    <div className={'chat-usage' + level} aria-live="polite">
+      <div className="chat-usage-text">
+        <span>{text.label}</span>
+        <strong>{text.count(item.remaining, item.limit)}</strong>
+      </div>
+      <div className="chat-usage-track" role="progressbar" aria-label={text.label}
+        aria-valuemin={0} aria-valuemax={item.limit} aria-valuenow={item.remaining}>
+        <div style={{ width: `${Math.round(ratio * 100)}%` }} />
+      </div>
+    </div>
+  )
+}
+
+function ToolCallingIndicator({ progress = [], text }: { progress?: DiagnosisToolProgress[]; text: ChatText['progress'] }) {
   const latest = progress.at(-1)
-  const status = latest?.status === 'started'
-    ? {
-        searchManuals: ['매뉴얼을 검색하고 있습니다', '관련 문서를 확인하고 있습니다.'],
-        showInspectionCard: ['점검 안내를 만들고 있습니다', '매뉴얼 근거를 정리하고 있습니다.'],
-        prepareReservation: ['예약 안내를 준비하고 있습니다', '예약 정보를 입력하고 있습니다.'],
-        getReservationStatus: ['예약 상태를 조회하고 있습니다', '실제 접수 정보를 확인하고 있습니다.'],
-        navigateTo: ['이동 안내를 준비하고 있습니다', '요청한 페이지를 확인하고 있습니다.'],
-      }[latest.tool]
-    : latest?.tool === 'searchManuals'
-      ? ['검색 결과를 분석하고 있습니다', '점검 안내 또는 다음 행동을 준비하고 있습니다.']
-      : latest?.tool === 'showInspectionCard'
-        ? ['답변을 정리하고 있습니다', '점검 안내 내용을 바탕으로 다음 절차를 정리하고 있습니다.']
-        : latest?.tool === 'prepareReservation'
-          ? ['예약 안내를 정리하고 있습니다', '다음 절차를 안내하고 있습니다.']
-          : latest?.tool === 'getReservationStatus'
-            ? ['조회 결과를 정리하고 있습니다', '예약 상태 안내를 작성하고 있습니다.']
-            : latest?.tool === 'navigateTo'
-              ? ['이동 안내를 정리하고 있습니다', '요청한 페이지로 안내하고 있습니다.']
-              : ['요청을 분석하고 있습니다', '필요한 매뉴얼과 다음 행동을 확인하고 있습니다.']
-  const [title, description] = status ?? ['요청을 처리하고 있습니다', '다음 단계를 준비하고 있습니다.']
+  const phase = latest?.status === 'started' ? text.started : text.completed
+  const [title, description] = latest && latest.tool in phase
+    ? phase[latest.tool as keyof typeof phase]
+    : text.initial
   return (
     <div className="tool-progress" aria-label={title}>
       <LoaderCircle className="tool-spinner" size={15} aria-hidden="true" />
@@ -632,62 +641,69 @@ function ToolCallingIndicator({ progress = [] }: { progress?: DiagnosisToolProgr
   )
 }
 
-function ToolResults({ tools = [], progress = [] }: { tools?: string[]; progress?: DiagnosisToolProgress[] }) {
-  const labels: Record<string, string> = {
-    searchManuals: '매뉴얼 검색 완료',
-    showInspectionCard: '점검 안내 생성 완료',
-    prepareReservation: '방문 점검 신청 안내 완료',
-    getReservationStatus: '예약 상태 조회 완료',
-    navigateTo: '페이지 이동 안내 완료',
+function ToolResults({ tools = [], progress = [], text }: { tools?: string[]; progress?: DiagnosisToolProgress[]; text: ChatText['tools'] }) {
+  const statuses: { tool: ToolName; status: DiagnosisToolProgress['status'] }[] = []
+  for (const item of progress) {
+    if (isToolName(item.tool, text.labels)) statuses.push({ tool: item.tool, status: item.status })
   }
-  const statuses = progress.filter(item => labels[item.tool]).map(item => ({ tool: item.tool, status: item.status }))
-  for (const tool of [...new Set(tools)].filter(tool => labels[tool] && !statuses.some(item => item.tool === tool))) {
-    statuses.push({ tool, status: 'completed' })
+  for (const tool of new Set(tools)) {
+    if (isToolName(tool, text.labels) && !statuses.some(item => item.tool === tool)) statuses.push({ tool, status: 'completed' })
   }
   if (!statuses.length) return null
-  return <ul className="chat-tool-results" aria-label="실행된 도구">
+  return <ul className="chat-tool-results" aria-label={text.aria}>
     {statuses.map(({ tool, status }) => <li key={tool} className={status === 'started' ? 'is-started' : ''}>
       {status === 'started' ? <LoaderCircle className="tool-result-spinner" size={14} aria-hidden="true" /> : <CheckCircle2 size={14} aria-hidden="true" />}
-      {labels[tool]}<span>{status === 'started' ? '처리 중' : '완료'}</span>
+      {text.labels[tool]}<span>{status === 'started' ? text.running : text.done}</span>
     </li>)}
   </ul>
 }
 
-function DiagnosisCards({ cards, onBook, onRequestTool, onNavigate }: {
+function DiagnosisCards({ cards, text, onBook, onRequestTool, onNavigate }: {
   cards: DiagnosisCard[]
+  text: ChatText['card']
   onBook: ChatWidgetProps['onBookWithSymptom']
   onRequestTool: (message: string, showUserMessage?: boolean) => void
-  onNavigate: (page: Extract<DiagnosisCard, { type: 'navigation' }>['page']) => void
+  onNavigate: (page: NavigationPage) => void
 }) {
-  const { t } = useLanguage()
-  const statusLabels = { PENDING: '접수 대기', CONFIRMED: '예약 확정', COMPLETED: '점검 완료', CANCELLED: '취소됨' }
+  const { lang } = useLanguage()
   return (
     <div className="diagnosis-cards">
       {cards.map((card, index) => {
         if (card.type === 'inspection') return (
           <article className="diagnosis-card visit-card" key={index}>
-            <div className="visit-card-heading"><strong><ClipboardCheck size={18} aria-hidden="true" />{card.title}</strong><span className="visit-recommendation">매뉴얼 기반</span></div>
-            <dl><div><dt>대상 기기</dt><dd>{card.deviceName}</dd></div>{card.suspectedCause && <div><dt>추정 원인</dt><dd>{card.suspectedCause}</dd></div>}<div><dt>점검 내용</dt><dd>{card.inspectionDetails}</dd></div></dl>
-            <details className="diagnosis-evidence"><summary><BookOpen size={15} aria-hidden="true" />참고 매뉴얼 <span>{card.evidence.length}건</span></summary>{card.evidence.map((source, sourceIndex) => <div className="diagnosis-source" key={source.sourceId}><strong>근거 {sourceIndex + 1}</strong><blockquote>{source.quote}</blockquote><small>문서 {source.sourceId}</small></div>)}</details>
+            <div className="visit-card-heading"><strong><ClipboardCheck size={18} aria-hidden="true" />{card.title}</strong><span className="visit-recommendation">{text.manualBased}</span></div>
+            <dl><div><dt>{text.device}</dt><dd>{card.deviceName}</dd></div>{card.suspectedCause && <div><dt>{text.cause}</dt><dd>{card.suspectedCause}</dd></div>}<div><dt>{text.inspection}</dt><dd>{card.inspectionDetails}</dd></div></dl>
+            {card.evidence.length > 0 && (
+              <details className="diagnosis-evidence">
+                <summary>{text.evidence}<span>{card.evidence.length}</span><ChevronDown size={15} aria-hidden="true" /></summary>
+                {card.evidence.map(source => (
+                  <figure key={source.sourceId}>
+                    <blockquote>{source.quote}</blockquote>
+                    <figcaption>{text.source(source.sourceId)}</figcaption>
+                  </figure>
+                ))}
+              </details>
+            )}
             <CardNextAction
-              label="방문 점검 준비"
-              detail="예약 정보를 미리 입력하고 다음 절차를 안내합니다."
-              onClick={() => onRequestTool('방문 점검 예약을 준비해 주세요.', false)}
+              title={text.nextAction}
+              label={text.prepareVisit}
+              detail={text.prepareVisitDetail}
+              onClick={() => onRequestTool(text.prepareVisitRequest, false)}
             />
           </article>
         )
         if (card.type === 'booking') return (
           <article className="diagnosis-card visit-card" key={index}>
-            <div className="visit-card-heading"><strong><CalendarDays size={17} /> 방문 점검 신청</strong></div>
-            <dl><div><dt>대상 기기</dt><dd>{(t.modal.devices as Record<string, string>)[card.deviceType] || card.deviceType}</dd></div><div><dt>접수 증상</dt><dd>{card.symptom}</dd></div></dl>
-            <small>선택하신 기기와 증상은 다음 단계에 미리 입력해 두겠습니다. 방문을 원하는 날짜와 장소를 입력하면 예약을 신청할 수 있습니다.</small>
-            <button className="chat-booking" onClick={() => onBook({ device: card.deviceType, symptom: card.symptom })}>예약 계속하기 <ArrowRight size={17} /></button>
+            <div className="visit-card-heading"><strong><CalendarDays size={17} /> {text.bookingTitle}</strong></div>
+            <dl><div><dt>{text.device}</dt><dd>{getCategoryInfo(card.deviceType, lang)}</dd></div><div><dt>{text.symptom}</dt><dd>{card.symptom}</dd></div></dl>
+            <small>{text.bookingDescription}</small>
+            <button className="chat-booking" onClick={() => onBook({ device: card.deviceType, symptom: card.symptom })}>{text.continueBooking} <ArrowRight size={17} /></button>
           </article>
         )
         if (card.type === 'reservation_status') return (
           <article className="diagnosis-card visit-card" key={index}>
-            <div className="visit-card-heading"><strong>예약 #{card.reservationId}</strong><span className="ready-badge">{statusLabels[card.status]}</span></div>
-            <dl><div><dt>희망 일시</dt><dd>{card.preferredAt.replace('T', ' ')}</dd></div><div><dt>확정 일시</dt><dd>{card.confirmedAt?.replace('T', ' ') ?? '미확정'}</dd></div><div><dt>엔지니어</dt><dd>{card.engineerName ?? '미배정'}</dd></div></dl>
+            <div className="visit-card-heading"><strong>{text.reservation(card.reservationId)}</strong><span className={'reservation-status is-' + card.status.toLowerCase()}>{text.status[card.status]}</span></div>
+            <dl><div><dt>{text.preferredAt}</dt><dd>{card.preferredAt.replace('T', ' ')}</dd></div><div><dt>{text.confirmedAt}</dt><dd>{card.confirmedAt?.replace('T', ' ') ?? text.notConfirmed}</dd></div><div><dt>{text.engineer}</dt><dd>{card.engineerName ?? text.notAssigned}</dd></div></dl>
           </article>
         )
         if (card.type === 'navigation') return (
@@ -703,10 +719,10 @@ function DiagnosisCards({ cards, onBook, onRequestTool, onNavigate }: {
   )
 }
 
-function CardNextAction({ label, detail, onClick }: { label: string; detail: string; onClick: () => void }) {
+function CardNextAction({ title, label, detail, onClick }: { title: string; label: string; detail: string; onClick: () => void }) {
   return (
     <div className="card-next-action">
-      <div><span>다음 행동</span><small>{detail}</small></div>
+      <div><span>{title}</span><small>{detail}</small></div>
       <button type="button" onClick={onClick}><Wrench size={14} aria-hidden="true" />{label}<ArrowRight size={14} aria-hidden="true" /></button>
     </div>
   )
