@@ -1,4 +1,4 @@
-package com.dacare.server.api;
+package com.dacare.server.service;
 
 import java.time.Duration;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -21,12 +21,12 @@ import org.springframework.stereotype.Component;
  * 애플리케이션 기본 TaskExecutor 자동 구성에 영향을 주지 않도록 Executor 빈으로 노출하지 않는다.
  */
 @Component
-public class DiagnosisTaskRunner implements DisposableBean {
+public class DiagnosisExecutor implements DisposableBean {
 
   private final ThreadPoolExecutor executor;
   private final ScheduledExecutorService scheduler;
 
-  public DiagnosisTaskRunner(@Value("${app.diagnosis.max-concurrency:8}") int maxConcurrency,
+  public DiagnosisExecutor(@Value("${app.diagnosis.max-concurrency:8}") int maxConcurrency,
       @Value("${app.diagnosis.queue-capacity:16}") int queueCapacity) {
     AtomicInteger sequence = new AtomicInteger();
     this.executor = new ThreadPoolExecutor(maxConcurrency, maxConcurrency, 60, TimeUnit.SECONDS,

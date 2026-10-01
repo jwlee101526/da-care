@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.dacare.server.domain.PaidApi;
 import com.dacare.server.service.ApiUsageService;
+import com.dacare.server.service.DiagnosisExecutor;
 import com.dacare.server.service.DiagnosisService;
 import java.time.Duration;
 import java.util.List;
@@ -36,7 +37,7 @@ import org.springframework.web.accept.ApiVersionResolver;
 class DiagnosisControllerTests {
 
   private final DiagnosisService service = mock(DiagnosisService.class);
-  private final DiagnosisTaskRunner runner = new DiagnosisTaskRunner(2, 2);
+  private final DiagnosisExecutor executor = new DiagnosisExecutor(2, 2);
   private final ApiUsageService usage = mock(ApiUsageService.class);
 
   @BeforeEach
@@ -46,12 +47,12 @@ class DiagnosisControllerTests {
 
   @AfterEach
   void tearDown() {
-    runner.destroy();
+    executor.destroy();
   }
 
   private MockMvc mvc(Duration timeout) {
     ApiVersionResolver header = request -> request.getHeader("API-Version");
-    return MockMvcBuilders.standaloneSetup(new DiagnosisController(service, runner, usage, timeout))
+    return MockMvcBuilders.standaloneSetup(new DiagnosisController(service, executor, usage, timeout))
         .setApiVersionStrategy(new DefaultApiVersionStrategy(List.of(header),
             new SemanticApiVersionParser(), false, null, true, null, null))
         .build();
