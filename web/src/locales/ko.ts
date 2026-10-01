@@ -191,6 +191,13 @@ export const ko = {
     bookAction: '이 증상으로 방문 예약하기',
     inputPlaceholder: '증상을 입력해 보세요 (예: 화면이 깜빡여요)',
     sendAria: '메시지 전송',
+    usage: {
+      badge: (used: number, limit: number) => `오늘 AI 상담 ${used}/${limit}`,
+      used: (used: number, limit: number) => `오늘 AI 상담 ${used}/${limit}회 사용`,
+      remaining: (remaining: number) => `남은 상담은 ${remaining}회입니다.`,
+      exhausted: '오늘 AI 상담 가능 횟수를 모두 사용했습니다.',
+      exhaustedPlaceholder: '오늘 상담 한도가 소진되었습니다. 내일 다시 이용해 주세요.',
+    },
   },
 }
 

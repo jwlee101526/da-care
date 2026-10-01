@@ -193,5 +193,12 @@ export const en: LocaleDict = {
     bookAction: 'Book Visit with this Symptom',
     inputPlaceholder: 'Describe your symptoms (e.g., screen flickers)',
     sendAria: 'Send message',
+    usage: {
+      badge: (used: number, limit: number) => `AI chats today ${used}/${limit}`,
+      used: (used: number, limit: number) => `${used} of ${limit} AI chats used today`,
+      remaining: (remaining: number) => `${remaining} left today.`,
+      exhausted: 'The daily AI chat limit has been reached.',
+      exhaustedPlaceholder: 'Daily chat limit reached. Please try again tomorrow.',
+    },
   },
 }

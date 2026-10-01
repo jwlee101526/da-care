@@ -2344,3 +2344,44 @@ h2 { font-size: 34px; letter-spacing: -.045em; line-height: 1.35; font-weight: 6
 
 
 
+
+.dashboard .usage-summary > p {
+  margin: -8px 0 18px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.usage-meter + .usage-meter {
+  margin-top: 16px;
+}
+
+.usage-meter-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  color: #182946;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.usage-meter-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef2f7;
+}
+
+.usage-meter-track > div {
+  height: 100%;
+  border-radius: inherit;
+  background: #2457d6;
+  transition: width .3s ease;
+}
+
+.usage-meter.warning .usage-meter-track > div {
+  background: #d97706;
+}
+
+.usage-meter.exhausted .usage-meter-track > div {
+  background: #e11d48;
+}

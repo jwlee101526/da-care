@@ -18,6 +18,7 @@ import { ReservationsPage } from './components/ReservationsPage'
 import { AdminPage } from './components/AdminPage'
 
 import { ReservationPage } from './components/ReservationPage'
+import { Toaster } from './components/ui/sonner'
 
 function LandingContent({
   onOpenReservation,
@@ -86,6 +87,7 @@ function AppShell() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <ChatWidget isOpen={isChatOpen} onToggle={() => setIsChatOpen(value => !value)} onBookWithSymptom={openReservation} />
+      <Toaster position="top-center" richColors />
     </>
   )
 }
