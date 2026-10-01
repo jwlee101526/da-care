@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Check, X } from 'lucide-react'
-import type { ReservationSelection } from '../types'
+import type { DeviceType, ReservationSelection } from '../types'
 import { useLanguage } from '../context/LanguageContext'
 
 const deviceTypes: ('laptop' | 'smartphone' | 'appliance' | 'etc')[] = ['laptop', 'smartphone', 'appliance', 'etc']
@@ -12,6 +12,7 @@ function localDate() {
 
 export function ReservationModal({ initialSelection, onClose }: { initialSelection: ReservationSelection; onClose: () => void }) {
   const { t } = useLanguage()
+  const deviceLabels: Partial<Record<DeviceType, string>> = t.modal.devices
   const dialogRef = useRef<HTMLDialogElement>(null)
   const stepTitleRef = useRef<HTMLHeadingElement>(null)
   const dateRef = useRef<HTMLInputElement>(null)
@@ -73,7 +74,7 @@ export function ReservationModal({ initialSelection, onClose }: { initialSelecti
             <h3 ref={stepTitleRef} tabIndex={-1}>{t.modal.complete.title}</h3>
             <p style={{ whiteSpace: 'pre-line' }}>{t.modal.complete.desc}</p>
             <dl className="reservation-summary">
-              <div><dt>{t.modal.complete.device}</dt><dd>{(t.modal.devices as Record<string, string>)[form.device] || form.device}</dd></div>
+              <div><dt>{t.modal.complete.device}</dt><dd>{deviceLabels[form.device] ?? form.device}</dd></div>
               <div><dt>{t.modal.complete.schedule}</dt><dd>{form.date} {form.time}</dd></div>
             </dl>
             <button className="button primary full-width" onClick={onClose}>{t.modal.complete.btnClose}</button>
