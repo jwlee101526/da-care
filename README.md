@@ -132,8 +132,15 @@ title: 노트북 전원이 켜지지 않음 (Laptop does not turn on)
 |---|---|---|
 | `DIAGNOSIS_SIMILARITY_THRESHOLD` | `0.4` | 매뉴얼 검색 유사도 하한. 관련 없는 문서가 검색되면 올리고, 관련 문서가 누락되면 낮춥니다. |
 | `DIAGNOSIS_TIMEOUT` | `75s` | 상담 요청 1건의 전체 처리 기한. 웹 클라이언트 제한 시간(90초)보다 짧게 유지합니다. |
-| `DIAGNOSIS_DAILY_LIMIT` | `200` | 서비스 전체 하루 AI 상담 횟수 한도(한국 시간 자정 초기화). 초과하면 상담 요청을 받지 않습니다. |
-| `SMS_DAILY_LIMIT` | `30` | 서비스 전체 하루 SMS 발송 한도. 초과하면 문자를 보내지 않고 알림 이력에 `SKIPPED`로 남깁니다. |
+| `DIAGNOSIS_WEEKLY_LIMIT` | `200` | 서비스 전체 주간 AI 상담 한도. 계정·비로그인 한도와 별개로 적용되는 비용 상한입니다. |
+| `DIAGNOSIS_CUSTOMER_WEEKLY_LIMIT` | `10` | 일반 계정 1개의 주간 AI 상담 한도. |
+| `DIAGNOSIS_ADMIN_WEEKLY_LIMIT` | `200` | 관리자 계정 1개의 주간 AI 상담 한도. |
+| `DIAGNOSIS_GUEST_WEEKLY_LIMIT` | `5` | 비로그인 사용자(클라이언트 IP 1개)의 주간 AI 상담 한도. |
+| `SMS_WEEKLY_LIMIT` | `15` | 서비스 전체 주간 SMS 발송 한도. 초과하면 문자를 보내지 않고 알림 이력에 `SKIPPED`로 남깁니다. |
+| `CLIENT_IP_HEADER` | (없음) | 앞단 프록시가 덮어써 위조할 수 없는 실제 클라이언트 IP 헤더. Render는 `True-Client-IP`를 지정합니다. 비우면 `X-Forwarded-For`를 신뢰 프록시 기준으로 해석한 원격 주소를 씁니다. |
+| `USAGE_IP_HASH_SECRET` | `JWT_SECRET` | 비로그인 사용자 IP를 저장 전에 해시하는 비밀값. IP 원문은 저장하지 않습니다. |
+
+사용량 한도는 매주 월요일 0시(한국 시간)에 초기화됩니다. AI 상담은 사용자 한도와 서비스 전체 한도를 모두 통과해야 하며, 한도를 넘으면 모델을 호출하지 않습니다.
 
 ### Docker Compose로 실행
 

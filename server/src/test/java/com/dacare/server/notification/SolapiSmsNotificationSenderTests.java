@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.dacare.server.domain.NotificationHistory;
-import com.dacare.server.domain.PaidApi;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.repository.NotificationHistoryRepository;
 import com.dacare.server.service.ApiUsageService;
@@ -22,8 +21,8 @@ class SolapiSmsNotificationSenderTests {
       "secret", "010-0000-0000", histories, usage);
 
   @Test
-  void skipsSendingWhenDailyLimitIsReached() {
-    when(usage.tryAcquire(PaidApi.SMS)).thenReturn(false);
+  void skipsSendingWhenWeeklyLimitIsReached() {
+    when(usage.tryAcquireSms()).thenReturn(false);
     Reservation reservation = mock(Reservation.class, invocation -> null);
     com.dacare.server.domain.Engineer engineer = mock(com.dacare.server.domain.Engineer.class);
     when(engineer.getName()).thenReturn("김기사");
@@ -36,6 +35,6 @@ class SolapiSmsNotificationSenderTests {
         NotificationHistory.class);
     verify(histories).save(history.capture());
     assertThat(history.getValue().getStatus()).isEqualTo("SKIPPED");
-    assertThat(history.getValue().getFailureReason()).isEqualTo("일일 SMS 한도 초과");
+    assertThat(history.getValue().getFailureReason()).isEqualTo("주간 SMS 한도 초과");
   }
 }

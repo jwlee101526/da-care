@@ -26,6 +26,10 @@ app:
   diagnosis:
     similarity-threshold: 0.4
   usage:
-    daily-limit:
-      diagnosis: 200
-      sms: 30
+    weekly-limit:
+      diagnosis-total: 200
+      diagnosis-customer: 10
+      diagnosis-admin: 200
+      diagnosis-guest: 5
+      sms: 15
+    ip-hash-secret: test-ip-hash-secret

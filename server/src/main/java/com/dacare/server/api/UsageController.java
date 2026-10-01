@@ -2,7 +2,10 @@ package com.dacare.server.api;
 
 import com.dacare.server.api.docs.UsageApiDocs;
 import com.dacare.server.service.ApiUsageService;
-import com.dacare.server.service.ApiUsageService.DailyUsage;
+import com.dacare.server.service.ApiUsageService.SubjectUsage;
+import com.dacare.server.web.UsageSubjectResolver;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,13 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class UsageController implements UsageApiDocs {
 
   private final ApiUsageService service;
+  private final UsageSubjectResolver subjects;
 
-  public UsageController(ApiUsageService service) {
+  public UsageController(ApiUsageService service, UsageSubjectResolver subjects) {
     this.service = service;
+    this.subjects = subjects;
   }
 
   @GetMapping
-  public DailyUsage today() {
-    return service.todayUsage();
+  public SubjectUsage mine(Authentication authentication, HttpServletRequest request) {
+    return service.diagnosisUsage(subjects.resolve(authentication, request));
   }
 }

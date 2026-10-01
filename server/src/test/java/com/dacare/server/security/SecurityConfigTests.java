@@ -46,6 +46,24 @@ class SecurityConfigTests {
   }
 
   @Test
+  void guestCanReadOwnWeeklyUsage() throws Exception {
+    mvc.perform(get("/api/usage").header("API-Version", "1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.diagnosis.limit").value(5));
+  }
+
+  @Test
+  void totalUsageIsAdminOnly() throws Exception {
+    mvc.perform(get("/api/admin/usage").header("API-Version", "1")
+            .header("Authorization", "Bearer " + jwt.createToken("someone@test.local", "CUSTOMER")))
+        .andExpect(status().isForbidden());
+    mvc.perform(get("/api/admin/usage").header("API-Version", "1")
+            .header("Authorization", "Bearer " + jwt.createToken("admin@test.local", "ADMIN")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.sms.limit").value(15));
+  }
+
+  @Test
   void spaRouteIsForwardedToIndex() throws Exception {
     mvc.perform(get("/en/reservations")).andExpect(status().isOk())
         .andExpect(forwardedUrl("/index.html"));

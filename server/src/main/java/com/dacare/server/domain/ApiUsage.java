@@ -17,11 +17,11 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 
 /**
- * 유료 API의 일자별 서비스 전체 호출 횟수.
+ * 유료 API의 주간 호출 횟수. 대상(subject)은 서비스 전체, 계정, 비로그인 IP 중 하나다.
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "uk_api_usage_api_date",
-    columnNames = {"api", "usage_date"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uk_api_usage_api_subject_period",
+    columnNames = {"api", "subject", "period_start"}))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ApiUsage {
@@ -33,14 +33,20 @@ public class ApiUsage {
   @JdbcTypeCode(Types.VARCHAR)
   @Column(nullable = false, length = 30)
   private PaidApi api;
+  @Column(nullable = false, length = 320)
+  private String subject;
+  /**
+   * 집계 주의 시작일(월요일, 한국 시간).
+   */
   @Column(nullable = false)
-  private LocalDate usageDate;
+  private LocalDate periodStart;
   @Column(nullable = false)
   private int used;
 
-  public ApiUsage(PaidApi api, LocalDate usageDate, int used) {
+  public ApiUsage(PaidApi api, String subject, LocalDate periodStart, int used) {
     this.api = api;
-    this.usageDate = usageDate;
+    this.subject = subject;
+    this.periodStart = periodStart;
     this.used = used;
   }
 }

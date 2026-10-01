@@ -3,6 +3,8 @@ package com.dacare.server.api;
 import com.dacare.server.api.ReservationController.ReservationResponse;
 import com.dacare.server.api.docs.AdminApiDocs;
 import com.dacare.server.domain.Engineer;
+import com.dacare.server.service.ApiUsageService;
+import com.dacare.server.service.ApiUsageService.TotalUsage;
 import com.dacare.server.service.EngineerService;
 import com.dacare.server.service.ReservationService;
 import jakarta.validation.Valid;
@@ -27,10 +29,18 @@ public class AdminController implements AdminApiDocs {
 
   private final EngineerService engineers;
   private final ReservationService reservations;
+  private final ApiUsageService usage;
 
-  public AdminController(EngineerService engineers, ReservationService reservations) {
+  public AdminController(EngineerService engineers, ReservationService reservations,
+      ApiUsageService usage) {
     this.engineers = engineers;
     this.reservations = reservations;
+    this.usage = usage;
+  }
+
+  @GetMapping("/usage")
+  public TotalUsage usage() {
+    return usage.totalUsage();
   }
 
   @GetMapping("/engineers")

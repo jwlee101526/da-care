@@ -4,6 +4,7 @@ import com.dacare.server.api.AdminController.ConfirmationRequest;
 import com.dacare.server.api.AdminController.EngineerRequest;
 import com.dacare.server.api.AdminController.EngineerResponse;
 import com.dacare.server.api.ReservationController.ReservationResponse;
+import com.dacare.server.service.ApiUsageService.TotalUsage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -36,6 +37,10 @@ public interface AdminApiDocs {
   @Operation(summary = "기사 삭제")
   @ApiResponse(responseCode = "200", description = "기사 삭제 완료")
   void delete(@Parameter(description = "기사 번호") Long id);
+
+  @Operation(summary = "서비스 전체 이번 주 사용량 조회",
+      description = "AI 상담과 SMS의 이번 주 서비스 전체 사용 횟수와 주간 한도를 반환합니다.")
+  TotalUsage usage();
 
   @Operation(summary = "전체 예약 조회")
   List<ReservationResponse> reservations();

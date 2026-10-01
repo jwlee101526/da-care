@@ -12,21 +12,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface ApiUsageRepository extends JpaRepository<ApiUsage, Long> {
 
-  Optional<ApiUsage> findByApiAndUsageDate(PaidApi api, LocalDate usageDate);
+  Optional<ApiUsage> findByApiAndSubjectAndPeriodStart(PaidApi api, String subject,
+      LocalDate periodStart);
 
   /**
-   * 한도 미만일 때만 1 증가시킨다. 증가하면 1, 한도에 도달했거나 해당 일자 행이 없으면 0을 반환한다.
+   * 한도 미만일 때만 1 증가시킨다. 증가하면 1, 한도에 도달했거나 해당 행이 없으면 0을 반환한다.
    */
   @Transactional
   @Modifying(clearAutomatically = true)
-  @Query("update ApiUsage u set u.used = u.used + 1 "
-      + "where u.api = :api and u.usageDate = :date and u.used < :limit")
-  int increment(@Param("api") PaidApi api, @Param("date") LocalDate date,
-      @Param("limit") int limit);
+  @Query("update ApiUsage u set u.used = u.used + 1 where u.api = :api "
+      + "and u.subject = :subject and u.periodStart = :period and u.used < :limit")
+  int increment(@Param("api") PaidApi api, @Param("subject") String subject,
+      @Param("period") LocalDate period, @Param("limit") int limit);
 
   @Transactional
   @Modifying(clearAutomatically = true)
-  @Query("update ApiUsage u set u.used = u.used - 1 "
-      + "where u.api = :api and u.usageDate = :date and u.used > 0")
-  int decrement(@Param("api") PaidApi api, @Param("date") LocalDate date);
+  @Query("update ApiUsage u set u.used = u.used - 1 where u.api = :api "
+      + "and u.subject = :subject and u.periodStart = :period and u.used > 0")
+  int decrement(@Param("api") PaidApi api, @Param("subject") String subject,
+      @Param("period") LocalDate period);
 }
