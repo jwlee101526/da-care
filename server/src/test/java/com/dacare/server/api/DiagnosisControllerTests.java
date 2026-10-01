@@ -6,17 +6,21 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
+import com.dacare.server.domain.PaidApi;
+import com.dacare.server.service.ApiUsageService;
 import com.dacare.server.service.DiagnosisService;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,6 +37,12 @@ class DiagnosisControllerTests {
 
   private final DiagnosisService service = mock(DiagnosisService.class);
   private final DiagnosisTaskRunner runner = new DiagnosisTaskRunner(2, 2);
+  private final ApiUsageService usage = mock(ApiUsageService.class);
+
+  @BeforeEach
+  void setUp() {
+    when(usage.tryAcquire(PaidApi.DIAGNOSIS)).thenReturn(true);
+  }
 
   @AfterEach
   void tearDown() {
@@ -41,7 +51,7 @@ class DiagnosisControllerTests {
 
   private MockMvc mvc(Duration timeout) {
     ApiVersionResolver header = request -> request.getHeader("API-Version");
-    return MockMvcBuilders.standaloneSetup(new DiagnosisController(service, runner, timeout))
+    return MockMvcBuilders.standaloneSetup(new DiagnosisController(service, runner, usage, timeout))
         .setApiVersionStrategy(new DefaultApiVersionStrategy(List.of(header),
             new SemanticApiVersionParser(), false, null, true, null, null))
         .build();
@@ -86,5 +96,15 @@ class DiagnosisControllerTests {
         .contains("event:error").contains("진단 응답 시간이 초과되었습니다")
         .doesNotContain("event:completed");
     assertThat(interrupted.await(2, TimeUnit.SECONDS)).isTrue();
+  }
+
+  @Test
+  void dailyLimitSendsErrorWithoutCallingModel() throws Exception {
+    when(usage.tryAcquire(PaidApi.DIAGNOSIS)).thenReturn(false);
+
+    assertThat(stream(mvc(Duration.ofSeconds(5))))
+        .contains("event:error").contains("DAILY_LIMIT_EXCEEDED")
+        .doesNotContain("event:completed");
+    verifyNoInteractions(service);
   }
 }

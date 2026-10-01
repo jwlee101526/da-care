@@ -60,6 +60,8 @@
 #chat-panel .chat-intro { flex-shrink: 0; padding: 22px 24px 14px; }
 #chat-panel .chat-intro h2 { margin: 0; color: #0f172a; font-size: 18px; font-weight: 800; letter-spacing: -.045em; }
 #chat-panel .chat-notice { margin: 6px 0 0; padding: 0; border: 0; background: none; color: #334155; font-size: 13px; font-weight: 500; line-height: 1.5; }
+#chat-panel .chat-usage { display: inline-flex; margin: 8px 0 0; padding: 3px 10px; border-radius: 999px; background: #eef3ff; color: #2455d9; font-size: 12px; font-weight: 700; line-height: 1.5; }
+#chat-panel .chat-usage.exhausted { background: #fff1f2; color: #be123c; }
 #chat-panel .chat-messages { padding: 0 24px 24px; gap: 16px; }
 #chat-panel .chat-message { max-width: 100%; }
 #chat-panel .chat-message.bot, #chat-panel .chat-message-content { width: 100%; min-width: 0; }

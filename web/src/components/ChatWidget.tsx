@@ -15,6 +15,9 @@ import { useLanguage } from '../context/LanguageContext'
 import { ApiError, streamDiagnosis } from '../lib/api'
 import type { DiagnosisCard, DiagnosisToolProgress } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+import { useDailyUsage } from '../hooks/useDailyUsage'
+import { notifyUsage } from '../lib/usageToast'
+import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 import './ChatWidget.css'
 
@@ -290,6 +293,8 @@ function ChatPanel({
   const messagesRef = useRef<HTMLDivElement>(null)
   const nextId = useRef(Math.max(0, ...messages.map(message => message.id)) + 1)
   const requestRef = useRef<AbortController | null>(null)
+  const { usage, refresh: refreshUsage } = useDailyUsage()
+  const usageExhausted = usage?.diagnosis.remaining === 0
 
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, isDragging } = useDraggable({
     id: 'chat-panel',
@@ -406,7 +411,7 @@ function ChatPanel({
 
   async function send(text: string, showUserMessage = true) {
     const symptom = text.trim()
-    if (!symptom || requestRef.current) return
+    if (!symptom || requestRef.current || usageExhausted) return
     const controller = new AbortController()
     requestRef.current = controller
     // 서버 상담 기한(75초) 이후 도착하는 시간 초과 안내를 받을 수 있도록 여유를 둔다.
@@ -420,8 +425,9 @@ function ChatPanel({
     }])
     setInput('')
     setLoading(true)
+    let completed = false
+    let limitExceeded = false
     try {
-      let completed = false
       let failed = false
       await streamDiagnosis(symptom, history, token, controller.signal, event => {
         if (event.type === 'tool') {
@@ -447,6 +453,7 @@ function ChatPanel({
           return
         }
         failed = true
+        limitExceeded = event.data.code === 'DAILY_LIMIT_EXCEEDED'
         setMessages(previous => previous.map(message => message.id === responseId ? {
           ...message, error: true, text: event.data.message, streaming: false,
         } : message))
@@ -466,6 +473,10 @@ function ChatPanel({
         setLoading(false)
       }
     }
+    // 상담 1건이 끝나면 오늘 사용량을 다시 조회해 배지와 알림에 반영한다.
+    const nextUsage = await refreshUsage()
+    if (limitExceeded) toast.error(t.chat.usage.exhausted, { description: t.chat.usage.exhaustedPlaceholder })
+    else if (completed && nextUsage) notifyUsage(nextUsage.diagnosis, t.chat.usage)
     inputRef.current?.focus()
   }
 
@@ -537,6 +548,11 @@ function ChatPanel({
       <div className="chat-intro">
         <h2 id="chat-title">{t.chat.headerTitle}</h2>
         <p id="chat-notice" className="chat-notice">{t.chat.notice}</p>
+        {usage && (
+          <p className={'chat-usage' + (usageExhausted ? ' exhausted' : '')} aria-live="polite">
+            {t.chat.usage.badge(usage.diagnosis.used, usage.diagnosis.limit)}
+          </p>
+        )}
       </div>
       <div className="chat-messages" role="log" aria-label="Messages" aria-live="polite" aria-relevant="additions" ref={messagesRef}>
         {messages.filter(message => !message.hidden).map(message => (
@@ -552,7 +568,7 @@ function ChatPanel({
       </div>
       <div className="quick-questions" aria-label="Quick questions">
         {t.chat.quickQuestions.map(question => (
-          <button key={question.label} disabled={loading} onClick={() => send(question.symptom)}>
+          <button key={question.label} disabled={loading || usageExhausted} onClick={() => send(question.symptom)}>
             {question.label}
           </button>
         ))}
@@ -565,13 +581,14 @@ function ChatPanel({
           maxLength={2000}
           value={input}
           onChange={event => setInput(event.target.value)}
-          placeholder={t.chat.inputPlaceholder}
+          placeholder={usageExhausted ? t.chat.usage.exhaustedPlaceholder : t.chat.inputPlaceholder}
+          disabled={usageExhausted}
           autoComplete="off"
         />
         <button
           className="chat-send-btn"
           type="submit"
-          disabled={!input.trim() || loading}
+          disabled={!input.trim() || loading || usageExhausted}
           aria-label={t.chat.sendAria}
         >
           {loading ? (

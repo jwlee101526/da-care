@@ -132,6 +132,8 @@ title: 노트북 전원이 켜지지 않음 (Laptop does not turn on)
 |---|---|---|
 | `DIAGNOSIS_SIMILARITY_THRESHOLD` | `0.4` | 매뉴얼 검색 유사도 하한. 관련 없는 문서가 검색되면 올리고, 관련 문서가 누락되면 낮춥니다. |
 | `DIAGNOSIS_TIMEOUT` | `75s` | 상담 요청 1건의 전체 처리 기한. 웹 클라이언트 제한 시간(90초)보다 짧게 유지합니다. |
+| `DIAGNOSIS_DAILY_LIMIT` | `200` | 서비스 전체 하루 AI 상담 횟수 한도(한국 시간 자정 초기화). 초과하면 상담 요청을 받지 않습니다. |
+| `SMS_DAILY_LIMIT` | `30` | 서비스 전체 하루 SMS 발송 한도. 초과하면 문자를 보내지 않고 알림 이력에 `SKIPPED`로 남깁니다. |
 
 ### Docker Compose로 실행
 

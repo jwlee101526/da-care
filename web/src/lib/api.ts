@@ -13,12 +13,14 @@ export type DiagnosisCard =
   | { type: 'booking'; deviceType: import('../types').DeviceType; symptom: string; loginRequired: boolean }
   | { type: 'reservation_status'; reservationId: number; status: Reservation['status']; preferredAt: string; confirmedAt: string | null; engineerName: string | null }
   | { type: 'navigation'; page: 'reservations' | 'reserve'; title: string; description: string; actionLabel: string }
+export type UsageItem = { used: number; limit: number; remaining: number }
+export type DailyUsage = { date: string; diagnosis: UsageItem; sms: UsageItem }
 export type Diagnosis = { answer: string; cards: DiagnosisCard[]; executedTools: string[] }
 export type DiagnosisToolProgress = { tool: string; status: 'started' | 'completed'; card?: DiagnosisCard | null }
 export type DiagnosisStreamEvent =
   | { type: 'tool'; data: DiagnosisToolProgress }
   | { type: 'completed'; data: Diagnosis }
-  | { type: 'error'; data: { message: string } }
+  | { type: 'error'; data: { message: string; code?: 'DAILY_LIMIT_EXCEEDED' } }
 
 export async function api<T>(path: string, options: RequestInit = {}, token?: string | null): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers: { 'Content-Type': 'application/json', 'API-Version': '1', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers } })
@@ -27,6 +29,10 @@ export async function api<T>(path: string, options: RequestInit = {}, token?: st
     throw new ApiError(response.status, body.message ?? '요청 처리 중 오류가 발생했습니다.', body.fields ?? {})
   }
   return response.status === 204 ? undefined as T : response.json() as Promise<T>
+}
+
+export function fetchUsage() {
+  return api<DailyUsage>('/api/usage')
 }
 
 export async function streamDiagnosis(
