@@ -30,6 +30,8 @@ services:
   web:
     build:
       context: ../../web
+      args:
+        VITE_SHOW_DEMO_ACCOUNT: "true"
     ports:
       - "${WEB_PORT:-3000}:80"
     depends_on:

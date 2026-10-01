@@ -8,6 +8,8 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
+ARG VITE_SHOW_DEMO_ACCOUNT=false
+ENV VITE_SHOW_DEMO_ACCOUNT=$VITE_SHOW_DEMO_ACCOUNT
 RUN pnpm run build
 
 # 2. Production Static Serving Stage
