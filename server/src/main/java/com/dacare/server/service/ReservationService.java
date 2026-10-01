@@ -1,6 +1,5 @@
 package com.dacare.server.service;
 
-import com.dacare.server.domain.AppUser;
 import com.dacare.server.domain.Customer;
 import com.dacare.server.domain.Engineer;
 import com.dacare.server.domain.Reservation;
@@ -8,16 +7,23 @@ import com.dacare.server.repository.AppUserRepository;
 import com.dacare.server.repository.CustomerRepository;
 import com.dacare.server.repository.EngineerRepository;
 import com.dacare.server.repository.ReservationRepository;
+import com.dacare.server.service.event.ReservationConfirmedEvent;
+import com.dacare.server.service.event.ReservationReceivedEvent;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(readOnly = true)
 public class ReservationService {
+
+  private static final String RESERVATION_NOT_FOUND = "예약을 찾을 수 없습니다.";
 
   private final AppUserRepository users;
   private final CustomerRepository customers;
@@ -25,66 +31,51 @@ public class ReservationService {
   private final ReservationRepository reservations;
   private final ApplicationEventPublisher events;
   private final PasswordEncoder encoder;
+  private final Clock clock;
 
   public ReservationService(AppUserRepository users, CustomerRepository customers,
       EngineerRepository engineers, ReservationRepository reservations,
-      ApplicationEventPublisher events, PasswordEncoder encoder) {
+      ApplicationEventPublisher events, PasswordEncoder encoder, Clock clock) {
     this.users = users;
     this.customers = customers;
     this.engineers = engineers;
     this.reservations = reservations;
     this.events = events;
     this.encoder = encoder;
+    this.clock = clock;
   }
 
   @Transactional
-  public Reservation create(String email, String deviceType, String symptom, String address,
-      LocalDateTime preferredAt, String contactName, String contactPhone) {
-      if (!preferredAt.isAfter(LocalDateTime.now())) {
-          throw new IllegalArgumentException("희망 방문 일시는 미래여야 합니다.");
-      }
-    AppUser user = users.findByEmail(email)
-        .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다."));
-    Customer customer = customers.findByUser(user)
-        .orElseThrow(() -> new NoSuchElementException("고객 정보를 찾을 수 없습니다."));
-    Reservation reservation = new Reservation(customer, deviceType, symptom, address, preferredAt);
-    reservation.setContact(contactName == null ? customer.getName() : contactName,
-        contactPhone == null ? customer.getPhone() : contactPhone);
-    Reservation saved = reservations.save(reservation);
-    events.publishEvent(new ReservationReceivedEvent(saved.getId()));
-    return saved;
+  public Reservation create(String email, ReservationDraft draft) {
+    requireFuture(draft.preferredAt(), "희망 방문 일시는 미래여야 합니다.");
+    Customer customer = getCustomer(email);
+    Reservation reservation = new Reservation(customer, draft.deviceType(),
+        draft.symptomDescription(), draft.visitAddress(), draft.preferredAt());
+    reservation.setContact(Objects.requireNonNullElse(draft.contactName(), customer.getName()),
+        Objects.requireNonNullElse(draft.contactPhone(), customer.getPhone()));
+    return receive(reservation);
   }
 
   @Transactional
-  public Reservation createGuest(String deviceType, String symptom, String address,
-      LocalDateTime preferredAt, String contactName, String contactPhone, String guestPassword) {
-      if (!preferredAt.isAfter(LocalDateTime.now())) {
-          throw new IllegalArgumentException("희망 방문 일시는 미래여야 합니다.");
-      }
+  public Reservation createGuest(ReservationDraft draft, String guestPassword) {
+    requireFuture(draft.preferredAt(), "희망 방문 일시는 미래여야 합니다.");
     String passwordHash =
         (guestPassword == null || guestPassword.isBlank()) ? null : encoder.encode(guestPassword);
-    Reservation reservation = new Reservation(deviceType, symptom, address, preferredAt,
-        contactName, contactPhone, passwordHash);
-    Reservation saved = reservations.save(reservation);
-    events.publishEvent(new ReservationReceivedEvent(saved.getId()));
-    return saved;
+    return receive(new Reservation(draft.deviceType(), draft.symptomDescription(),
+        draft.visitAddress(), draft.preferredAt(), draft.contactName(), draft.contactPhone(),
+        passwordHash));
   }
 
   public Reservation findGuest(Long id, String contactPhone, String guestPassword) {
-    Reservation reservation = reservations.findById(id)
-        .orElseThrow(() -> new NoSuchElementException("예약을 찾을 수 없습니다."));
-      if (!reservation.isGuest()) {
-          throw new NoSuchElementException("예약을 찾을 수 없습니다.");
-      }
-      if (reservation.getContactPhone() == null || !reservation.getContactPhone().replace("-", "")
-          .equals(contactPhone.replace("-", ""))) {
-          throw new NoSuchElementException("예약을 찾을 수 없습니다.");
-      }
-    if (reservation.getGuestPasswordHash() != null) {
-        if (guestPassword == null || !encoder.matches(guestPassword,
-            reservation.getGuestPasswordHash())) {
-            throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");
-        }
+    Reservation reservation = getReservation(id);
+    // 다른 예약의 존재 여부가 드러나지 않도록 회원 예약과 연락처 불일치는 모두 '없음'으로 응답한다.
+    if (!reservation.isGuest() || !samePhone(reservation.getContactPhone(), contactPhone)) {
+      throw new NoSuchElementException(RESERVATION_NOT_FOUND);
+    }
+    String passwordHash = reservation.getGuestPasswordHash();
+    if (passwordHash != null && (guestPassword == null
+        || !encoder.matches(guestPassword, passwordHash))) {
+      throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");
     }
     return reservation;
   }
@@ -97,23 +88,16 @@ public class ReservationService {
   }
 
   public List<Reservation> mine(String email) {
-    AppUser user = users.findByEmail(email)
-        .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다."));
-    return reservations.findAllByCustomerOrderByCreatedAtDesc(customers.findByUser(user)
-        .orElseThrow(() -> new NoSuchElementException("고객 정보를 찾을 수 없습니다.")));
+    return reservations.findAllByCustomerOrderByCreatedAtDesc(getCustomer(email));
   }
 
   public Reservation mineOne(String email, Long id) {
-    Reservation reservation = reservations.findById(id)
-        .orElseThrow(() -> new NoSuchElementException("예약을 찾을 수 없습니다."));
-    AppUser user = users.findByEmail(email)
-        .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다."));
-    Customer customer = customers.findByUser(user)
-        .orElseThrow(() -> new NoSuchElementException("고객 정보를 찾을 수 없습니다."));
-      if (reservation.getCustomer() == null || !reservation.getCustomer().getId()
-          .equals(customer.getId())) {
-          throw new NoSuchElementException("예약을 찾을 수 없습니다.");
-      }
+    Reservation reservation = getReservation(id);
+    Customer customer = getCustomer(email);
+    if (reservation.getCustomer() == null
+        || !reservation.getCustomer().getId().equals(customer.getId())) {
+      throw new NoSuchElementException(RESERVATION_NOT_FOUND);
+    }
     return reservation;
   }
 
@@ -125,16 +109,13 @@ public class ReservationService {
   }
 
   public List<Reservation> all() {
-    return reservations.findAll();
+    return reservations.findAllByOrderByCreatedAtDesc();
   }
 
   @Transactional
   public Reservation confirm(Long reservationId, Long engineerId, LocalDateTime confirmedAt) {
-      if (!confirmedAt.isAfter(LocalDateTime.now())) {
-          throw new IllegalArgumentException("확정 방문 일시는 미래여야 합니다.");
-      }
-    Reservation reservation = reservations.findById(reservationId)
-        .orElseThrow(() -> new NoSuchElementException("예약을 찾을 수 없습니다."));
+    requireFuture(confirmedAt, "확정 방문 일시는 미래여야 합니다.");
+    Reservation reservation = getReservation(reservationId);
     Engineer engineer = engineers.findById(engineerId)
         .orElseThrow(() -> new NoSuchElementException("기사를 찾을 수 없습니다."));
     reservation.confirm(engineer, confirmedAt);
@@ -144,25 +125,45 @@ public class ReservationService {
 
   @Transactional
   public Reservation complete(Long reservationId) {
-    Reservation reservation = reservations.findById(reservationId)
-        .orElseThrow(() -> new NoSuchElementException("예약을 찾을 수 없습니다."));
+    Reservation reservation = getReservation(reservationId);
     reservation.complete();
     return reservation;
   }
 
   @Transactional
   public Reservation cancelByAdmin(Long reservationId) {
-    Reservation reservation = reservations.findById(reservationId)
-        .orElseThrow(() -> new NoSuchElementException("예약을 찾을 수 없습니다."));
+    Reservation reservation = getReservation(reservationId);
     reservation.cancelByAdmin();
     return reservation;
   }
-}
 
-record ReservationConfirmedEvent(Long reservationId) {
+  private Reservation receive(Reservation reservation) {
+    Reservation saved = reservations.save(reservation);
+    events.publishEvent(new ReservationReceivedEvent(saved.getId()));
+    return saved;
+  }
 
-}
+  private Reservation getReservation(Long id) {
+    return reservations.findById(id)
+        .orElseThrow(() -> new NoSuchElementException(RESERVATION_NOT_FOUND));
+  }
 
-record ReservationReceivedEvent(Long reservationId) {
+  private Customer getCustomer(String email) {
+    return users.findByEmail(email).flatMap(customers::findByUser)
+        .orElseThrow(() -> new NoSuchElementException("고객 정보를 찾을 수 없습니다."));
+  }
 
+  /**
+   * 일시는 한국 시간 기준 LocalDateTime이므로 서버 시스템 시간대가 아닌 주입된 Clock으로 비교한다.
+   */
+  private void requireFuture(LocalDateTime dateTime, String message) {
+    if (!dateTime.isAfter(LocalDateTime.now(clock))) {
+      throw new IllegalArgumentException(message);
+    }
+  }
+
+  private static boolean samePhone(String saved, String input) {
+    return saved != null && input != null
+        && saved.replace("-", "").equals(input.replace("-", ""));
+  }
 }
