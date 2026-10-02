@@ -1,10 +1,5 @@
 /* 내 예약 목록 페이지 */
 
-.order-main-container {
-  width: min(860px, 100%);
-  margin-inline: auto;
-}
-
 .order-empty-card {
   background: #ffffff;
   border: 1px solid var(--line-default);

@@ -1,6 +1,7 @@
 /* 비회원 예약 조회 페이지 */
 
-.guest-lookup-container {
+/* 공통 .order-main-container 폭(860px)보다 항상 우선하도록 두 클래스를 함께 건다. */
+.order-main-container.guest-lookup-container {
   width: min(520px, 100%);
 }
 

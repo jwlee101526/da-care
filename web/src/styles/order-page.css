@@ -7,6 +7,11 @@
   box-sizing: border-box;
 }
 
+.order-main-container {
+  width: min(860px, 100%);
+  margin-inline: auto;
+}
+
 .order-page-header {
   display: flex;
   align-items: flex-end;
