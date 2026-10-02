@@ -1,12 +1,14 @@
 package com.dacare.server.api;
 
 import com.dacare.server.api.docs.DiagnosisApiDocs;
-import com.dacare.server.api.error.ErrorResponse;
 import com.dacare.server.service.ApiUsageService;
 import com.dacare.server.service.ApiUsageService.AcquireResult;
 import com.dacare.server.service.DiagnosisExecutor;
 import com.dacare.server.service.DiagnosisService;
+import com.dacare.server.service.DiagnosisCancelledException;
 import com.dacare.server.service.DiagnosisService.ConversationTurn;
+import com.dacare.server.service.DiagnosisService.DiagnosisResult;
+import com.dacare.server.service.DiagnosisUnavailableException;
 import com.dacare.server.service.UsageSubject;
 import com.dacare.server.web.UsageSubjectResolver;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,14 +16,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -55,38 +52,41 @@ public class DiagnosisController implements DiagnosisApiDocs {
   public SseEmitter stream(@Valid @RequestBody QuestionRequest request,
       Authentication authentication, HttpServletRequest servletRequest) {
     // 서버 기한 이후 오류 이벤트를 보낼 수 있도록 SSE 연결 자체는 조금 더 길게 유지한다.
-    Stream stream = new Stream(new SseEmitter(timeout.plusSeconds(10).toMillis()));
+    DiagnosisStream stream = new DiagnosisStream(new SseEmitter(timeout.plusSeconds(10).toMillis()));
     UsageSubject subject = subjects.resolve(authentication, servletRequest);
     AcquireResult acquired = usage.tryAcquireDiagnosis(subject);
     if (acquired != AcquireResult.ACQUIRED) {
       stream.fail(limitCode(acquired), limitMessage(acquired, subject));
-      return stream.emitter;
+      return stream.emitter();
     }
     try {
-      stream.start(executor.submit(() -> {
-        try {
-          DiagnosisService.DiagnosisResult result = service.diagnose(request.question(),
-              request.history() == null ? List.of() : request.history(),
-              authentication == null ? null : authentication.getName(),
-              progress -> stream.progress(progress));
-          stream.finish("completed", result);
-        } catch (DiagnosisService.DiagnosisCancelledException exception) {
-          stream.close();
-        } catch (DiagnosisService.DiagnosisUnavailableException exception) {
-          stream.fail("DIAGNOSIS_UNAVAILABLE", exception.getMessage());
-        } catch (RuntimeException exception) {
-          stream.fail("DIAGNOSIS_FAILED", "진단 요청을 처리하지 못했습니다.");
-        }
-      }), executor.schedule(() -> {
-        // 작업 중단보다 안내를 먼저 보낸다. 중단된 작업이 먼저 스트림을 닫으면 안내가 유실된다.
-        stream.fail("DIAGNOSIS_TIMEOUT", "진단 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.");
-        stream.cancel();
-      }, timeout));
+      stream.start(executor.submit(() -> diagnose(stream, request, authentication)),
+          executor.schedule(() -> {
+            // 작업 중단보다 안내를 먼저 보낸다. 중단된 작업이 먼저 스트림을 닫으면 안내가 유실된다.
+            stream.fail("DIAGNOSIS_TIMEOUT", "진단 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.");
+            stream.cancel();
+          }, timeout));
     } catch (RejectedExecutionException exception) {
       usage.releaseDiagnosis(subject);
       stream.fail("DIAGNOSIS_BUSY", "상담 요청이 많아 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.");
     }
-    return stream.emitter;
+    return stream.emitter();
+  }
+
+  private void diagnose(DiagnosisStream stream, QuestionRequest request,
+      Authentication authentication) {
+    try {
+      DiagnosisResult result = service.diagnose(request.question(),
+          request.history() == null ? List.of() : request.history(),
+          authentication == null ? null : authentication.getName(), stream::progress);
+      stream.finish("completed", result);
+    } catch (DiagnosisCancelledException exception) {
+      stream.close();
+    } catch (DiagnosisUnavailableException exception) {
+      stream.fail("DIAGNOSIS_UNAVAILABLE", exception.getMessage());
+    } catch (RuntimeException exception) {
+      stream.fail("DIAGNOSIS_FAILED", "진단 요청을 처리하지 못했습니다.");
+    }
   }
 
   private static String limitCode(AcquireResult result) {
@@ -101,83 +101,6 @@ public class DiagnosisController implements DiagnosisApiDocs {
     return subject.isGuest()
         ? "이번 주 비로그인 상담 가능 횟수를 모두 사용했습니다. 로그인하면 상담을 계속 이용할 수 있습니다."
         : "이번 주 AI 상담 가능 횟수를 모두 사용했습니다. 다음 주 월요일에 다시 이용해 주세요.";
-  }
-
-  /**
-   * 요청 하나의 SSE 응답. 작업 완료와 서버 기한 중 먼저 도착한 쪽만 종료 이벤트를 보낸다.
-   */
-  private static final class Stream {
-
-    private final SseEmitter emitter;
-    private final AtomicBoolean finished = new AtomicBoolean();
-    private final AtomicReference<Future<?>> task = new AtomicReference<>();
-    private final AtomicReference<ScheduledFuture<?>> deadline = new AtomicReference<>();
-
-    Stream(SseEmitter emitter) {
-      this.emitter = emitter;
-      // 클라이언트가 연결을 끊으면(전송 실패, 컨테이너 오류, 타임아웃) 진행 중인 모델·도구 호출을 중단한다.
-      emitter.onError(ignored -> cancel());
-      emitter.onTimeout(this::cancel);
-    }
-
-    void start(Future<?> task, ScheduledFuture<?> deadline) {
-      this.task.set(task);
-      this.deadline.set(deadline);
-      if (finished.get()) {
-        deadline.cancel(false);
-      }
-    }
-
-    void progress(Object data) {
-      if (!finished.get()) {
-        send("tool", data);
-      }
-    }
-
-    void finish(String name, Object data) {
-      if (finished.compareAndSet(false, true)) {
-        stopDeadline();
-        send(name, data);
-        emitter.complete();
-      }
-    }
-
-    void fail(String code, String message) {
-      finish("error", ErrorResponse.of(code, message));
-    }
-
-    void close() {
-      if (finished.compareAndSet(false, true)) {
-        stopDeadline();
-        emitter.complete();
-      }
-    }
-
-    void cancel() {
-      Future<?> running = task.get();
-      if (running != null) {
-        running.cancel(true);
-      }
-    }
-
-    private void stopDeadline() {
-      ScheduledFuture<?> scheduled = deadline.get();
-      if (scheduled != null) {
-        scheduled.cancel(false);
-      }
-    }
-
-    private void send(String name, Object data) {
-      try {
-        emitter.send(SseEmitter.event().name(name).data(data));
-      } catch (IOException | IllegalStateException exception) {
-        // 연결이 이미 닫혔거나 완료된 응답이다.
-        finished.set(true);
-        stopDeadline();
-        cancel();
-        emitter.completeWithError(exception);
-      }
-    }
   }
 
   public record QuestionRequest(@NotBlank @Size(max = 2000) String question,

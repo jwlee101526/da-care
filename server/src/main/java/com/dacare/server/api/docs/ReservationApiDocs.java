@@ -4,7 +4,7 @@ import com.dacare.server.api.ReservationController.GuestCancelRequest;
 import com.dacare.server.api.ReservationController.GuestLookupRequest;
 import com.dacare.server.api.ReservationController.GuestReservationRequest;
 import com.dacare.server.api.ReservationController.ReservationRequest;
-import com.dacare.server.api.ReservationController.ReservationResponse;
+import com.dacare.server.api.ReservationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

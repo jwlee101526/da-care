@@ -1,6 +1,5 @@
 package com.dacare.server.api;
 
-import com.dacare.server.api.ReservationController.ReservationResponse;
 import com.dacare.server.api.docs.AdminApiDocs;
 import com.dacare.server.api.validation.ValidPhoneNumber;
 import com.dacare.server.domain.Engineer;

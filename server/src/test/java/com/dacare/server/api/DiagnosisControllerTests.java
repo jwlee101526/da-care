@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.dacare.server.service.ApiUsageService;
 import com.dacare.server.service.ApiUsageService.AcquireResult;
 import com.dacare.server.service.DiagnosisExecutor;
+import com.dacare.server.service.DiagnosisCancelledException;
 import com.dacare.server.service.DiagnosisService;
 import com.dacare.server.service.UsageSubject;
 import com.dacare.server.web.UsageSubjectResolver;
@@ -91,7 +92,7 @@ class DiagnosisControllerTests {
         Thread.sleep(10_000);
       } catch (InterruptedException exception) {
         interrupted.countDown();
-        throw new DiagnosisService.DiagnosisCancelledException();
+        throw new DiagnosisCancelledException();
       }
       return null;
     });

@@ -1,6 +1,10 @@
 package com.dacare.server.service;
 
-import java.time.LocalDateTime;
+import com.dacare.server.service.DiagnosisCard.BookingCard;
+import com.dacare.server.service.DiagnosisCard.Evidence;
+import com.dacare.server.service.DiagnosisCard.InspectionCard;
+import com.dacare.server.service.DiagnosisCard.NavigationCard;
+import com.dacare.server.service.DiagnosisCard.ReservationStatusCard;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,7 +24,7 @@ public class DiagnosisTools {
   private final Consumer<ToolProgress> progress;
   private final double similarityThreshold;
   private final Map<String, ManualSource> sources = new LinkedHashMap<>();
-  private final Map<String, Card> cards = new LinkedHashMap<>();
+  private final Map<String, DiagnosisCard> cards = new LinkedHashMap<>();
   private final List<String> executedTools = new ArrayList<>();
 
   public DiagnosisTools(VectorStore vectorStore, ReservationService reservations, String email,
@@ -139,7 +143,7 @@ public class DiagnosisTools {
 
   private void started(String tool) {
     if (Thread.currentThread().isInterrupted()) {
-      throw new DiagnosisService.DiagnosisCancelledException();
+      throw new DiagnosisCancelledException();
     }
     progress.accept(new ToolProgress(tool, "started"));
   }
@@ -148,7 +152,7 @@ public class DiagnosisTools {
     progress.accept(new ToolProgress(tool, "completed"));
   }
 
-  private void completed(String tool, Card card) {
+  private void completed(String tool, DiagnosisCard card) {
     progress.accept(new ToolProgress(tool, "completed", card));
   }
 
@@ -158,7 +162,7 @@ public class DiagnosisTools {
     }
   }
 
-  public synchronized List<Card> cards() {
+  public synchronized List<DiagnosisCard> cards() {
     return List.copyOf(cards.values());
   }
 
@@ -170,43 +174,11 @@ public class DiagnosisTools {
 
   public enum Page {reservations, reserve}
 
-  public sealed interface Card permits InspectionCard, BookingCard, ReservationStatusCard,
-      NavigationCard {
-
-  }
-
   public record ManualSource(String id, String text) {
 
   }
 
-  public record Evidence(String sourceId, String quote) {
-
-  }
-
-  public record InspectionCard(String type, String title, DeviceType deviceType, String deviceName,
-                               String suspectedCause,
-                               String inspectionDetails, List<Evidence> evidence) implements Card {
-
-  }
-
-  public record BookingCard(String type, DeviceType deviceType, String symptom,
-                            boolean loginRequired) implements Card {
-
-  }
-
-  public record ReservationStatusCard(String type, String reservationCode, String status,
-                                      LocalDateTime preferredAt,
-                                      LocalDateTime confirmedAt, String engineerName) implements
-      Card {
-
-  }
-
-  public record NavigationCard(String type, Page page, String title, String description,
-                               String actionLabel) implements Card {
-
-  }
-
-  public record ToolProgress(String tool, String status, Card card) {
+  public record ToolProgress(String tool, String status, DiagnosisCard card) {
 
     public ToolProgress(String tool, String status) {
       this(tool, status, null);

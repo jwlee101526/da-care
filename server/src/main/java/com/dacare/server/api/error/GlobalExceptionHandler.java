@@ -1,6 +1,6 @@
 package com.dacare.server.api.error;
 
-import com.dacare.server.service.DiagnosisService.DiagnosisUnavailableException;
+import com.dacare.server.service.DiagnosisUnavailableException;
 import com.dacare.server.service.GuestLookupThrottle.TooManyAttemptsException;
 import java.util.LinkedHashMap;
 import java.util.Map;
