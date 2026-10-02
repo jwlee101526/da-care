@@ -1,7 +1,0 @@
-/* 스크롤 시 섹션이 나타나는 효과 */
-
-.section-reveal { opacity: 0; transform: translateY(24px); transition: opacity .55s ease, transform .55s ease; }
-.section-reveal[data-visible="true"] { opacity: 1; transform: translateY(0); }
-@media (prefers-reduced-motion: reduce) {
-  .section-reveal { opacity: 1; transform: none; transition: none; }
-}

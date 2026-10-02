@@ -3,6 +3,10 @@ import { PhoneInput } from '../../components/PhoneInput'
 import { api, ApiError, type Engineer } from '../../lib/api'
 import { formatPhone, isValidPhone } from '../../lib/phone'
 import type { AdminSectionProps } from './types'
+import { buttonVariants } from '../../components/ui/button'
+import { adminSection, adminSectionTitle, inlineForm, inlineInput } from './adminStyles'
+
+const listButton = 'rounded-md border bg-white px-2.5 py-1 text-[12px] font-medium transition-[background] duration-150 ease-[ease]'
 
 /** 기사 등록·수정·삭제. */
 export function EngineerSection({ engineers, token, reload, feedback }: AdminSectionProps & { engineers: Engineer[] }) {
@@ -73,21 +77,21 @@ export function EngineerSection({ engineers, token, reload, feedback }: AdminSec
   }
 
   return (
-    <section>
-      <h2>기사 등록</h2>
-      <form className="inline-form" onSubmit={addEngineer}>
-        <input required name="name" placeholder="이름" />
-        <PhoneInput required aria-label="휴대전화 번호" value={engineerPhone} onChange={setEngineerPhone} />
-        <input required name="specialty" placeholder="전문 분야" />
-        <input required name="region" placeholder="지역" />
-        <button className="button primary" disabled={submitting}>{submitting ? '등록 중...' : '등록'}</button>
+    <section className={adminSection}>
+      <h2 className={adminSectionTitle}>기사 등록</h2>
+      <form className={inlineForm} onSubmit={addEngineer}>
+        <input className={inlineInput} required name="name" placeholder="이름" />
+        <PhoneInput required aria-label="휴대전화 번호" className={inlineInput} fieldClassName="flex-[2_1_280px]" value={engineerPhone} onChange={setEngineerPhone} />
+        <input className={inlineInput} required name="specialty" placeholder="전문 분야" />
+        <input className={inlineInput} required name="region" placeholder="지역" />
+        <button className={buttonVariants({ variant: 'primary' })} disabled={submitting}>{submitting ? '등록 중...' : '등록'}</button>
       </form>
-      <ul>
+      <ul className="m-0 flex list-none flex-col gap-2 p-0">
         {engineers.map(e => (
-          <li key={e.id}>
+          <li key={e.id} className="flex items-center gap-3 rounded-lg border border-surface-muted bg-surface-subtle px-4 py-3 text-[14px] text-ink-body">
             {e.name} · {formatPhone(e.phone)} · {e.specialty} · {e.region}{' '}
-            <button onClick={() => editEngineer(e)}>수정</button>{' '}
-            <button onClick={() => removeEngineer(e.id)}>삭제</button>
+            <button className={`${listButton} ml-auto border-line-strong hover:bg-line-default`} onClick={() => editEngineer(e)}>수정</button>{' '}
+            <button className={`${listButton} border-danger-border text-danger hover:bg-danger-soft`} onClick={() => removeEngineer(e.id)}>삭제</button>
           </li>
         ))}
       </ul>

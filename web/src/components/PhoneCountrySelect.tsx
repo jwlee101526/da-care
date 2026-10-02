@@ -13,10 +13,12 @@ const FLAG_URLS = import.meta.glob<string>('/node_modules/country-flag-icons/3x2
   eager: true,
 })
 
+const flagClass = 'block h-3.5 w-5 flex-none rounded-[2px] object-cover shadow-[0_0_0_1px_rgba(15,23,42,0.1)]'
+
 function Flag({ code }: { code: CountryCode }) {
   const src = FLAG_URLS[`/node_modules/country-flag-icons/3x2/${code}.svg`]
-  if (!src) return <span className="phone-flag" aria-hidden="true" />
-  return <img className="phone-flag" src={src} alt="" width={20} height={14} loading="lazy" />
+  if (!src) return <span className={flagClass} aria-hidden="true" />
+  return <img className={flagClass} src={src} alt="" width={20} height={14} loading="lazy" />
 }
 
 // react-phone-number-input의 countrySelectComponent로 쓴다. 라이브러리가 넘기는 onChange 대신
@@ -27,7 +29,6 @@ type PhoneCountrySelectProps = {
   onSelectCountry: (country: CountryCode) => void
   disabled?: boolean
   readOnly?: boolean
-  className?: string
   'aria-label'?: string
 }
 
@@ -36,7 +37,6 @@ export function PhoneCountrySelect({
   onSelectCountry,
   disabled,
   readOnly,
-  className,
   'aria-label': ariaLabel,
 }: PhoneCountrySelectProps) {
   const { lang } = useLanguage()
@@ -79,7 +79,7 @@ export function PhoneCountrySelect({
     >
       <Combobox.Trigger
         ref={triggerRef}
-        className={`phone-country-trigger ${className ?? ''}`}
+        className="inline-flex w-auto flex-none cursor-pointer items-center gap-1.5 rounded-lg border border-line-strong bg-white px-2.5 py-0 text-[14px] font-medium text-ink transition-[border-color,box-shadow] duration-150 ease-[ease] hover:border-ink-faint focus-visible:border-brand focus-visible:shadow-[0_0_0_3px_rgba(36,87,214,0.15)] focus-visible:outline-none data-[popup-open]:border-brand data-[popup-open]:shadow-[0_0_0_3px_rgba(36,87,214,0.15)] data-[popup-open]:outline-none [&_svg]:text-ink-subtle"
         aria-label={ariaLabel}
       >
         <Flag code={selected.code} />
@@ -87,22 +87,22 @@ export function PhoneCountrySelect({
         <ChevronDown size={16} aria-hidden="true" />
       </Combobox.Trigger>
       <Combobox.Portal>
-        <Combobox.Positioner className="phone-country-positioner" align="start" sideOffset={6}>
-          <Combobox.Popup className="phone-country-popup" aria-label={ariaLabel}>
-            <div className="phone-country-search">
+        <Combobox.Positioner className="z-[1000] outline-none" align="start" sideOffset={6}>
+          <Combobox.Popup className="w-[300px] max-w-(--available-width) origin-(--transform-origin) overflow-hidden rounded-xl border border-line-default bg-white shadow-[0_12px_32px_rgba(24,41,70,0.14)] transition-[opacity,scale] duration-[120ms] ease-[ease] data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0" aria-label={ariaLabel}>
+            <div className="flex items-center gap-2 border-b border-line-subtle px-3 text-ink-subtle">
               <Search size={16} aria-hidden="true" />
-              <Combobox.Input placeholder={lang === 'en' ? 'Search country or code' : '국가 또는 국가번호 검색'} />
+              <Combobox.Input className="h-11 min-w-0 flex-1 border-0 bg-transparent text-[14px] text-ink outline-none placeholder:text-ink-faint" placeholder={lang === 'en' ? 'Search country or code' : '국가 또는 국가번호 검색'} />
             </div>
             <Combobox.Empty>
-              <p className="phone-country-empty">{lang === 'en' ? 'No matching country.' : '검색 결과가 없습니다.'}</p>
+              <p className="m-0 px-3 py-4 text-[13px] text-ink-subtle">{lang === 'en' ? 'No matching country.' : '검색 결과가 없습니다.'}</p>
             </Combobox.Empty>
-            <Combobox.List className="phone-country-list">
+            <Combobox.List className="max-h-[min(280px,var(--available-height))] overflow-y-auto overscroll-contain p-1.5 outline-none">
               {(option: CountryOption) => (
-                <Combobox.Item key={option.code} value={option} className="phone-country-item">
+                <Combobox.Item key={option.code} value={option} className="grid cursor-pointer grid-cols-[20px_1fr_auto_14px] items-center gap-2.5 rounded-lg px-2.5 py-2 text-[14px] text-ink select-none data-[highlighted]:bg-surface-muted data-[selected]:font-semibold data-[selected]:text-brand">
                   <Flag code={option.code} />
-                  <span className="phone-country-name">{option.name}</span>
-                  <span className="phone-country-code">+{option.callingCode}</span>
-                  <Combobox.ItemIndicator className="phone-country-check">
+                  <span className="truncate">{option.name}</span>
+                  <span className="text-[13px] text-ink-subtle">+{option.callingCode}</span>
+                  <Combobox.ItemIndicator className="text-brand">
                     <Check size={14} />
                   </Combobox.ItemIndicator>
                 </Combobox.Item>

@@ -2,6 +2,10 @@ import { Check, ChevronRight } from 'lucide-react'
 import { PhoneInput } from '../../components/PhoneInput'
 import { useLanguage } from '../../context/LanguageContext'
 import { DEVICE_CATEGORIES } from '../../lib/categories'
+import { cn } from '@/lib/utils'
+import { buttonVariants } from '../../components/ui/button'
+import { actionBar, fieldLabel, fieldsGrid, fullField, orderInput, orderSectionBox } from '../../components/orderForm'
+import { stepBadge } from './stepBadge'
 import {
   appendSymptom,
   getTomorrowDate,
@@ -25,18 +29,21 @@ export function ReservationFormStep({ form, update, isMember, onSubmit }: StepPr
 }) {
   const { lang } = useLanguage()
   return (
-    <form className="order-step-form" onSubmit={onSubmit}>
+    <form onSubmit={onSubmit}>
       <DeviceSection form={form} update={update} />
       <SymptomSection form={form} update={update} />
-      <div className="order-split-row">
+      <div className="mb-5 grid grid-cols-[1fr_1fr] items-stretch gap-5 max-[860px]:grid-cols-[1fr] max-[860px]:gap-4">
         <ScheduleSection form={form} update={update} />
         <ContactSection form={form} update={update} isMember={isMember} />
       </div>
 
-      <div className="order-action-bar">
+      <div className={actionBar}>
         <button
           type="submit"
-          className="button primary full-width order-primary-btn"
+          className={buttonVariants({
+            variant: 'primary',
+            className: 'h-[52px] w-full cursor-pointer gap-2 rounded-xl text-[16px] leading-[1.4] font-[650] shadow-[0_4px_14px_rgba(36,87,214,0.25)] enabled:hover:-translate-y-px enabled:hover:bg-brand-hover enabled:hover:shadow-[0_6px_18px_rgba(36,87,214,0.35)]',
+          })}
         >
           {lang === 'en' ? 'Review Reservation Details' : '예약 내용 확인하기'}
           <ChevronRight size={18} />
@@ -49,11 +56,11 @@ export function ReservationFormStep({ form, update, isMember, onSubmit }: StepPr
 function SectionHeading({ number, title, description }: { number: number; title: string; description: string }) {
   return (
     <>
-      <div className="order-section-title">
-        <span className="order-step-badge">{number}</span>
-        <h3>{title}</h3>
+      <div className="flex items-center gap-2.5">
+        <span className={cn(stepBadge, 'bg-brand text-white')}>{number}</span>
+        <h3 className="m-0 text-[18px] font-bold text-navy">{title}</h3>
       </div>
-      <p className="order-section-sub">{description}</p>
+      <p className="mt-1.5 mb-5 text-[13px] text-ink-subtle">{description}</p>
     </>
   )
 }
@@ -61,7 +68,7 @@ function SectionHeading({ number, title, description }: { number: number; title:
 function DeviceSection({ form, update }: StepProps) {
   const { lang } = useLanguage()
   return (
-    <section className="order-section-box">
+    <section className={orderSectionBox}>
       <SectionHeading
         number={1}
         title={lang === 'en' ? 'Select Machine Category' : '수리 품목 선택 (12종)'}
@@ -70,27 +77,32 @@ function DeviceSection({ form, update }: StepProps) {
           : '점검 및 수리가 필요한 전자제품 또는 가전 기기를 선택해 주세요.'}
       />
 
-      <div className="category-select-grid">
+      <div className="grid grid-cols-[repeat(6,1fr)] gap-3 max-[1024px]:grid-cols-[repeat(4,1fr)] max-[860px]:grid-cols-[repeat(3,1fr)] max-[640px]:grid-cols-[repeat(2,1fr)] max-[640px]:gap-2">
         {DEVICE_CATEGORIES.map(cat => {
           const isSelected = form.device === cat.deviceType
           return (
             <button
               key={cat.deviceType}
               type="button"
-              className={`category-select-card ${isSelected ? 'selected' : ''}`}
+              className={cn(
+                'relative flex cursor-pointer flex-col items-center rounded-[14px] border-[1.5px] px-3 pt-[18px] pb-3.5 text-center transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5',
+                isSelected
+                  ? 'border-brand bg-[#f4f8ff] shadow-[0_4px_16px_rgba(36,87,214,0.14)]'
+                  : 'border-line-default bg-white hover:border-[#93c5fd] hover:shadow-[0_6px_16px_rgba(36,87,214,0.08)]',
+              )}
               onClick={() => update('device', cat.deviceType)}
             >
-              <div className="cat-card-icon-wrap">
+              <div className={cn('mb-2.5 grid h-[52px] w-[52px] place-items-center rounded-[14px] transition-[background-color] duration-200 ease-[ease]', isSelected ? 'bg-[#e5efff]' : 'bg-surface-subtle')}>
                 <img src={cat.iconSrc} alt={cat.labelKo} width={36} height={36} />
               </div>
-              <span className="cat-card-name">
+              <span className="text-[14px] leading-[1.3] font-[650] text-navy">
                 {lang === 'en' ? cat.labelEn : cat.labelKo}
               </span>
-              <small className="cat-card-desc">
+              <small className="mt-1.5 text-[11px] leading-[1.35] break-keep text-ink-subtle">
                 {lang === 'en' ? cat.descEn : cat.descKo}
               </small>
               {isSelected && (
-                <span className="cat-card-check">
+                <span className="absolute top-2.5 right-2.5 grid h-5 w-5 place-items-center rounded-full bg-brand text-white">
                   <Check size={14} />
                 </span>
               )}
@@ -106,7 +118,7 @@ function SymptomSection({ form, update }: StepProps) {
   const { lang } = useLanguage()
   const quickSymptoms = lang === 'en' ? QUICK_SYMPTOMS_EN : QUICK_SYMPTOMS_KO
   return (
-    <section className="order-section-box">
+    <section className={orderSectionBox}>
       <SectionHeading
         number={2}
         title={lang === 'en' ? 'Symptom & Description' : '고장 증상 및 요청 사항'}
@@ -115,14 +127,19 @@ function SymptomSection({ form, update }: StepProps) {
           : '자주 발생하는 증상을 클릭하시거나 구체적인 고장 증상을 적어주세요.'}
       />
 
-      <div className="quick-tags-wrapper">
-        <span className="quick-tags-label">{lang === 'en' ? 'Quick Add:' : '빠른 선택:'}</span>
-        <div className="quick-tags-list">
+      <div className="mb-3">
+        <span className="mb-2 block text-[12px] font-semibold text-ink-subtle">{lang === 'en' ? 'Quick Add:' : '빠른 선택:'}</span>
+        <div className="grid grid-cols-3 gap-2 max-[640px]:grid-cols-2">
           {quickSymptoms.map(s => (
             <button
               key={s}
               type="button"
-              className={`quick-tag-chip ${form.symptom.includes(s) ? 'active' : ''}`}
+              className={cn(
+                'min-h-10 cursor-pointer rounded-lg border px-3 py-2 text-left text-[13px] transition-all duration-150 ease-[ease]',
+                form.symptom.includes(s)
+                  ? 'border-brand bg-[#f4f8ff] font-semibold text-brand'
+                  : 'border-line-strong bg-white font-medium text-ink-body hover:border-ink-faint hover:bg-surface-subtle',
+              )}
               aria-pressed={form.symptom.includes(s)}
               onClick={() => update('symptom', appendSymptom(form.symptom, s))}
             >
@@ -133,7 +150,7 @@ function SymptomSection({ form, update }: StepProps) {
       </div>
 
       <textarea
-        className="order-textarea"
+        className="box-border w-full resize-y rounded-[10px] border border-line-strong px-4 py-3.5 text-[14px] leading-[1.6] text-ink focus:border-brand focus:shadow-[0_0_0_3px_rgba(36,87,214,0.15)] focus:outline-none"
         rows={4}
         required
         maxLength={SYMPTOM_MAX_LENGTH}
@@ -141,7 +158,7 @@ function SymptomSection({ form, update }: StepProps) {
         value={form.symptom}
         onChange={e => update('symptom', e.target.value)}
       />
-      <span className="order-textarea-count">{form.symptom.length} / {SYMPTOM_MAX_LENGTH}</span>
+      <span className="mt-1.5 block text-right text-[12px] text-ink-faint">{form.symptom.length} / {SYMPTOM_MAX_LENGTH}</span>
     </section>
   )
 }
@@ -149,7 +166,7 @@ function SymptomSection({ form, update }: StepProps) {
 function ScheduleSection({ form, update }: StepProps) {
   const { lang } = useLanguage()
   return (
-    <section className="order-section-box">
+    <section className={cn(orderSectionBox, 'mb-0')}>
       <SectionHeading
         number={3}
         title={lang === 'en' ? 'Preferred Schedule' : '방문 희망 일정'}
@@ -158,39 +175,44 @@ function ScheduleSection({ form, update }: StepProps) {
           : '엔지니어의 방문을 희망하시는 날짜와 시간대를 선택해 주세요.'}
       />
 
-      <div className="schedule-picker-row">
-        <div className="schedule-date-col">
-          <label htmlFor="visit-date">{lang === 'en' ? 'Preferred Date' : '방문 희망일'}</label>
+      <div className="grid grid-cols-[1fr] gap-[18px]">
+        <div>
+          <label className={fieldLabel} htmlFor="visit-date">{lang === 'en' ? 'Preferred Date' : '방문 희망일'}</label>
           <input
             id="visit-date"
             type="date"
-            className="order-input"
+            className={orderInput}
             required
             min={getTomorrowDate()}
             value={form.date}
             onChange={e => update('date', e.target.value)}
           />
         </div>
-        <div className="schedule-time-col">
-          <label htmlFor="visit-time">{lang === 'en' ? 'Preferred Time' : '방문 희망 시간'}</label>
-          <div className="time-chips-grid">
+        <div>
+          <label className={fieldLabel} htmlFor="visit-time">{lang === 'en' ? 'Preferred Time' : '방문 희망 시간'}</label>
+          <div className="grid grid-cols-[repeat(3,1fr)] gap-2">
             {TIME_SLOTS.map(slot => (
               <button
                 key={slot}
                 type="button"
-                className={`time-chip ${form.time === slot ? 'active' : ''}`}
+                className={cn(
+                  'grid h-[42px] cursor-pointer place-items-center rounded-lg border text-[13px] transition-all duration-150 ease-[ease]',
+                  form.time === slot
+                    ? 'border-brand bg-brand font-semibold text-white'
+                    : 'border-line-strong bg-white font-medium text-ink-body hover:border-ink-faint hover:bg-surface-subtle',
+                )}
                 onClick={() => update('time', slot)}
               >
                 {slot}
               </button>
             ))}
           </div>
-          <div className="time-custom-row">
-            <span className="time-custom-label">{lang === 'en' ? 'Direct Time Pick:' : '직접 시간 지정:'}</span>
+          <div className="mt-3 flex items-center gap-2.5 border-t border-dashed border-line-default pt-3">
+            <span className="shrink-0 text-[12px] font-semibold text-ink-subtle">{lang === 'en' ? 'Direct Time Pick:' : '직접 시간 지정:'}</span>
             <input
               id="visit-time"
               type="time"
-              className="order-input time-custom-input"
+              className={cn(orderInput, 'max-w-[140px]')}
               value={form.time}
               onChange={e => update('time', e.target.value)}
             />
@@ -204,7 +226,7 @@ function ScheduleSection({ form, update }: StepProps) {
 function ContactSection({ form, update, isMember }: StepProps & { isMember: boolean }) {
   const { lang } = useLanguage()
   return (
-    <section className="order-section-box">
+    <section className={cn(orderSectionBox, 'mb-0')}>
       <SectionHeading
         number={4}
         title={lang === 'en' ? 'Contact & Visit Location' : '신청 고객 및 방문 주소'}
@@ -213,34 +235,34 @@ function ContactSection({ form, update, isMember }: StepProps & { isMember: bool
           : '엔지니어 방문 및 일정 안내를 위해 신청자 정보와 방문 주소를 정확히 입력해 주세요.'}
       />
 
-      <div className="customer-fields-grid">
-        <div className="customer-field full">
-          <label htmlFor="client-name">{lang === 'en' ? 'Customer Name' : '성함 (신청자)'}</label>
+      <div className={fieldsGrid}>
+        <div className={fullField}>
+          <label className={fieldLabel} htmlFor="client-name">{lang === 'en' ? 'Customer Name' : '성함 (신청자)'}</label>
           <input
             id="client-name"
             required
-            className="order-input"
+            className={orderInput}
             placeholder={lang === 'en' ? 'e.g. John Doe' : '홍길동'}
             value={form.name}
             onChange={e => update('name', e.target.value)}
           />
         </div>
-        <div className="customer-field full">
-          <label htmlFor="client-phone">{lang === 'en' ? 'Mobile Number' : '휴대전화 번호'}</label>
+        <div className={fullField}>
+          <label className={fieldLabel} htmlFor="client-phone">{lang === 'en' ? 'Mobile Number' : '휴대전화 번호'}</label>
           <PhoneInput
             id="client-phone"
             required
-            className="order-input"
+            className={orderInput}
             value={form.phone}
             onChange={value => update('phone', value)}
           />
         </div>
-        <div className="customer-field full">
-          <label htmlFor="client-address">{lang === 'en' ? 'Visit Address' : '방문 주소'}</label>
+        <div className={fullField}>
+          <label className={fieldLabel} htmlFor="client-address">{lang === 'en' ? 'Visit Address' : '방문 주소'}</label>
           <input
             id="client-address"
             required
-            className="order-input"
+            className={orderInput}
             placeholder={lang === 'en' ? 'Enter full address including apartment / room number' : '방문 받으실 상세 주소를 입력해 주세요 (동/호수 포함)'}
             value={form.address}
             onChange={e => update('address', e.target.value)}
@@ -248,15 +270,16 @@ function ContactSection({ form, update, isMember }: StepProps & { isMember: bool
         </div>
 
         {!isMember && (
-          <div className="customer-field full guest-privacy-box">
-            <label className="guest-privacy-check">
+          <div className={cn(fullField, 'mt-2 border-t border-dashed border-line-default pt-3.5')}>
+            <label className="m-0 flex cursor-pointer items-start gap-2.5 text-[13.5px] font-normal text-ink">
               <input
+                className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-brand"
                 type="checkbox"
                 checked={form.agreedPrivacy}
                 onChange={e => update('agreedPrivacy', e.target.checked)}
                 required
               />
-              <span>
+              <span className="text-[13px] leading-[1.5] break-keep text-ink-secondary">
                 {lang === 'en'
                   ? '[Required] I consent to personal contact & address collection for dispatching visit service.'
                   : '[필수] 전담 엔지니어 배정 및 방문 수리 서비스 제공을 위한 개인정보(성함, 휴대전화 번호, 주소) 수집·이용에 동의합니다.'}

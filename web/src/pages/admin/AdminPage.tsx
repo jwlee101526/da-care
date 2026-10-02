@@ -9,7 +9,7 @@ import { EngineerSection } from './EngineerSection'
 import { ReservationSection } from './ReservationSection'
 import { UsageSummary } from './UsageSummary'
 import type { AdminFeedback } from './types'
-import './AdminPage.css'
+import { formError } from '../../components/formError'
 
 const SMS_USAGE_TEXT: UsageToastText = {
   used: (used: number, limit: number) => `이번 주 SMS ${used}/${limit}회 사용`,
@@ -54,14 +54,14 @@ export function AdminPage() {
   }
 
   return (
-    <main className="dashboard">
-      <header>
-        <Link to="/">DA-CARE 관리자</Link>
-        <button onClick={logout}>로그아웃</button>
+    <main className="mx-auto box-border min-h-[calc(100dvh-var(--site-header-height))] max-w-[1080px] bg-surface-subtle px-6 pt-10 pb-20">
+      <header className="mb-7 flex items-center justify-between border-b border-line-default pb-5">
+        <Link className="text-[18px] font-bold text-brand" to="/">DA-CARE 관리자</Link>
+        <button className="rounded-lg border border-line-strong bg-white px-4 py-2 text-[13px] font-semibold text-ink-subtle transition-all duration-150 ease-[ease] hover:bg-surface-muted hover:text-ink" onClick={logout}>로그아웃</button>
       </header>
-      <h1>예약 운영</h1>
-      {error && <p className="form-error" role="alert">{error}</p>}
-      {notice && <p className="form-success" role="status">{notice}</p>}
+      <h1 className="mb-6 text-[28px] font-bold text-navy">예약 운영</h1>
+      {error && <p className={formError} role="alert">{error}</p>}
+      {notice && <p className="mb-5 flex items-center gap-2 rounded-lg border border-success-border bg-success-soft px-4 py-3 text-[14px] font-medium text-success-strong" role="status">{notice}</p>}
       {usage && <UsageSummary usage={usage} />}
       <EngineerSection engineers={engineers} token={token} reload={load} feedback={feedback} />
       <ReservationSection

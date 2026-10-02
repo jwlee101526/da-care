@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Check, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Check } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../context/LanguageContext'
 import { useAuth } from '../../context/AuthContext'
@@ -17,8 +17,9 @@ import {
 import { ReservationFormStep } from './ReservationFormStep'
 import { ReservationSummaryStep } from './ReservationSummaryStep'
 import { ReservationCompleteStep } from './ReservationCompleteStep'
-import '../../styles/order-form.css'
-import './ReservationPage.css'
+import { stepBadge } from './stepBadge'
+import { ErrorAlert } from '../../components/ErrorAlert'
+import { cn } from '@/lib/utils'
 
 export function ReservationPage() {
   const { lang } = useLanguage()
@@ -74,12 +75,12 @@ export function ReservationPage() {
   }
 
   return (
-    <div className="order-flow-view" ref={topRef}>
-      <main className="order-flow-container">
-        <header className="order-flow-header">
+    <div className="box-border min-h-[calc(100dvh-var(--site-header-height))] bg-surface-subtle px-5 pt-8 pb-20 max-[640px]:px-3.5 max-[640px]:pt-5 max-[640px]:pb-[60px]" ref={topRef}>
+      <main className="mx-auto w-[min(1120px,100%)]">
+        <header className="mb-5 grid grid-cols-[40px_1fr_40px] items-center border-b border-line-default pb-4">
           <button
             type="button"
-            className="order-back-btn"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-[10px] border border-line-default bg-white text-ink-body transition-all duration-150 ease-[ease] hover:bg-surface-muted hover:text-[#0f172a]"
             onClick={() => {
               if (step === 2) setStep(1)
               else navigate(-1)
@@ -88,7 +89,7 @@ export function ReservationPage() {
           >
             <ArrowLeft size={20} />
           </button>
-          <h1 className="order-flow-title">
+          <h1 className="m-0 text-center text-[24px] font-bold tracking-[-0.02em] text-navy">
             {step === 3
               ? (lang === 'en' ? 'Booking Confirmed' : '접수 완료')
               : step === 2
@@ -100,12 +101,7 @@ export function ReservationPage() {
 
         <ReservationProgress step={step} />
 
-        {error && (
-          <div className="order-alert-error" role="alert">
-            <AlertCircle size={18} />
-            <span>{error}</span>
-          </div>
-        )}
+        {error && <ErrorAlert role="alert">{error}</ErrorAlert>}
 
         {step === 1 && (
           <ReservationFormStep form={form} update={update} isMember={isMember} onSubmit={handleFormSubmit} />
@@ -134,13 +130,24 @@ function ReservationProgress({ step }: { step: ReservationStep }) {
     ? ['Details', 'Review', 'Complete']
     : ['정보 입력', '내용 확인', '접수 완료']
   return (
-    <ol className="order-progress" aria-label={lang === 'en' ? 'Reservation steps' : '예약 진행 단계'}>
+    <ol className="mx-0 mt-0 mb-6 flex list-none items-center justify-center gap-2.5 p-0 max-[640px]:gap-1.5" aria-label={lang === 'en' ? 'Reservation steps' : '예약 진행 단계'}>
       {labels.map((label, index) => {
         const stepNumber = index + 1
         const state = stepNumber < step || step === 3 ? 'done' : stepNumber === step ? 'current' : ''
+        // 단계 사이 연결선은 뒤 단계 앞에 그리고, 앞 단계를 마쳤으면 파란색이다.
+        const previousDone = stepNumber - 1 < step || step === 3
         return (
-          <li key={label} className={state} aria-current={state === 'current' ? 'step' : undefined}>
-            <span className="order-step-badge">
+          <li
+            key={label}
+            className={cn(
+              'flex items-center gap-2 text-[13px] font-semibold max-[640px]:gap-1.5 max-[640px]:text-[12px]',
+              state ? 'text-navy' : 'text-ink-faint',
+              index > 0 && "before:mr-0.5 before:h-[1.5px] before:w-7 before:content-[''] max-[640px]:before:w-3.5",
+              index > 0 && (previousDone ? 'before:bg-brand' : 'before:bg-line-strong'),
+            )}
+            aria-current={state === 'current' ? 'step' : undefined}
+          >
+            <span className={cn(stepBadge, state ? 'bg-brand text-white' : 'bg-line-default text-ink-subtle')}>
               {state === 'done' ? <Check size={13} /> : stepNumber}
             </span>
             {label}

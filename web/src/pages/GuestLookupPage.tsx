@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { AlertCircle } from 'lucide-react'
 import { REGEXP_ONLY_DIGITS } from 'input-otp'
 import { useLanguage } from '../context/LanguageContext'
 import { api, ApiError, type GuestReservation } from '../lib/api'
@@ -9,9 +8,14 @@ import { isValidReservationCode } from '../lib/reservationCode'
 import { PhoneInput } from '../components/PhoneInput'
 import { ReservationCard } from '../components/ReservationCard'
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '../components/ui/input-otp'
-import '../styles/order-page.css'
-import '../styles/order-form.css'
-import './GuestLookupPage.css'
+import { OrderPageLayout } from '../components/OrderPageLayout'
+import { ErrorAlert } from '../components/ErrorAlert'
+import { buttonVariants } from '../components/ui/button'
+import { actionBar, fieldLabel, fieldsGrid, fullField, orderInput, orderSectionBox } from '../components/orderForm'
+import { cn } from '@/lib/utils'
+
+// 예약 번호 8칸 입력. 4칸씩 두 묶음을 하이픈으로 나눠 화면 표시 형식(4821-7390)과 맞춘다.
+const codeSlot = 'h-12 w-auto min-w-0 flex-1 border-y-[1.5px] border-r-[1.5px] border-line-strong bg-white text-[17px] leading-[1.4285714] font-semibold text-ink first:rounded-l-[10px] first:border-l-[1.5px] last:rounded-r-[10px] data-[active=true]:border-brand data-[active=true]:shadow-[0_0_0_3px_rgba(36,87,214,0.15)] data-[active=true]:ring-0'
 
 // 예약 완료 화면에서 넘어오면 예약 번호와 휴대전화 번호를 미리 채운다.
 type LookupState = { reservationCode?: string; phone?: string } | null
@@ -79,90 +83,78 @@ export function GuestLookupPage() {
   }
 
   return (
-    <div className="order-details-view">
-      <main className={`order-main-container${reservation ? '' : ' guest-lookup-container'}`}>
-        <div className="order-page-header">
-          <div>
-            <h1 className="order-page-title">{lang === 'en' ? 'Guest Reservation Lookup' : '비회원 예약 조회'}</h1>
-            <p className="order-page-desc">
-              {lang === 'en'
-                ? 'Enter the reservation number and the mobile number used when booking.'
-                : '예약 번호와 예약할 때 입력한 휴대전화 번호로 조회합니다.'}
-            </p>
-          </div>
-          {reservation && (
-            <button type="button" className="button secondary compact" onClick={handleReset}>
-              {lang === 'en' ? 'Look Up Another' : '다른 예약 조회'}
-            </button>
-          )}
+    <OrderPageLayout
+      title={lang === 'en' ? 'Guest Reservation Lookup' : '비회원 예약 조회'}
+      description={lang === 'en'
+        ? 'Enter the reservation number and the mobile number used when booking.'
+        : '예약 번호와 예약할 때 입력한 휴대전화 번호로 조회합니다.'}
+      action={reservation && (
+        <button type="button" className={buttonVariants({ variant: 'secondary', size: 'compact' })} onClick={handleReset}>
+          {lang === 'en' ? 'Look Up Another' : '다른 예약 조회'}
+        </button>
+      )}
+      narrow={!reservation}
+    >
+      {error && <ErrorAlert role="alert">{error}</ErrorAlert>}
+
+      {reservation ? (
+        <div className="flex flex-col gap-6">
+          <ReservationCard
+            item={reservation}
+            onCancel={handleCancel}
+            cancelling={cancelling}
+            cancelDisabled={cancelling}
+          />
         </div>
-
-        {error && (
-          <div className="order-alert-error" role="alert">
-            <AlertCircle size={18} />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {reservation ? (
-          <div className="order-list-column">
-            <ReservationCard
-              item={reservation}
-              onCancel={handleCancel}
-              cancelling={cancelling}
-              cancelDisabled={cancelling}
-            />
-          </div>
-        ) : (
-          <form className="order-section-box" onSubmit={handleLookup} noValidate>
-            <div className="customer-fields-grid">
-              <div className="customer-field full">
-                <label htmlFor="lookup-code">{lang === 'en' ? 'Reservation Number' : '예약 번호'}</label>
-                {/* 기본값(one-time-code)이면 모바일 키보드가 문자로 받은 인증번호를 제안하므로 자동완성을 끈다.
-                    완료 화면에서 복사한 4821-7390 형식도 붙여넣을 수 있게 숫자만 남긴다. */}
-                <InputOTP
-                  id="lookup-code"
-                  maxLength={8}
-                  pattern={REGEXP_ONLY_DIGITS}
-                  inputMode="numeric"
-                  autoComplete="off"
-                  pasteTransformer={text => text.replace(/\D/g, '')}
-                  containerClassName="reservation-code-input"
-                  aria-describedby="lookup-code-hint"
-                  value={reservationCode}
-                  onChange={setReservationCode}
-                >
-                  <InputOTPGroup>
-                    {[0, 1, 2, 3].map(index => <InputOTPSlot key={index} index={index} />)}
-                  </InputOTPGroup>
-                  <InputOTPSeparator />
-                  <InputOTPGroup>
-                    {[4, 5, 6, 7].map(index => <InputOTPSlot key={index} index={index} />)}
-                  </InputOTPGroup>
-                </InputOTP>
-                <small id="lookup-code-hint" className="reservation-code-hint">
-                  {lang === 'en' ? 'The 8-digit number shown on the booking complete screen' : '예약 완료 화면에 표시된 숫자 8자리'}
-                </small>
-              </div>
-              <div className="customer-field full">
-                <label htmlFor="lookup-phone">{lang === 'en' ? 'Mobile Number' : '휴대전화 번호'}</label>
-                <PhoneInput id="lookup-phone" required className="order-input" value={phone} onChange={setPhone} />
-              </div>
+      ) : (
+        <form className={orderSectionBox} onSubmit={handleLookup} noValidate>
+          <div className={cn(fieldsGrid, 'mt-0')}>
+            <div className={fullField}>
+              <label className={fieldLabel} htmlFor="lookup-code">{lang === 'en' ? 'Reservation Number' : '예약 번호'}</label>
+              {/* 기본값(one-time-code)이면 모바일 키보드가 문자로 받은 인증번호를 제안하므로 자동완성을 끈다.
+                  완료 화면에서 복사한 4821-7390 형식도 붙여넣을 수 있게 숫자만 남긴다. */}
+              <InputOTP
+                id="lookup-code"
+                maxLength={8}
+                pattern={REGEXP_ONLY_DIGITS}
+                inputMode="numeric"
+                autoComplete="off"
+                pasteTransformer={text => text.replace(/\D/g, '')}
+                containerClassName="w-full gap-1.5"
+                aria-describedby="lookup-code-hint"
+                value={reservationCode}
+                onChange={setReservationCode}
+              >
+                <InputOTPGroup className="min-w-0 flex-1">
+                  {[0, 1, 2, 3].map(index => <InputOTPSlot key={index} index={index} className={codeSlot} />)}
+                </InputOTPGroup>
+                <InputOTPSeparator className="text-ink-faint" />
+                <InputOTPGroup className="min-w-0 flex-1">
+                  {[4, 5, 6, 7].map(index => <InputOTPSlot key={index} index={index} className={codeSlot} />)}
+                </InputOTPGroup>
+              </InputOTP>
+              <small id="lookup-code-hint" className="mt-1.5 text-[12px] text-ink-subtle">
+                {lang === 'en' ? 'The 8-digit number shown on the booking complete screen' : '예약 완료 화면에 표시된 숫자 8자리'}
+              </small>
             </div>
-
-            <div className="order-action-bar">
-              <button type="submit" className="button primary full-width" disabled={submitting}>
-                {submitting ? (lang === 'en' ? 'Looking up...' : '조회 중...') : (lang === 'en' ? 'Look Up Reservation' : '예약 조회')}
-              </button>
+            <div className={fullField}>
+              <label className={fieldLabel} htmlFor="lookup-phone">{lang === 'en' ? 'Mobile Number' : '휴대전화 번호'}</label>
+              <PhoneInput id="lookup-phone" required className={orderInput} value={phone} onChange={setPhone} />
             </div>
+          </div>
 
-            <p className="guest-lookup-notes">
-              {lang === 'en' ? 'Booked as a member? ' : '회원으로 예약하셨나요? '}
-              <Link to={loginPath}>{lang === 'en' ? 'Sign in to see all your reservations' : '로그인하면 전체 예약 내역을 볼 수 있습니다'}</Link>
-            </p>
-          </form>
-        )}
-      </main>
-    </div>
+          <div className={actionBar}>
+            <button type="submit" className={buttonVariants({ variant: 'primary', className: 'w-full' })} disabled={submitting}>
+              {submitting ? (lang === 'en' ? 'Looking up...' : '조회 중...') : (lang === 'en' ? 'Look Up Reservation' : '예약 조회')}
+            </button>
+          </div>
+
+          <p className="mt-4 mb-0 text-center text-[13px] leading-[1.5] text-ink-subtle">
+            {lang === 'en' ? 'Booked as a member? ' : '회원으로 예약하셨나요? '}
+            <Link className="font-semibold text-brand" to={loginPath}>{lang === 'en' ? 'Sign in to see all your reservations' : '로그인하면 전체 예약 내역을 볼 수 있습니다'}</Link>
+          </p>
+        </form>
+      )}
+    </OrderPageLayout>
   )
 }

@@ -2,17 +2,18 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* 랜딩 화면 전용 조건: 섹션 단위 전체 화면 스크롤 스냅, 큰 화면에서 확대 */
+@custom-variant landing-snap (@media (min-height: 650px) and (prefers-reduced-motion: no-preference));
+@custom-variant landing-wide (@media (min-width: 1024px) and (min-height: 650px));
+
 :root {
-  font-family: 'Pretendard', 'Segoe UI', sans-serif;
-  color: #20252c;
-  background: #fff;
-  font-synthesis: none;
-  -webkit-font-smoothing: antialiased;
+  --site-header-height: 80px;
+
   --brand: #2457d6;
   --muted: #68707c;
   --line: #e4e7ec;
 
-  /* 색상 토큰. 화면 CSS에는 hex 대신 이 변수를 쓴다. */
+  /* 색상 토큰. 아래 @theme에서 Tailwind 색 이름으로 연결한다. */
   --brand-hover: #1d46ae;
   --brand-soft: #eaf2ff;
   --brand-soft-border: #bfdbfe;
@@ -43,32 +44,78 @@
   --warning-soft: #fffbeb;
   --warning-border: #fde68a;
 }
+@media (max-width: 600px) {
+  :root { --site-header-height: 68px; }
+}
 
-/* Tailwind 유틸리티(bg-brand, text-text-subtle 등)에서도 같은 토큰을 쓴다. */
+/* Tailwind 색상 이름: text-ink-subtle, border-line-default, bg-danger-soft 등 */
 @theme inline {
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
   --color-brand-soft: var(--brand-soft);
+  --color-brand-soft-border: var(--brand-soft-border);
   --color-navy: var(--navy);
+
+  --color-ink: var(--text-strong);
+  --color-ink-body: var(--text-body);
+  --color-ink-secondary: var(--text-secondary);
+  --color-ink-subtle: var(--text-subtle);
+  --color-ink-faint: var(--text-faint);
+  --color-muted: var(--muted);
+
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-muted: var(--surface-muted);
+
+  --color-line: var(--line);
+  --color-line-subtle: var(--line-subtle);
+  --color-line-default: var(--line-default);
+  --color-line-strong: var(--line-strong);
+
   --color-danger: var(--danger);
+  --color-danger-strong: var(--danger-strong);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-border: var(--danger-border);
   --color-success: var(--success);
+  --color-success-strong: var(--success-strong);
+  --color-success-soft: var(--success-soft);
+  --color-success-border: var(--success-border);
   --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-border: var(--warning-border);
 }
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 96px; }
-body { margin: 0; min-width: 320px; }
-button, input, textarea, select { font: inherit; }
-button, summary { cursor: pointer; }
-button { border: 0; background: none; }
-button:disabled { cursor: not-allowed; opacity: .45; }
-a { color: inherit; text-decoration: none; }
-h1, h2, h3, p { margin: 0; }
-h1, h2, h3 { word-break: keep-all; }
-p { line-height: 1.7; word-break: keep-all; }
-button, a, input, textarea, select, summary { -webkit-tap-highlight-color: transparent; }
-:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; }
-::selection { background: #dce7ff; color: #163a91; }
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after { transition: none !important; animation: none !important; }
+
+@layer base {
+  :root {
+    font-family: 'Pretendard', 'Segoe UI', sans-serif;
+    color: #20252c;
+    background: #fff;
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+  body { margin: 0; min-width: 320px; }
+  button, input, textarea, select { font: inherit; }
+  button, summary { cursor: pointer; }
+  button { border: 0; background: none; }
+  button:disabled { cursor: not-allowed; opacity: .45; }
+  a { color: inherit; text-decoration: none; }
+  h1, h2, h3, p { margin: 0; }
+  h1, h2, h3 { word-break: keep-all; }
+  p { line-height: 1.7; word-break: keep-all; }
+  button, a, input, textarea, select, summary { -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; }
+  ::selection { background: #dce7ff; color: #163a91; }
+  h2 { font-size: 34px; letter-spacing: -.045em; line-height: 1.35; font-weight: 650; }
+  @media (max-width: 600px) {
+    h2 { font-size: 28px; }
+  }
+  /* 랜딩은 #main 안에서 섹션 단위로 스크롤하므로 바깥 스크롤을 막는다. */
+  body:has(#main) {
+    @variant landing-snap { overflow: hidden; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
 }

@@ -12,7 +12,6 @@ import { ChatLauncher } from './ChatLauncher'
 import { ChatPanel } from './ChatPanel'
 import { clampCoordinates, fitPanelSize } from './geometry'
 import type { BookWithSymptom, Coordinates, PanelSize } from './types'
-import './ChatWidget.css'
 
 interface ChatWidgetProps {
   isOpen: boolean

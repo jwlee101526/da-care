@@ -1,6 +1,4 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-// 공통 스타일을 컴포넌트 CSS보다 먼저 불러와야 컴포넌트 규칙이 공통 규칙을 덮어쓴다.
-import './App.css'
 import { Navbar } from './components/Navbar'
 import { BrandHeroSection } from './components/BrandHeroSection'
 import { HeroSection } from './components/HeroSection'
@@ -31,7 +29,7 @@ function LandingContent({
   onOpenChat: () => void
 }) {
   return (
-    <main id="main">
+    <main id="main" className="min-w-0 landing-snap:h-[calc(100dvh-var(--site-header-height))] landing-snap:snap-y landing-snap:snap-mandatory landing-snap:scroll-py-0 landing-snap:overflow-y-auto landing-snap:overscroll-y-contain landing-snap:scroll-smooth">
       <BrandHeroSection />
       <HeroSection />
       <ServiceSection onSelectCategory={onOpenReservation} />
@@ -69,9 +67,9 @@ function AppShell() {
 
   return (
     <>
-      <a className="skip-link" href="#main">{t.nav.skip}</a>
+      <a className="fixed -top-20 left-4 z-[100] border border-brand bg-white px-5 py-3 focus:top-2" href="#main">{t.nav.skip}</a>
       <Navbar onOpenReservation={() => openReservation()} onOpenChat={openChat} />
-      <Suspense fallback={<div className="page-loading" aria-busy="true" />}>
+      <Suspense fallback={<div className="min-h-[calc(100dvh-var(--site-header-height))] bg-surface-subtle" aria-busy="true" />}>
         <Routes>
           <Route path="/" element={<LandingContent onOpenReservation={openReservation} onOpenChat={openChat} />} />
           <Route path="/en" element={<LandingContent onOpenReservation={openReservation} onOpenChat={openChat} />} />

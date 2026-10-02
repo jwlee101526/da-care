@@ -4,30 +4,33 @@ import type { CountryCode } from 'libphonenumber-js/mobile'
 import { useLanguage } from '../context/LanguageContext'
 import { DEFAULT_COUNTRY, canAppendDigit, countryOf, examplePhone, isValidPhone } from '../lib/phone'
 import { PhoneCountrySelect } from './PhoneCountrySelect'
-import './PhoneInput.css'
+import { cn } from '@/lib/utils'
 
 // placeholder는 선택한 국가의 예시 번호로 자동으로 채운다.
+// className은 번호 칸에, fieldClassName은 국가번호 선택까지 감싼 바깥 요소에 붙는다.
 type PhoneInputProps = Omit<ComponentPropsWithoutRef<'input'>, 'value' | 'defaultValue' | 'onChange' | 'type' | 'placeholder'> & {
   value: string
   onChange: (value: string) => void
+  fieldClassName?: string
 }
 
 // 휴대전화 번호 입력. 국가번호는 국기와 함께 검색형 목록에서 고르고, 번호 칸에는 숫자만 입력받는다.
 // 입력한 숫자는 선택한 국가의 형식으로 하이픈이 붙고, 국가별 휴대전화 번호 최대 자릿수를 넘겨 입력할 수 없다.
 // 값은 E.164 형식(+821012345678)으로 전달된다.
-export function PhoneInput({ value, onChange, className, ...props }: PhoneInputProps) {
+export function PhoneInput({ value, onChange, className, fieldClassName, ...props }: PhoneInputProps) {
   const { lang } = useLanguage()
   const [touched, setTouched] = useState(false)
   const [country, setCountry] = useState<CountryCode>(() => countryOf(value) ?? DEFAULT_COUNTRY)
   const invalid = touched && !!value && !isValidPhone(value)
 
   return (
-    <div className="phone-field">
+    <div className={cn('min-w-0', fieldClassName)}>
       <PhoneInputWithCountry
         {...props}
-        className="phone-input"
+        className="flex min-w-0 items-stretch gap-2"
         numberInputProps={{
-          className,
+          // 번호 칸은 국가번호 버튼 옆 남은 폭을 채운다. 호출하는 쪽 입력칸 스타일보다 이 배치가 우선한다.
+          className: cn(className, 'w-auto min-w-0 flex-[1_1_0] aria-invalid:border-danger'),
           inputMode: 'numeric',
           'aria-invalid': invalid || undefined,
           // 숫자 외 문자는 입력 단계에서 막는다. '+'를 허용하면 국가번호 직접 입력 모드로 바뀌므로 함께 막는다.
@@ -40,7 +43,6 @@ export function PhoneInput({ value, onChange, className, ...props }: PhoneInputP
         }}
         countrySelectComponent={PhoneCountrySelect}
         countrySelectProps={{
-          className,
           onSelectCountry: (next: CountryCode) => {
             if (next === country) return
             setCountry(next)
@@ -59,7 +61,7 @@ export function PhoneInput({ value, onChange, className, ...props }: PhoneInputP
         onBlur={() => setTouched(true)}
       />
       {invalid && (
-        <small className="phone-input-error" role="alert">
+        <small className="mt-1.5 block text-[12px] font-medium text-danger" role="alert">
           {lang === 'en' ? 'Please check the mobile number.' : '휴대전화 번호를 다시 확인해 주세요.'}
         </small>
       )}
