@@ -80,14 +80,14 @@ export function GuestLookupPage() {
 
   return (
     <div className="order-details-view">
-      <main className="order-main-container">
+      <main className={`order-main-container${reservation ? '' : ' guest-lookup-container'}`}>
         <div className="order-page-header">
           <div>
             <h1 className="order-page-title">{lang === 'en' ? 'Guest Reservation Lookup' : '비회원 예약 조회'}</h1>
             <p className="order-page-desc">
               {lang === 'en'
-                ? 'Enter the reservation number, mobile number and lookup PIN you used when booking.'
-                : '예약할 때 받은 예약 번호와 입력하신 휴대전화 번호, 조회용 비밀번호를 입력해 주세요.'}
+                ? 'Enter the details you used when booking.'
+                : '예약할 때 입력한 정보로 예약 내역을 확인합니다.'}
             </p>
           </div>
           {reservation && (
@@ -123,17 +123,17 @@ export function GuestLookupPage() {
                   required
                   inputMode="numeric"
                   className="order-input"
-                  placeholder={lang === 'en' ? 'e.g. 128' : '예: 128'}
+                  placeholder={lang === 'en' ? 'Shown on the booking complete screen' : '예약 완료 화면에 표시된 번호'}
                   value={reservationId}
                   onChange={e => setReservationId(e.target.value.replace(/[^0-9]/g, ''))}
                 />
               </div>
               <div className="customer-field full">
                 <label htmlFor="lookup-phone">{lang === 'en' ? 'Mobile Number' : '휴대전화 번호'}</label>
-                <PhoneInput id="lookup-phone" required value={phone} onChange={setPhone} />
+                <PhoneInput id="lookup-phone" required className="order-input" value={phone} onChange={setPhone} />
               </div>
               <div className="customer-field full">
-                <label htmlFor="lookup-pin">{lang === 'en' ? 'Lookup PIN (4 digits)' : '조회용 비밀번호 (4자리)'}</label>
+                <label htmlFor="lookup-pin">{lang === 'en' ? 'Lookup PIN' : '조회용 비밀번호'}</label>
                 <input
                   id="lookup-pin"
                   required
@@ -142,6 +142,7 @@ export function GuestLookupPage() {
                   maxLength={4}
                   autoComplete="off"
                   className="order-input"
+                  placeholder={lang === 'en' ? '4 digits set when booking' : '예약 시 정한 숫자 4자리'}
                   value={guestPassword}
                   onChange={e => setGuestPassword(e.target.value.replace(/[^0-9]/g, ''))}
                 />

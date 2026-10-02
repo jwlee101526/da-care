@@ -931,6 +931,14 @@ h2 { font-size: 34px; letter-spacing: -.045em; line-height: 1.35; font-weight: 6
   margin-top: 6px;
 }
 
+.guest-lookup-container {
+  width: min(520px, 100%);
+}
+
+.guest-lookup-container .customer-fields-grid {
+  margin-top: 0;
+}
+
 .guest-lookup-member-hint {
   margin: 16px 0 0;
   font-size: 13px;
