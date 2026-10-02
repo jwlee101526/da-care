@@ -79,7 +79,7 @@ da-care/
 │       │   │   ├── service/      # 예약, AI 상담 비즈니스 로직
 │       │   │   ├── repository/   # 데이터 접근 계층
 │       │   │   └── notification/ # Slack, SMS 알림 전송
-│       │   └── resources/ # Spring 설정, Flyway, 증상별 매뉴얼(manual/*.md)
+│       │   └── resources/ # Spring 설정, Flyway, 제품 매뉴얼 PDF(manual/{기기 분류}/*.pdf)
 │       └── test/        # 단위, 통합 테스트
 ├── infra/
 │   ├── docker/          # Docker
@@ -112,19 +112,18 @@ Copy-Item .env.example .env
 
 ### AI 상담 매뉴얼과 설정
 
-상담 근거 매뉴얼은 `server/src/main/resources/manual/`에 증상당 Markdown 파일 하나로 작성합니다. 파일 하나가 벡터 하나로 저장되며, 머리말의 `device`는 `laptop`, `smartphone`, `appliance`, `etc` 중 하나입니다.
+상담 근거 매뉴얼은 기기 카테고리마다 하나씩 있는 사용 설명서 PDF(12종, 각 9~10쪽)이며 `server/src/main/resources/manual/{기기 분류}/`에 있습니다. 폴더 이름이 AI 상담 도구와 예약 화면이 쓰는 기기 분류(`smartphone`, `computer`, `tv`, `console`, `aircon`, `washing`, `fridge`, `microwave`, `cleaner`, `internet`, `audio`, `etc`)입니다. 각 설명서는 실제 제품 설명서의 문제 해결 장 양식을 따르며 안전을 위한 주의사항, 관리 및 청소, 문제 해결(고장이 아닌 경우, 서비스를 요청하기 전에, 표시등 및 오류 코드), 자주 묻는 질문, 서비스 요청 안내로 구성됩니다.
 
-```markdown
----
-device: laptop
-title: 노트북 전원이 켜지지 않음 (Laptop does not turn on)
----
-증상: ...
-점검 절차:
-1. ...
+```text
+manual/
+├── computer/pc-laptop-manual.pdf
+├── washing/washer-dryer-manual.pdf
+└── ...
 ```
 
-서버는 시작할 때 매뉴얼 내용과 임베딩 모델(`text-embedding-3-small`)로 버전을 계산하고, 버전이 바뀌면 기존 벡터를 교체합니다. 매뉴얼을 수정한 뒤 서버를 재시작하면 반영됩니다.
+PDF는 목차(북마크)의 최하위 항목 단위로 나뉘어 항목 하나가 벡터 하나로 저장됩니다. 트러블슈팅 표는 문제마다, 자주 묻는 질문은 질문마다 북마크가 있습니다. 북마크가 가리키는 페이지 안 위치까지 사용하므로 한 페이지에 여러 문제가 있어도 따로 나뉘고, 표는 PDF 내용 순서로 읽어 '문제 → 원인 → 해결 방법' 순서를 유지하며, 목차가 없는 PDF는 페이지 단위로 나뉩니다. 여러 페이지에 반복되는 머리글·바닥글은 제거하고, PDF 문서 제목과 목차 제목을 본문과 함께 임베딩합니다. 상담 화면의 근거에는 `PC·노트북 사용 설명서 6쪽`처럼 매뉴얼 제목과 쪽 번호가 표시됩니다.
+
+서버는 시작할 때 매뉴얼 PDF와 임베딩 모델(`text-embedding-3-small`)로 버전을 계산하고, 버전이 바뀌면 기존 벡터를 교체합니다. 매뉴얼을 수정한 뒤 서버를 재시작하면 반영됩니다.
 
 다음 값은 기본값이 있어 `.env`에 넣지 않아도 되며, 조정이 필요할 때만 설정합니다.
 

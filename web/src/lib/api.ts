@@ -12,7 +12,7 @@ export type Reservation = { id: number; code: string; deviceType: string; sympto
 export type GuestReservation = Omit<Reservation, 'id'>
 export type Engineer = { id: number; name: string; phone: string; specialty: string; region: string }
 export type DiagnosisCard =
-  | { type: 'inspection'; title: string; deviceType: import('../types').DeviceType; deviceName: string; suspectedCause: string | null; inspectionDetails: string; evidence: { sourceId: string; quote: string }[] }
+  | { type: 'inspection'; title: string; deviceType: import('../types').DeviceType; deviceName: string; suspectedCause: string | null; inspectionDetails: string; evidence: { sourceId: string; quote: string; citation: string | null }[] }
   | { type: 'booking'; deviceType: import('../types').DeviceType; symptom: string; loginRequired: boolean }
   | { type: 'reservation_status'; reservationCode: string; status: Reservation['status']; preferredAt: string; confirmedAt: string | null; engineerName: string | null }
   | { type: 'navigation'; page: 'reservations' | 'reserve'; title: string; description: string; actionLabel: string }

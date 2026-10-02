@@ -11,7 +11,7 @@ import java.util.List;
 public sealed interface DiagnosisCard permits DiagnosisCard.InspectionCard,
     DiagnosisCard.BookingCard, DiagnosisCard.ReservationStatusCard, DiagnosisCard.NavigationCard {
 
-  record Evidence(String sourceId, String quote) {
+  record Evidence(String sourceId, String quote, String citation) {
 
   }
 
