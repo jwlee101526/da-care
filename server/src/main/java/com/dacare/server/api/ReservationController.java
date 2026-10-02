@@ -1,13 +1,15 @@
 package com.dacare.server.api;
 
 import com.dacare.server.api.docs.ReservationApiDocs;
-import com.dacare.server.domain.Reservation;
+import com.dacare.server.api.validation.ValidPhoneNumber;
+import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.service.ReservationDraft;
 import com.dacare.server.service.ReservationService;
+import com.dacare.server.web.UsageSubjectResolver;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,9 +27,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReservationController implements ReservationApiDocs {
 
   private final ReservationService service;
+  private final UsageSubjectResolver subjects;
 
-  public ReservationController(ReservationService service) {
+  public ReservationController(ReservationService service, UsageSubjectResolver subjects) {
     this.service = service;
+    this.subjects = subjects;
   }
 
   @PostMapping
@@ -38,22 +42,23 @@ public class ReservationController implements ReservationApiDocs {
 
   @PostMapping("/guest")
   public ReservationResponse createGuest(@Valid @RequestBody GuestReservationRequest request) {
-    return ReservationResponse.from(
-        service.createGuest(request.toDraft(), request.guestPassword()));
+    return ReservationResponse.forGuest(service.createGuest(request.toDraft()));
   }
 
   @PostMapping("/guest/lookup")
-  public ReservationResponse lookupGuest(@Valid @RequestBody GuestLookupRequest request) {
-    return ReservationResponse.from(
-        service.findGuest(request.reservationId(), request.contactPhone(),
-            request.guestPassword()));
+  public ReservationResponse lookupGuest(@Valid @RequestBody GuestLookupRequest request,
+      HttpServletRequest servletRequest) {
+    return ReservationResponse.maskedForGuest(
+        service.findGuest(request.reservationCode(), PhoneNumber.of(request.contactPhone()),
+            subjects.clientIpHash(servletRequest)));
   }
 
-  @PatchMapping("/guest/{id}/cancel")
-  public ReservationResponse cancelGuest(@PathVariable Long id,
-      @Valid @RequestBody GuestCancelRequest request) {
-    return ReservationResponse.from(
-        service.cancelGuest(id, request.contactPhone(), request.guestPassword()));
+  @PatchMapping("/guest/{code}/cancel")
+  public ReservationResponse cancelGuest(@PathVariable String code,
+      @Valid @RequestBody GuestCancelRequest request, HttpServletRequest servletRequest) {
+    return ReservationResponse.maskedForGuest(
+        service.cancelGuest(code, PhoneNumber.of(request.contactPhone()),
+            subjects.clientIpHash(servletRequest)));
   }
 
   @GetMapping("/me")
@@ -76,11 +81,11 @@ public class ReservationController implements ReservationApiDocs {
                             @NotBlank @Size(max = 200) String visitAddress,
                             @NotNull LocalDateTime preferredAt,
                             @Size(min = 1, max = 50) String contactName,
-                            @Pattern(regexp = "^[0-9-]{9,13}$") String contactPhone) {
+                            @ValidPhoneNumber(mobile = true) String contactPhone) {
 
     ReservationDraft toDraft() {
       return new ReservationDraft(deviceType, symptomDescription, visitAddress, preferredAt,
-          contactName, contactPhone);
+          contactName, PhoneNumber.ofNullableMobile(contactPhone));
     }
   }
 
@@ -89,38 +94,20 @@ public class ReservationController implements ReservationApiDocs {
                                  @NotBlank @Size(max = 200) String visitAddress,
                                  @NotNull LocalDateTime preferredAt,
                                  @NotBlank @Size(min = 1, max = 50) String contactName,
-                                 @NotBlank @Pattern(regexp = "^[0-9-]{9,13}$") String contactPhone,
-                                 @Size(max = 20) String guestPassword) {
+                                 @NotBlank @ValidPhoneNumber(mobile = true) String contactPhone) {
 
     ReservationDraft toDraft() {
       return new ReservationDraft(deviceType, symptomDescription, visitAddress, preferredAt,
-          contactName, contactPhone);
+          contactName, PhoneNumber.ofMobile(contactPhone));
     }
   }
 
-  public record GuestLookupRequest(@NotNull Long reservationId,
-                            @NotBlank @Pattern(regexp = "^[0-9-]{9,13}$") String contactPhone,
-                            String guestPassword) {
+  public record GuestLookupRequest(@NotBlank @Size(max = 20) String reservationCode,
+                            @NotBlank @ValidPhoneNumber String contactPhone) {
 
   }
 
-  public record GuestCancelRequest(@NotBlank @Pattern(regexp = "^[0-9-]{9,13}$") String contactPhone,
-                            String guestPassword) {
+  public record GuestCancelRequest(@NotBlank @ValidPhoneNumber String contactPhone) {
 
-  }
-
-  public record ReservationResponse(Long id, String deviceType, String symptomDescription,
-                                    String visitAddress, LocalDateTime preferredAt,
-                                    LocalDateTime confirmedAt, String status, String engineerName,
-                                    String contactName, String contactPhone) {
-
-    static ReservationResponse from(Reservation reservation) {
-      return new ReservationResponse(reservation.getId(), reservation.getDeviceType(),
-          reservation.getSymptomDescription(), reservation.getVisitAddress(),
-          reservation.getPreferredAt(), reservation.getConfirmedAt(),
-          reservation.getStatus().name(),
-          reservation.getEngineer() == null ? null : reservation.getEngineer().getName(),
-          reservation.getContactName(), reservation.getContactPhone());
-    }
   }
 }

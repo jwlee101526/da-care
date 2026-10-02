@@ -1,7 +1,8 @@
-package com.dacare.server.service;
+package com.dacare.server.config;
 
 import com.dacare.server.domain.AppUser;
 import com.dacare.server.domain.Customer;
+import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.domain.Role;
 import com.dacare.server.repository.AppUserRepository;
 import com.dacare.server.repository.CustomerRepository;
@@ -64,7 +65,7 @@ class InitialDataLoader implements ApplicationRunner {
     if (users.findByEmail(DEMO_CUSTOMER_EMAIL).isEmpty()) {
       AppUser demo = users.save(
           new AppUser(DEMO_CUSTOMER_EMAIL, encoder.encode(DEMO_CUSTOMER_PASSWORD), Role.CUSTOMER));
-      customers.save(new Customer(demo, "홍길동", "010-1234-5678", "서울특별시 강남구 테헤란로 123"));
+      customers.save(new Customer(demo, "홍길동", PhoneNumber.ofMobile("010-1234-5678"), "서울특별시 강남구 테헤란로 123"));
     }
   }
 }

@@ -1,6 +1,6 @@
 package com.dacare.server.config;
 
-import com.dacare.server.service.DiagnosisService;
+import com.dacare.server.service.DiagnosisCancelledException;
 import java.util.List;
 import org.springframework.ai.tool.execution.DefaultToolExecutionExceptionProcessor;
 import org.springframework.ai.tool.execution.ToolExecutionExceptionProcessor;
@@ -19,7 +19,7 @@ public class DiagnosisToolConfig {
       @Value("${spring.ai.tools.throw-exception-on-error:false}") boolean throwExceptionOnError) {
     return DefaultToolExecutionExceptionProcessor.builder()
         .alwaysThrow(throwExceptionOnError)
-        .rethrowExceptions(List.of(DiagnosisService.DiagnosisCancelledException.class))
+        .rethrowExceptions(List.of(DiagnosisCancelledException.class))
         .build();
   }
 }

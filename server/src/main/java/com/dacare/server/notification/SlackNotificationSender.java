@@ -1,7 +1,13 @@
 package com.dacare.server.notification;
 
+import static com.dacare.server.domain.NotificationChannel.SLACK;
+import static com.dacare.server.domain.NotificationStatus.FAILED;
+import static com.dacare.server.domain.NotificationStatus.SKIPPED;
+import static com.dacare.server.domain.NotificationStatus.SUCCESS;
+
 import com.dacare.server.domain.NotificationHistory;
 import com.dacare.server.domain.Reservation;
+import com.dacare.server.domain.ReservationCode;
 import com.dacare.server.repository.NotificationHistoryRepository;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -29,28 +35,28 @@ public class SlackNotificationSender {
   public void sendReservationReceived(Reservation reservation) {
     String message = message(reservation);
     if (webhookUrl.isBlank()) {
-      histories.save(new NotificationHistory(reservation, "SLACK", "SKIPPED", message,
+      histories.save(new NotificationHistory(reservation, SLACK, SKIPPED, message,
           "SLACK_WEBHOOK_URL 미설정"));
       return;
     }
 
     try {
       client.post().uri(webhookUrl).body(Map.of("text", message)).retrieve().toBodilessEntity();
-      histories.save(new NotificationHistory(reservation, "SLACK", "SUCCESS", message, null));
+      histories.save(new NotificationHistory(reservation, SLACK, SUCCESS, message, null));
     } catch (RuntimeException e) {
       histories.save(
-          new NotificationHistory(reservation, "SLACK", "FAILED", message, e.getMessage()));
+          new NotificationHistory(reservation, SLACK, FAILED, message, e.getMessage()));
     }
   }
 
   private String message(Reservation reservation) {
     return "🔔 *새 수리 예약이 접수되었습니다*\n"
         + "━━━━━━━━━━━━━━━━━━\n"
-        + "*접수 번호*  #" + reservation.getId() + "\n"
+        + "*접수 번호*  " + ReservationCode.format(reservation.getCode()) + " (#" + reservation.getId() + ")\n"
         + "*진행 상태*  배정 대기\n\n"
         + "*고객 정보*\n"
         + "• 성함: " + reservation.getContactName() + "\n"
-        + "• 연락처: " + reservation.getContactPhone() + "\n"
+        + "• 연락처: " + reservation.getContactPhone().format() + "\n"
         + "• 방문 주소: " + reservation.getVisitAddress() + "\n\n"
         + "*수리 요청*\n"
         + "• 품목: " + deviceName(reservation.getDeviceType()) + "\n"

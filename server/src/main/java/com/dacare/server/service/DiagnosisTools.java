@@ -1,6 +1,10 @@
 package com.dacare.server.service;
 
-import java.time.LocalDateTime;
+import com.dacare.server.service.DiagnosisCard.BookingCard;
+import com.dacare.server.service.DiagnosisCard.Evidence;
+import com.dacare.server.service.DiagnosisCard.InspectionCard;
+import com.dacare.server.service.DiagnosisCard.NavigationCard;
+import com.dacare.server.service.DiagnosisCard.ReservationStatusCard;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,7 +24,7 @@ public class DiagnosisTools {
   private final Consumer<ToolProgress> progress;
   private final double similarityThreshold;
   private final Map<String, ManualSource> sources = new LinkedHashMap<>();
-  private final Map<String, Card> cards = new LinkedHashMap<>();
+  private final Map<String, DiagnosisCard> cards = new LinkedHashMap<>();
   private final List<String> executedTools = new ArrayList<>();
 
   public DiagnosisTools(VectorStore vectorStore, ReservationService reservations, String email,
@@ -102,17 +106,18 @@ public class DiagnosisTools {
   }
 
   @Tool(description = "로그인한 사용자의 예약 번호로 실제 예약 상태와 배정된 엔지니어를 조회합니다. 다른 사용자의 예약에는 접근할 수 없습니다.")
-  public synchronized ReservationStatusCard getReservationStatus(long reservationId) {
+  public synchronized ReservationStatusCard getReservationStatus(
+      @ToolParam(description = "숫자 8자리 예약 번호(예: 4821-7390)") String reservationCode) {
     started("getReservationStatus");
     if (email == null) {
       throw new IllegalStateException("예약 조회는 로그인이 필요합니다.");
     }
-    var reservation = reservations.mineOne(email, reservationId);
+    var reservation = reservations.mineOneByCode(email, reservationCode);
     ReservationStatusCard card = new ReservationStatusCard("reservation_status",
-        reservation.getId(),
+        reservation.getCode(),
         reservation.getStatus().name(), reservation.getPreferredAt(), reservation.getConfirmedAt(),
         reservation.getEngineer() == null ? null : reservation.getEngineer().getName());
-    cards.put("reservation_status:" + reservationId, card);
+    cards.put("reservation_status:" + reservation.getCode(), card);
     executedTools.add("getReservationStatus");
     completed("getReservationStatus", card);
     return card;
@@ -138,7 +143,7 @@ public class DiagnosisTools {
 
   private void started(String tool) {
     if (Thread.currentThread().isInterrupted()) {
-      throw new DiagnosisService.DiagnosisCancelledException();
+      throw new DiagnosisCancelledException();
     }
     progress.accept(new ToolProgress(tool, "started"));
   }
@@ -147,7 +152,7 @@ public class DiagnosisTools {
     progress.accept(new ToolProgress(tool, "completed"));
   }
 
-  private void completed(String tool, Card card) {
+  private void completed(String tool, DiagnosisCard card) {
     progress.accept(new ToolProgress(tool, "completed", card));
   }
 
@@ -157,7 +162,7 @@ public class DiagnosisTools {
     }
   }
 
-  public synchronized List<Card> cards() {
+  public synchronized List<DiagnosisCard> cards() {
     return List.copyOf(cards.values());
   }
 
@@ -169,43 +174,11 @@ public class DiagnosisTools {
 
   public enum Page {reservations, reserve}
 
-  public sealed interface Card permits InspectionCard, BookingCard, ReservationStatusCard,
-      NavigationCard {
-
-  }
-
   public record ManualSource(String id, String text) {
 
   }
 
-  public record Evidence(String sourceId, String quote) {
-
-  }
-
-  public record InspectionCard(String type, String title, DeviceType deviceType, String deviceName,
-                               String suspectedCause,
-                               String inspectionDetails, List<Evidence> evidence) implements Card {
-
-  }
-
-  public record BookingCard(String type, DeviceType deviceType, String symptom,
-                            boolean loginRequired) implements Card {
-
-  }
-
-  public record ReservationStatusCard(String type, Long reservationId, String status,
-                                      LocalDateTime preferredAt,
-                                      LocalDateTime confirmedAt, String engineerName) implements
-      Card {
-
-  }
-
-  public record NavigationCard(String type, Page page, String title, String description,
-                               String actionLabel) implements Card {
-
-  }
-
-  public record ToolProgress(String tool, String status, Card card) {
+  public record ToolProgress(String tool, String status, DiagnosisCard card) {
 
     public ToolProgress(String tool, String status) {
       this(tool, status, null);

@@ -34,13 +34,13 @@ class DiagnosisToolsTests {
 
   @Test
   void cancellationIsRethrownInsteadOfReturnedToModel() {
-    assertThrows(DiagnosisService.DiagnosisCancelledException.class, () -> processor.process(
-        new ToolExecutionException(definition, new DiagnosisService.DiagnosisCancelledException())));
+    assertThrows(DiagnosisCancelledException.class, () -> processor.process(
+        new ToolExecutionException(definition, new DiagnosisCancelledException())));
   }
 
   @Test
   void bookingCardUsesSymptomSummarizedByModel() {
-    DiagnosisTools.BookingCard card = tools().prepareReservation(DiagnosisTools.DeviceType.laptop,
+    DiagnosisCard.BookingCard card = tools().prepareReservation(DiagnosisTools.DeviceType.laptop,
         " 충전 표시등이 깜빡이고 전원이 켜지지 않습니다. ");
 
     assertEquals("충전 표시등이 깜빡이고 전원이 켜지지 않습니다.", card.symptom());
@@ -55,7 +55,7 @@ class DiagnosisToolsTests {
 
   @Test
   void reservationRequestGuideNavigatesToNewReservationPage() {
-    DiagnosisTools.NavigationCard card = tools().navigateTo(DiagnosisTools.Page.reserve);
+    DiagnosisCard.NavigationCard card = tools().navigateTo(DiagnosisTools.Page.reserve);
 
     assertEquals(DiagnosisTools.Page.reserve, card.page());
     assertEquals("방문 점검 신청", card.title());
@@ -65,7 +65,7 @@ class DiagnosisToolsTests {
   void interruptedRequestStopsBeforeRunningTool() {
     Thread.currentThread().interrupt();
     try {
-      assertThrows(DiagnosisService.DiagnosisCancelledException.class,
+      assertThrows(DiagnosisCancelledException.class,
           () -> tools().searchManuals("노트북 전원"));
     } finally {
       Thread.interrupted();

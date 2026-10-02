@@ -6,8 +6,9 @@ package com.dacare.server.web;
 public final class SpaRoutes {
 
   public static final String[] PATHS = {"/", "/en", "/ko", "/reserve", "/reservations",
-      "/reservations/new", "/order", "/login", "/signup", "/admin", "/en/reserve",
-      "/en/reservations", "/en/reservations/new", "/en/login", "/en/signup"};
+      "/reservations/new", "/reservations/lookup", "/order", "/login", "/signup", "/admin",
+      "/en/reserve", "/en/reservations", "/en/reservations/new", "/en/reservations/lookup",
+      "/en/login", "/en/signup"};
 
   private SpaRoutes() {
   }

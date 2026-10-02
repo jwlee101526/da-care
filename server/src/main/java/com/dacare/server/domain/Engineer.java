@@ -20,20 +20,20 @@ public class Engineer {
   @Column(nullable = false)
   private String name;
   @Column(nullable = false)
-  private String phone;
+  private PhoneNumber phone;
   @Column(nullable = false)
   private String specialty;
   @Column(nullable = false)
   private String region;
 
-  public Engineer(String name, String phone, String specialty, String region) {
+  public Engineer(String name, PhoneNumber phone, String specialty, String region) {
     this.name = name;
     this.phone = phone;
     this.specialty = specialty;
     this.region = region;
   }
 
-  public void update(String name, String phone, String specialty, String region) {
+  public void update(String name, PhoneNumber phone, String specialty, String region) {
     this.name = name;
     this.phone = phone;
     this.specialty = specialty;

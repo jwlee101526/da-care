@@ -6,12 +6,15 @@ export class ApiError extends Error {
   constructor(status: number, message: string, fields: Record<string, string> = {}) { super(message); this.status = status; this.fields = fields }
 }
 
-export type Reservation = { id: number; deviceType: string; symptomDescription: string; visitAddress: string; preferredAt: string; confirmedAt: string | null; status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'; engineerName: string | null; contactName: string | null; contactPhone: string | null }
+/** code는 고객에게 보여주는 예약 번호(숫자 8자리)이고, id는 회원·관리자 API에서만 쓰는 내부 번호다. */
+export type Reservation = { id: number; code: string; deviceType: string; symptomDescription: string; visitAddress: string; preferredAt: string; confirmedAt: string | null; status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'; engineerName: string | null; contactName: string | null; contactPhone: string | null }
+/** 비회원 예약 응답. 순번인 id는 내려오지 않고, 조회 응답의 이름·연락처·주소는 일부 가려져 있다. */
+export type GuestReservation = Omit<Reservation, 'id'>
 export type Engineer = { id: number; name: string; phone: string; specialty: string; region: string }
 export type DiagnosisCard =
   | { type: 'inspection'; title: string; deviceType: import('../types').DeviceType; deviceName: string; suspectedCause: string | null; inspectionDetails: string; evidence: { sourceId: string; quote: string }[] }
   | { type: 'booking'; deviceType: import('../types').DeviceType; symptom: string; loginRequired: boolean }
-  | { type: 'reservation_status'; reservationId: number; status: Reservation['status']; preferredAt: string; confirmedAt: string | null; engineerName: string | null }
+  | { type: 'reservation_status'; reservationCode: string; status: Reservation['status']; preferredAt: string; confirmedAt: string | null; engineerName: string | null }
   | { type: 'navigation'; page: 'reservations' | 'reserve'; title: string; description: string; actionLabel: string }
 export type UsageItem = { used: number; limit: number; remaining: number }
 /** 요청자(로그인 계정 또는 비로그인 IP) 기준 이번 주 AI 상담 사용량. remaining은 서비스 전체 잔여량을 넘지 않는다. */

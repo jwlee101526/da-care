@@ -2,10 +2,11 @@ package com.dacare.server.api;
 
 import com.dacare.server.service.AuthService;
 import com.dacare.server.api.docs.AuthApiDocs;
+import com.dacare.server.api.validation.ValidPhoneNumber;
+import com.dacare.server.domain.PhoneNumber;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,7 +26,7 @@ public class AuthController implements AuthApiDocs {
   @PostMapping("/signup")
   public TokenResponse signup(@Valid @RequestBody SignupRequest request) {
     return new TokenResponse(
-        service.signup(request.email(), request.password(), request.name(), request.phone(),
+        service.signup(request.email(), request.password(), request.name(), PhoneNumber.ofMobile(request.phone()),
             request.address()));
   }
 
@@ -35,7 +36,7 @@ public class AuthController implements AuthApiDocs {
   }
 
   public record SignupRequest(@NotBlank @Email String email, @Size(min = 8) String password,
-                       @NotBlank String name, @Pattern(regexp = "^[0-9-]{9,13}$") String phone,
+                       @NotBlank String name, @NotBlank @ValidPhoneNumber(mobile = true) String phone,
                        @NotBlank String address) {
 
   }

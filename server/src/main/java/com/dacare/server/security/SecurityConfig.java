@@ -1,6 +1,7 @@
 package com.dacare.server.security;
 
 import com.dacare.server.api.error.ErrorResponse;
+import com.dacare.server.domain.Role;
 import com.dacare.server.web.SpaRoutes;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class SecurityConfig {
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(authorize -> authorize
             .requestMatchers(PUBLIC_API).permitAll()
-            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+            .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.name())
             .requestMatchers("/api/**", "/actuator/**").authenticated()
             .requestMatchers("/index.html", "/assets/**").permitAll()
             .requestMatchers(SpaRoutes.PATHS).permitAll()

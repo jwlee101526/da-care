@@ -26,7 +26,7 @@ export function Reveal({ children, className, delay = 0, style, ...props }: Reve
   return (
     <div
       ref={elementRef}
-      className={cn('section-reveal', className)}
+      className={cn('translate-y-6 opacity-0 transition-[opacity,translate] duration-[550ms] ease-[ease] data-[visible=true]:translate-y-0 data-[visible=true]:opacity-100 motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none', className)}
       data-visible={isVisible}
       style={{ ...style, transitionDelay: `${delay}ms` }}
       {...props}

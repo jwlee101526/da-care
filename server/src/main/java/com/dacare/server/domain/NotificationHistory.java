@@ -2,14 +2,18 @@ package com.dacare.server.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import java.sql.Types;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
 
 @Entity
 @Getter
@@ -21,17 +25,22 @@ public class NotificationHistory {
   private Long id;
   @ManyToOne(optional = false)
   private Reservation reservation;
+  @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(Types.VARCHAR)
   @Column(nullable = false)
-  private String channel;
+  private NotificationChannel channel;
+  @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(Types.VARCHAR)
   @Column(nullable = false)
-  private String status;
+  private NotificationStatus status;
   @Column(nullable = false, length = 2000)
   private String message;
   private String failureReason;
   @Column(nullable = false)
   private LocalDateTime createdAt = LocalDateTime.now();
 
-  public NotificationHistory(Reservation reservation, String channel, String status, String message,
+  public NotificationHistory(Reservation reservation, NotificationChannel channel,
+      NotificationStatus status, String message,
       String failureReason) {
     this.reservation = reservation;
     this.channel = channel;
