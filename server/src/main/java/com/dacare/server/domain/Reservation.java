@@ -1,5 +1,7 @@
 package com.dacare.server.domain;
 
+import com.dacare.server.error.BusinessException;
+import com.dacare.server.error.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -45,11 +47,6 @@ public class Reservation {
   /** 완료 또는 취소된 시각. 비회원 조회 가능 기간을 이 시각부터 센다. */
   private LocalDateTime closedAt;
 
-  public void setContact(String name, PhoneNumber phone) {
-    this.contactName = name;
-    this.contactPhone = phone;
-  }
-
   @Enumerated(EnumType.STRING)
   @JdbcTypeCode(Types.VARCHAR)
   @Column(nullable = false, length = 20)
@@ -57,22 +54,11 @@ public class Reservation {
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt = LocalDateTime.now();
 
-  public Reservation(String code, Customer customer, String deviceType, String symptomDescription,
-      String visitAddress, LocalDateTime preferredAt) {
+  private Reservation(String code, Customer customer, String deviceType,
+      String symptomDescription, String visitAddress, LocalDateTime preferredAt,
+      String contactName, PhoneNumber contactPhone) {
     this.code = code;
     this.customer = customer;
-    this.deviceType = deviceType;
-    this.symptomDescription = symptomDescription;
-    this.visitAddress = visitAddress;
-    this.preferredAt = preferredAt;
-    this.status = ReservationStatus.PENDING;
-  }
-
-  public Reservation(String code, String deviceType, String symptomDescription,
-      String visitAddress, LocalDateTime preferredAt, String contactName,
-      PhoneNumber contactPhone) {
-    this.code = code;
-    this.customer = null;
     this.deviceType = deviceType;
     this.symptomDescription = symptomDescription;
     this.visitAddress = visitAddress;
@@ -82,37 +68,57 @@ public class Reservation {
     this.status = ReservationStatus.PENDING;
   }
 
+  /** 회원 예약. 고객 계정과 연결되며 '내 예약'에서 조회한다. */
+  public static Reservation forCustomer(String code, Customer customer, String deviceType,
+      String symptomDescription, String visitAddress, LocalDateTime preferredAt,
+      String contactName, PhoneNumber contactPhone) {
+    return new Reservation(code, customer, deviceType, symptomDescription, visitAddress,
+        preferredAt, contactName, contactPhone);
+  }
+
+  /** 비회원 예약. 예약 번호와 휴대전화 번호로만 조회할 수 있다. */
+  public static Reservation forGuest(String code, String deviceType, String symptomDescription,
+      String visitAddress, LocalDateTime preferredAt, String contactName,
+      PhoneNumber contactPhone) {
+    return new Reservation(code, null, deviceType, symptomDescription, visitAddress,
+        preferredAt, contactName, contactPhone);
+  }
+
   public boolean isGuest() {
     return this.customer == null;
   }
 
   public void confirm(Engineer engineer, LocalDateTime confirmedAt) {
-      if (status != ReservationStatus.PENDING) {
-          throw new IllegalStateException("대기 중인 예약만 확정할 수 있습니다.");
-      }
+    if (status != ReservationStatus.PENDING) {
+      throw new BusinessException(ErrorCode.INVALID_RESERVATION_STATE,
+          "대기 중인 예약만 확정할 수 있습니다.");
+    }
     this.engineer = engineer;
     this.confirmedAt = confirmedAt;
     this.status = ReservationStatus.CONFIRMED;
   }
 
   public void cancel(LocalDateTime now) {
-      if (status != ReservationStatus.PENDING) {
-          throw new IllegalStateException("대기 중인 예약만 취소할 수 있습니다.");
-      }
+    if (status != ReservationStatus.PENDING) {
+      throw new BusinessException(ErrorCode.INVALID_RESERVATION_STATE,
+          "대기 중인 예약만 취소할 수 있습니다.");
+    }
     close(ReservationStatus.CANCELLED, now);
   }
 
   public void complete(LocalDateTime now) {
-      if (status != ReservationStatus.CONFIRMED) {
-          throw new IllegalStateException("확정된 예약만 완료 처리할 수 있습니다.");
-      }
+    if (status != ReservationStatus.CONFIRMED) {
+      throw new BusinessException(ErrorCode.INVALID_RESERVATION_STATE,
+          "확정된 예약만 완료 처리할 수 있습니다.");
+    }
     close(ReservationStatus.COMPLETED, now);
   }
 
   public void cancelByAdmin(LocalDateTime now) {
-      if (status == ReservationStatus.COMPLETED || status == ReservationStatus.CANCELLED) {
-          throw new IllegalStateException("완료 또는 취소된 예약은 취소할 수 없습니다.");
-      }
+    if (status == ReservationStatus.COMPLETED || status == ReservationStatus.CANCELLED) {
+      throw new BusinessException(ErrorCode.INVALID_RESERVATION_STATE,
+          "완료 또는 취소된 예약은 취소할 수 없습니다.");
+    }
     close(ReservationStatus.CANCELLED, now);
   }
 

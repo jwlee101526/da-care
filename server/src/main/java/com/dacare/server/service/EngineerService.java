@@ -1,10 +1,11 @@
 package com.dacare.server.service;
 
+import com.dacare.server.error.BusinessException;
+import com.dacare.server.error.ErrorCode;
 import com.dacare.server.domain.Engineer;
 import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.repository.EngineerRepository;
 import java.util.List;
-import java.util.NoSuchElementException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +31,7 @@ public class EngineerService {
   @Transactional
   public Engineer update(Long id, String name, PhoneNumber phone, String specialty, String region) {
     Engineer engineer = engineers.findById(id)
-        .orElseThrow(() -> new NoSuchElementException("기사를 찾을 수 없습니다."));
+        .orElseThrow(() -> new BusinessException(ErrorCode.ENGINEER_NOT_FOUND));
     engineer.update(name, phone, specialty, region);
     return engineer;
   }

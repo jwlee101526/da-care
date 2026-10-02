@@ -5,6 +5,8 @@ import com.dacare.server.domain.Engineer;
 import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.domain.ReservationCode;
+import com.dacare.server.error.BusinessException;
+import com.dacare.server.error.ErrorCode;
 import com.dacare.server.repository.AppUserRepository;
 import com.dacare.server.repository.CustomerRepository;
 import com.dacare.server.repository.EngineerRepository;
@@ -15,7 +17,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -25,9 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class ReservationService {
 
-  private static final String RESERVATION_NOT_FOUND = "예약을 찾을 수 없습니다.";
-  private static final String GUEST_RESERVATION_NOT_FOUND =
-      "예약 정보를 찾을 수 없습니다. 예약 번호와 휴대전화 번호를 확인해 주세요.";
   /**
    * 비회원 예약을 완료·취소 후에도 조회할 수 있는 기간. 해지된 번호가 다른 사람에게 다시 배정되는 경우 등을 고려해 지난 예약이 계속
    * 열려 있지 않게 한다. 전체 이력은 회원의 '내 예약'에서 제공한다.
@@ -58,17 +56,16 @@ public class ReservationService {
   public Reservation create(String email, ReservationDraft draft) {
     requireFuture(draft.preferredAt(), "희망 방문 일시는 미래여야 합니다.");
     Customer customer = getCustomer(email);
-    Reservation reservation = new Reservation(newCode(), customer, draft.deviceType(),
-        draft.symptomDescription(), draft.visitAddress(), draft.preferredAt());
-    reservation.setContact(Objects.requireNonNullElse(draft.contactName(), customer.getName()),
-        Objects.requireNonNullElse(draft.contactPhone(), customer.getPhone()));
-    return receive(reservation);
+    return receive(Reservation.forCustomer(newCode(), customer, draft.deviceType(),
+        draft.symptomDescription(), draft.visitAddress(), draft.preferredAt(),
+        Objects.requireNonNullElse(draft.contactName(), customer.getName()),
+        Objects.requireNonNullElse(draft.contactPhone(), customer.getPhone())));
   }
 
   @Transactional
   public Reservation createGuest(ReservationDraft draft) {
     requireFuture(draft.preferredAt(), "희망 방문 일시는 미래여야 합니다.");
-    return receive(new Reservation(newCode(), draft.deviceType(), draft.symptomDescription(),
+    return receive(Reservation.forGuest(newCode(), draft.deviceType(), draft.symptomDescription(),
         draft.visitAddress(), draft.preferredAt(), draft.contactName(), draft.contactPhone()));
   }
 
@@ -85,7 +82,7 @@ public class ReservationService {
         .filter(found -> matchesGuest(found, contactPhone))
         .orElseThrow(() -> {
           throttle.recordFailure(normalized, contactPhone, clientKey);
-          return new NoSuchElementException(GUEST_RESERVATION_NOT_FOUND);
+          return new BusinessException(ErrorCode.GUEST_RESERVATION_NOT_FOUND);
         });
     throttle.reset(normalized, contactPhone);
     return reservation;
@@ -111,7 +108,7 @@ public class ReservationService {
    */
   public Reservation mineOneByCode(String email, String code) {
     Reservation reservation = ReservationCode.normalize(code).flatMap(reservations::findByCode)
-        .orElseThrow(() -> new NoSuchElementException(RESERVATION_NOT_FOUND));
+        .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
     return requireOwner(email, reservation);
   }
 
@@ -119,7 +116,7 @@ public class ReservationService {
     Customer customer = getCustomer(email);
     if (reservation.getCustomer() == null
         || !reservation.getCustomer().getId().equals(customer.getId())) {
-      throw new NoSuchElementException(RESERVATION_NOT_FOUND);
+      throw new BusinessException(ErrorCode.RESERVATION_NOT_FOUND);
     }
     return reservation;
   }
@@ -140,7 +137,7 @@ public class ReservationService {
     requireFuture(confirmedAt, "확정 방문 일시는 미래여야 합니다.");
     Reservation reservation = getReservation(reservationId);
     Engineer engineer = engineers.findById(engineerId)
-        .orElseThrow(() -> new NoSuchElementException("기사를 찾을 수 없습니다."));
+        .orElseThrow(() -> new BusinessException(ErrorCode.ENGINEER_NOT_FOUND));
     reservation.confirm(engineer, confirmedAt);
     events.publishEvent(new ReservationConfirmedEvent(reservation.getId()));
     return reservation;
@@ -193,12 +190,12 @@ public class ReservationService {
 
   private Reservation getReservation(Long id) {
     return reservations.findById(id)
-        .orElseThrow(() -> new NoSuchElementException(RESERVATION_NOT_FOUND));
+        .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
   }
 
   private Customer getCustomer(String email) {
     return users.findByEmail(email).flatMap(customers::findByUser)
-        .orElseThrow(() -> new NoSuchElementException("고객 정보를 찾을 수 없습니다."));
+        .orElseThrow(() -> new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND));
   }
 
   /**
@@ -206,7 +203,7 @@ public class ReservationService {
    */
   private void requireFuture(LocalDateTime dateTime, String message) {
     if (!dateTime.isAfter(LocalDateTime.now(clock))) {
-      throw new IllegalArgumentException(message);
+      throw new BusinessException(ErrorCode.INVALID_SCHEDULE, message);
     }
   }
 }

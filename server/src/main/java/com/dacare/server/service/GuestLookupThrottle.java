@@ -1,6 +1,8 @@
 package com.dacare.server.service;
 
 import com.dacare.server.domain.PhoneNumber;
+import com.dacare.server.error.BusinessException;
+import com.dacare.server.error.ErrorCode;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -89,10 +91,10 @@ public class GuestLookupThrottle {
     }
   }
 
-  public static class TooManyAttemptsException extends RuntimeException {
+  public static class TooManyAttemptsException extends BusinessException {
 
     public TooManyAttemptsException() {
-      super("조회 시도가 너무 많습니다. 15분 후 다시 시도해 주세요.");
+      super(ErrorCode.TOO_MANY_ATTEMPTS);
     }
   }
 }

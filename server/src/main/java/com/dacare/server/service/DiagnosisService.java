@@ -1,8 +1,5 @@
 package com.dacare.server.service;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -100,7 +97,7 @@ public class DiagnosisService {
   /** 대화 이력의 발화자. 웹 클라이언트가 보내는 role 값과 같다. */
   public enum Speaker {user, assistant}
 
-  public record ConversationTurn(@NotNull Speaker role, @NotBlank @Size(max = 4000) String text) {
+  public record ConversationTurn(Speaker role, String text) {
 
   }
 

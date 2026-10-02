@@ -8,6 +8,7 @@ import com.dacare.server.service.DiagnosisService;
 import com.dacare.server.service.DiagnosisCancelledException;
 import com.dacare.server.service.DiagnosisService.ConversationTurn;
 import com.dacare.server.service.DiagnosisService.DiagnosisResult;
+import com.dacare.server.service.DiagnosisService.Speaker;
 import com.dacare.server.service.DiagnosisUnavailableException;
 import com.dacare.server.service.UsageSubject;
 import com.dacare.server.web.UsageSubjectResolver;
@@ -76,8 +77,7 @@ public class DiagnosisController implements DiagnosisApiDocs {
   private void diagnose(DiagnosisStream stream, QuestionRequest request,
       Authentication authentication) {
     try {
-      DiagnosisResult result = service.diagnose(request.question(),
-          request.history() == null ? List.of() : request.history(),
+      DiagnosisResult result = service.diagnose(request.question(), request.turns(),
           authentication == null ? null : authentication.getName(), stream::progress);
       stream.finish("completed", result);
     } catch (DiagnosisCancelledException exception) {
@@ -104,7 +104,19 @@ public class DiagnosisController implements DiagnosisApiDocs {
   }
 
   public record QuestionRequest(@NotBlank @Size(max = 2000) String question,
-                         @Size(max = 12) List<@NotNull @Valid ConversationTurn> history) {
+                         @Size(max = 12) List<@NotNull @Valid ConversationTurnRequest> history) {
 
+    List<ConversationTurn> turns() {
+      return history == null ? List.of()
+          : history.stream().map(ConversationTurnRequest::toTurn).toList();
+    }
+  }
+
+  public record ConversationTurnRequest(@NotNull Speaker role,
+                                        @NotBlank @Size(max = 4000) String text) {
+
+    ConversationTurn toTurn() {
+      return new ConversationTurn(role, text);
+    }
   }
 }
