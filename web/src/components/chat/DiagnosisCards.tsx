@@ -64,7 +64,7 @@ export function DiagnosisCards({ cards, text, onBook, onRequestTool, onNavigate 
                 {card.evidence.map(source => (
                   <figure className="mx-0 mt-2 mb-0 rounded-[10px] bg-surface-subtle p-3" key={source.sourceId}>
                     <blockquote className="m-0 text-[13px] leading-[1.6] text-ink-body [overflow-wrap:anywhere]">{source.quote}</blockquote>
-                    <figcaption className="mt-1.5 text-[12px] text-ink-subtle">{text.source(source.sourceId)}</figcaption>
+                    <figcaption className="mt-1.5 text-[12px] text-ink-subtle">{source.citation ?? text.source(source.sourceId)}</figcaption>
                   </figure>
                 ))}
               </details>

@@ -40,7 +40,7 @@ class DiagnosisToolsTests {
 
   @Test
   void bookingCardUsesSymptomSummarizedByModel() {
-    DiagnosisCard.BookingCard card = tools().prepareReservation(DiagnosisTools.DeviceType.laptop,
+    DiagnosisCard.BookingCard card = tools().prepareReservation(DiagnosisTools.DeviceType.computer,
         " 충전 표시등이 깜빡이고 전원이 켜지지 않습니다. ");
 
     assertEquals("충전 표시등이 깜빡이고 전원이 켜지지 않습니다.", card.symptom());
@@ -50,7 +50,7 @@ class DiagnosisToolsTests {
   @Test
   void bookingCardRequiresSymptom() {
     assertThrows(IllegalArgumentException.class,
-        () -> tools().prepareReservation(DiagnosisTools.DeviceType.laptop, " "));
+        () -> tools().prepareReservation(DiagnosisTools.DeviceType.computer, " "));
   }
 
   @Test

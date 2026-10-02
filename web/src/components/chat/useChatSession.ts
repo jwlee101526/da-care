@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { useUsage } from '../../hooks/useUsage'
-import { ApiError, fetchMyUsage, streamDiagnosis, type UsageItem } from '../../lib/api'
+import { ApiError, fetchMyUsage, streamDiagnosis, type DiagnosisCard, type UsageItem } from '../../lib/api'
 import { notifyUsage } from '../../lib/usageToast'
 import { readChatMessages, saveChatMessages } from './chatStorage'
 import type { ChatText, Message } from './types'
@@ -12,6 +12,16 @@ import type { ChatText, Message } from './types'
 const REQUEST_TIMEOUT_MS = 90000
 const HISTORY_TURNS = 12
 const HISTORY_TEXT_LENGTH = 4000
+
+/** 스트리밍 중 같은 카드를 한 번만 표시하기 위한 키. 서버가 카드를 구분하는 기준과 같다. */
+function cardKey(card: DiagnosisCard) {
+  switch (card.type) {
+    case 'inspection': return `inspection:${card.deviceType}`
+    case 'reservation_status': return `reservation_status:${card.reservationCode}`
+    case 'navigation': return `navigation:${card.page}`
+    default: return card.type
+  }
+}
 
 /**
  * 상담을 더 할 수 없는 이유. 개인 한도가 남았는데 막혔다면 서비스 전체 한도가 소진된 것이다.
@@ -76,7 +86,7 @@ export function useChatSession() {
             if (index >= 0) progress[index] = event.data
             else progress.push(event.data)
             const cards = event.data.card
-              ? [...(message.cards ?? []), event.data.card].filter((card, cardIndex, items) => items.findIndex(item => item.type === card.type) === cardIndex)
+              ? [...(message.cards ?? []), event.data.card].filter((card, cardIndex, items) => items.findIndex(item => cardKey(item) === cardKey(card)) === cardIndex)
               : message.cards
             return { ...message, toolProgress: progress, cards }
           })
