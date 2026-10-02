@@ -1,5 +1,6 @@
 import dacareLogo from '@/assets/brand/dacare-logo.svg'
 import { useLanguage } from '../context/LanguageContext'
+import './Footer.css'
 
 export function Footer() {
   const { t } = useLanguage()

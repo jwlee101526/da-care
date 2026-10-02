@@ -1,0 +1,28 @@
+/* 빠른 문의 섹션 */
+
+.quick-section { padding: 108px 0; background: #fff; }
+.quick-heading { margin-bottom: 54px; text-align: center; }
+.quick-heading h2 { margin: 12px 0; font-size: 32px; letter-spacing: -.9px; }
+.quick-heading p { color: var(--muted); font-size: 14px; }
+.quick-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid #dfe5ed; border-left: 1px solid #dfe5ed; }
+.quick-link { position: relative; display: flex; min-height: 205px; padding: 30px; border: 0; border-right: 1px solid #dfe5ed; border-bottom: 1px solid #dfe5ed; background: #fff; text-align: left; transition: background .2s ease; }
+.quick-link:hover { background: #f6faff; }
+.quick-link-icon { position: absolute; right: 22px; bottom: 20px; display: grid; place-items: center; width: 92px; height: 92px; }
+.quick-link-icon > svg { width: 100%; height: 100%; }
+.quick-link-copy { display: flex; max-width: 205px; flex-direction: column; gap: 12px; }
+.quick-link-copy strong { font-size: 20px; font-weight: 700; color: #172536; letter-spacing: -.5px; }
+.quick-link-copy small { color: var(--muted); font-size: 13px; line-height: 1.55; }
+.quick-link-arrow { position: absolute; left: 30px; bottom: 28px; width: 18px; height: 18px; color: var(--brand); transition: transform .2s ease; }
+.quick-link:hover .quick-link-arrow { transform: translateX(5px); }
+@media (max-width: 600px) {
+  .quick-section { padding-block: 64px; }
+  .quick-heading { margin-bottom: 32px; text-align: left; }
+  .quick-heading h2 { font-size: 26px; }
+  .quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quick-link { min-height: 156px; padding: 18px; }
+  .quick-link-icon { right: 17px; bottom: 17px; width: 48px; height: 48px; border-radius: 16px; }
+  .quick-link-copy { max-width: 120px; gap: 7px; }
+  .quick-link-copy strong { font-size: 14px; }
+  .quick-link-copy small { font-size: 11px; line-height: 1.4; }
+  .quick-link-arrow { bottom: 16px; left: 18px; width: 16px; }
+}

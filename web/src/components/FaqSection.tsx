@@ -1,6 +1,7 @@
 import { Plus, Minus } from 'lucide-react'
 import { Reveal } from './Reveal'
 import { useLanguage } from '../context/LanguageContext'
+import './FaqSection.css'
 
 export function FaqSection() {
   const { t } = useLanguage()

@@ -71,5 +71,4 @@ button, a, input, textarea, select, summary { -webkit-tap-highlight-color: trans
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
-  .section-reveal { opacity: 1; transform: none; }
 }

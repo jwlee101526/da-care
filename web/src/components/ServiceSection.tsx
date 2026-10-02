@@ -14,6 +14,7 @@ import vacuumIcon from '../assets/icons/vacuum.svg'
 import wifiIcon from '../assets/icons/wifi.svg'
 import audioIcon from '../assets/icons/audio.svg'
 import emergencyAsIcon from '../assets/icons/emergency-as.svg'
+import './ServiceSection.css'
 
 interface CategoryItem {
   id: keyof typeof import('../locales/ko').ko['services']['categories']

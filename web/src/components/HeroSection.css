@@ -1,0 +1,122 @@
+/* 히어로 캐러셀 (ui/carousel 컨트롤 포함) */
+
+.hero { min-height: 580px; }
+.hero-carousel { min-width: 0; min-height: 580px; background: linear-gradient(108deg, var(--surface-subtle) 0%, #f1f3f6 36%, #f3f3f3 64%, #f3f3f3 100%); }
+.hero-slide { position: relative; min-height: 580px; margin: 0; overflow: hidden; background: linear-gradient(108deg, var(--surface-subtle) 0%, #f1f3f6 36%, #f3f3f3 64%, #f3f3f3 100%); }
+.hero-slide img { position: absolute; inset: 0 min(5vw, 72px) 0 auto; width: min(44vw, 600px); height: 100%; object-fit: contain; object-position: right center; opacity: 1; filter: none; -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 20%, #000 100%); mask-image: linear-gradient(90deg, transparent 0%, #000 20%, #000 100%); }
+.hero-slide::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, var(--surface-subtle) 0%, #f8fafcdd 34%, #f8fafc00 68%); pointer-events: none; }
+/* Slide 1 (현장 점검): 세탁기 점검 실사 사진의 자연스러운 대비 */
+.hero-slide--engineer img {
+  width: min(45vw, 600px);
+  opacity: .95;
+  filter: contrast(1.02);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 22%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 22%, #000 100%);
+}
+/* Slide 2 (서비스 안내): carousel2.jpg 스튜디오 배경(#f3f3f3)과 100% 일치 */
+.hero-slide--service img {
+  width: min(50vw, 700px);
+  opacity: 1;
+  filter: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 16%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 16%, #000 100%);
+}
+/* Slide 3 (스마트 진단): 선명한 앱 UI와 부드러운 입체 그림자 */
+.hero-slide--diag img {
+  width: min(44vw, 590px);
+  opacity: 1;
+  filter: drop-shadow(0 20px 40px rgba(24, 41, 70, 0.08));
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.hero-slide-content { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; min-height: 580px; width: min(1120px, calc(100% - 64px)); margin-inline: auto; color: var(--navy); }
+.hero-slide h1, .hero-slide h2 { max-width: 680px; font-size: clamp(38px, 3.8vw, 56px); line-height: 1.2; letter-spacing: -.05em; font-weight: 650; margin: 0 0 20px; }
+.hero-slide h1 > span, .hero-slide h2 > span { color: var(--brand); }
+.hero-slide-content > p { color: #4c607f; font-size: 16px; }
+.carousel-control { position: absolute; top: 50%; z-index: 2; width: 48px; height: 48px; display: grid; place-items: center; background: #ffffffd9; color: var(--brand); border: 1px solid #cbd9ee; border-radius: 50%; transform: translateY(-50%); transition: background-color .15s, color .15s; }
+.carousel-control:hover { background: var(--brand); color: #fff; }
+.carousel-control:disabled { opacity: .45; }
+.carousel-previous { left: 24px; }
+.carousel-next { right: 24px; }
+.carousel-pagination {
+  position: absolute;
+  z-index: 2;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 9999px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+}
+.carousel-pagination button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.carousel-pagination-bar {
+  display: block;
+  height: 4px;
+  width: 24px;
+  border-radius: 9999px;
+  background: var(--line-strong);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease;
+}
+.carousel-pagination button:hover .carousel-pagination-bar {
+  background: var(--text-faint);
+}
+.carousel-pagination button[aria-selected="true"] .carousel-pagination-bar {
+  width: 44px;
+  background: var(--brand);
+}
+.hero :focus-visible { outline-color: var(--brand); }
+@media (max-width: 1050px) {
+  .hero-slide-content { min-height: 550px; }
+  .hero-slide h1, .hero-slide h2 { font-size: 48px; }
+  .hero-carousel, .hero-slide { min-height: 550px; }
+  .hero { min-height: 550px; }
+}
+@media (max-width: 850px) {
+  .hero-slide-content { min-height: 520px; }
+  .hero-slide h1, .hero-slide h2 { font-size: 42px; }
+  .hero-slide-content > p { font-size: 14px; }
+  .hero-carousel, .hero-slide, .hero { min-height: 520px; }
+}
+@media (max-width: 600px) {
+  .hero-carousel, .hero-slide, .hero-slide-content { min-height: 520px; }
+  .hero-slide img { inset: 0; width: 100%; object-fit: cover; object-position: center 45%; opacity: .2; -webkit-mask-image: none; mask-image: none; }
+  .hero-slide::after { background: #f8fafce0; }
+  .carousel-control { width: 38px; height: 38px; }
+  .carousel-previous { left: 12px; }
+  .carousel-pagination {
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    gap: 6px;
+  }
+  .carousel-pagination-bar {
+    width: 18px;
+    height: 3px;
+  }
+  .carousel-pagination button[aria-selected="true"] .carousel-pagination-bar {
+    width: 32px;
+  }
+  .hero-slide h1, .hero-slide h2 { font-size: 36px; line-height: 1.25; margin-bottom: 20px; }
+}
+@media (min-width: 1024px) and (min-height: 650px) {
+  #main > .hero .hero-slide-content {
+    width: min(1360px, calc(100% - 48px));
+  }
+}

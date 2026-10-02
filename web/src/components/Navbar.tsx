@@ -4,6 +4,7 @@ import dacareLogo from '@/assets/brand/dacare-logo.svg'
 import { useLanguage } from '../context/LanguageContext'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import './Navbar.css'
 
 interface NavbarProps {
   onOpenReservation: () => void

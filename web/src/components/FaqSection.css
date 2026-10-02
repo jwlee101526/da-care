@@ -1,0 +1,32 @@
+/* 자주 묻는 질문 섹션 */
+
+.faq-layout { display: grid; grid-template-columns: 1fr 1.7fr; gap: 64px; }
+.faq-intro { margin-top: 16px; font-size: 15px; }
+.faq-list { border-top: 1px solid #303946; }
+.faq-list details { border-bottom: 1px solid var(--line); }
+.faq-list summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 76px; padding: 20px 0; list-style: none; font-size: 16px; font-weight: 500; cursor: pointer; }
+.faq-list summary::-webkit-details-marker { display: none; }
+.faq-toggle { display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #7a8493; }
+.faq-minus { display: none; }
+.faq-list details[open] .faq-plus { display: none; }
+.faq-list details[open] .faq-minus { display: block; color: var(--brand); }
+.faq-list details p { font-size: 14px; color: var(--muted); padding: 0 36px 24px 0; }
+@media (max-width: 850px) {
+  .faq-layout { grid-template-columns: 1fr; gap: 32px; }
+}
+@media (max-width: 600px) {
+  .faq-list summary { font-size: 15px; min-height: 72px; gap: 16px; }
+  .faq-list details p { padding-right: 0; }
+}
+@media (min-width: 1024px) and (min-height: 650px) {
+  #main > section .faq-intro {
+    font-size: 16px;
+  }
+  #main > #faq .faq-list summary {
+    min-height: 88px;
+    font-size: 18px;
+  }
+  #main > #faq .faq-list details p {
+    font-size: 15px;
+  }
+}

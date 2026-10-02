@@ -1,5 +1,6 @@
 import brandHeroWebp from '@/assets/carousel-brand.webp'
 import brandHeroJpg from '@/assets/carousel-brand.jpg'
+import './BrandHeroSection.css'
 
 export function BrandHeroSection() {
   return (

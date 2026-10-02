@@ -1,0 +1,115 @@
+/* 상단 헤더 · 모바일 메뉴 */
+
+.site-header { position: sticky; top: 0; z-index: 30; background: white; border-bottom: 1px solid var(--line); }
+.header-inner { display: flex; height: 80px; align-items: center; justify-content: space-between; gap: 28px; }
+.site-header .header-inner { width: min(1360px, calc(100% - 48px)); margin-inline: auto; }
+.site-header .wordmark { flex-direction: row; align-items: center; gap: 14px; }
+.site-header .wordmark span { border-left: 1px solid #d9e0ea; padding-left: 14px; }
+.desktop-nav { display: flex; align-items: center; gap: 28px; margin-left: 36px; font-size: 14px; }
+.header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.header-actions .button {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  box-sizing: border-box;
+  border-radius: 8px;
+}
+.lang-toggle {
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  background: #f0f3f7;
+  border: 1px solid #dbe2ed;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+  box-sizing: border-box;
+}
+.lang-btn {
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: var(--text-subtle);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s ease;
+}
+.lang-btn:hover { color: var(--navy); }
+.lang-btn.active { background: #ffffff; color: var(--brand); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
+.mobile-lang-row { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; margin-top: 12px; border-top: 1px solid var(--line); }
+.mobile-lang-label { font-size: 13px; color: var(--muted); font-weight: 500; }
+.header-logout-btn,
+.header-lookup-btn {
+  background: transparent;
+  border: 1px solid #d9dfe8;
+  color: #5f7192;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.header-logout-btn:hover,
+.header-lookup-btn:hover {
+  background: #f4f6f9;
+  color: var(--text-strong);
+  border-color: var(--line-strong);
+}
+.mobile-nav-divider {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 12px 0 6px;
+}
+.mobile-logout-btn {
+  color: var(--danger) !important;
+  text-align: left;
+  font-size: 15px;
+  cursor: pointer;
+}
+.mobile-logout-btn:hover {
+  color: var(--danger-strong) !important;
+}
+.mobile-menu-toggle, .mobile-nav { display: none; }
+@media (max-width: 1050px) {
+  .desktop-nav { gap: 20px; }
+}
+@media (max-width: 850px) {
+  .desktop-nav { display: none; }
+  .mobile-menu-toggle { display: inline-flex; }
+  /* 좁은 화면에서는 모바일 메뉴의 비회원 예약 조회로 대신한다. */
+  .header-actions .header-lookup-btn { display: none; }
+  .mobile-nav { display: flex; flex-direction: column; padding-block: 8px 20px; }
+  .mobile-nav a { display: flex; align-items: center; min-height: 44px; font-size: 15px; }
+  .mobile-nav .text-button { font-size: 15px; }
+}
+@media (max-width: 600px) {
+  .header-inner { height: 68px; gap: 12px; }
+  .site-header .wordmark span { display: none; }
+  .header-actions { gap: 6px; }
+  .header-actions .button {
+    height: 32px;
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+  .lang-toggle {
+    height: 32px;
+    border-radius: 6px;
+    padding: 2px;
+  }
+  .lang-btn {
+    height: 26px;
+    padding: 0 7px;
+    font-size: 11px;
+    border-radius: 4px;
+  }
+}

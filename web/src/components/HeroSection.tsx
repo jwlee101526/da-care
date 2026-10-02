@@ -3,6 +3,7 @@ import careImg from '@/assets/carousel2.jpg'
 import diagImg from '@/assets/carousel3.png'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPagination, CarouselPrevious } from '@/components/ui/carousel'
 import { useLanguage } from '../context/LanguageContext'
+import './HeroSection.css'
 
 export function HeroSection() {
   const { t } = useLanguage()

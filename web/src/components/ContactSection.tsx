@@ -2,6 +2,7 @@ import { Reveal } from './Reveal'
 import type { ReservationSelection } from '../types'
 import { ServiceIllustration } from './ServiceIllustration'
 import { useLanguage } from '../context/LanguageContext'
+import './ContactSection.css'
 
 interface QuickLinkProps { icon: 'diagnosis' | 'reservation' | 'repair'; title: string; description: string; action: () => void }
 

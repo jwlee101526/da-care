@@ -1,4 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
+// 공통 스타일을 컴포넌트 CSS보다 먼저 불러와야 컴포넌트 규칙이 공통 규칙을 덮어쓴다.
+import './App.css'
 import { Navbar } from './components/Navbar'
 import { BrandHeroSection } from './components/BrandHeroSection'
 import { HeroSection } from './components/HeroSection'
@@ -11,7 +13,6 @@ import { ChatWidget } from './components/chat/ChatWidget'
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { LanguageProvider, useLanguage } from './context/LanguageContext'
 import type { ReservationSelection } from './types'
-import './App.css'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { Toaster } from './components/ui/sonner'
 

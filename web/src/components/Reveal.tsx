@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import './Reveal.css'
 
 interface RevealProps extends React.HTMLAttributes<HTMLDivElement> {
   delay?: number

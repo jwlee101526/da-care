@@ -1,6 +1,7 @@
 import { MessageSquare, ClipboardList, CalendarDays, Wrench } from 'lucide-react'
 import { Reveal } from './Reveal'
 import { useLanguage } from '../context/LanguageContext'
+import './OrderStatusSection.css'
 
 const stepIcons = [MessageSquare, ClipboardList, CalendarDays, Wrench]
 
