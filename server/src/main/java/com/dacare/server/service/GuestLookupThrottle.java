@@ -1,5 +1,6 @@
 package com.dacare.server.service;
 
+import com.dacare.server.domain.PhoneNumber;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -8,15 +9,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 
 /**
- * 비회원 예약 조회의 비밀번호 대입을 막는다. 실패가 한도에 이르면 남은 시간 동안 해당 예약 번호 또는 IP의 조회를 거부한다.
+ * 비회원 예약 조회의 대입 시도를 막는다. 실패가 한도에 이르면 남은 시간 동안 해당 예약 번호, 휴대전화 번호 또는 IP의 조회를 거부한다.
  * <p>
- * 예약 번호 기준 한도는 여러 IP에서 한 예약을 노리는 경우를, IP 기준 한도는 한 IP에서 여러 예약을 훑는 경우를 막는다.
- * 단일 인스턴스 배포를 전제로 메모리에 보관하므로 서버를 재시작하면 초기화된다.
+ * 휴대전화 번호 기준 한도는 특정인의 번호를 알고 예약 번호를 대입하는 경우를, 예약 번호 기준 한도는 예약 번호를 알고 번호를 대입하는
+ * 경우를, IP 기준 한도는 한 IP에서 여러 대상을 훑는 경우를 막는다. 단일 인스턴스 배포를 전제로 메모리에 보관하므로 서버를 재시작하면
+ * 초기화된다.
  */
 @Component
 public class GuestLookupThrottle {
 
-  public static final int MAX_FAILURES_PER_RESERVATION = 5;
+  public static final int MAX_FAILURES_PER_TARGET = 5;
   static final int MAX_FAILURES_PER_CLIENT = 20;
   static final Duration WINDOW = Duration.ofMinutes(15);
   private static final int PRUNE_THRESHOLD = 10_000;
@@ -31,28 +33,31 @@ public class GuestLookupThrottle {
   /**
    * @param clientKey 요청 IP의 해시
    */
-  public void check(Long reservationId, String clientKey) {
+  public void check(String code, PhoneNumber phone, String clientKey) {
     Instant now = clock.instant();
-    if (reachedLimit(reservationKey(reservationId), MAX_FAILURES_PER_RESERVATION, now)
+    if (reachedLimit(codeKey(code), MAX_FAILURES_PER_TARGET, now)
+        || reachedLimit(phoneKey(phone), MAX_FAILURES_PER_TARGET, now)
         || reachedLimit(clientKey(clientKey), MAX_FAILURES_PER_CLIENT, now)) {
       throw new TooManyAttemptsException();
     }
   }
 
-  public void recordFailure(Long reservationId, String clientKey) {
+  public void recordFailure(String code, PhoneNumber phone, String clientKey) {
     Instant now = clock.instant();
     if (failures.size() > PRUNE_THRESHOLD) {
       failures.values().removeIf(entry -> entry.expired(now));
     }
-    increment(reservationKey(reservationId), now);
+    increment(codeKey(code), now);
+    increment(phoneKey(phone), now);
     increment(clientKey(clientKey), now);
   }
 
   /**
-   * 조회에 성공하면 그 예약의 실패 기록을 지운다. IP 기록은 다른 예약을 훑는 경우를 막기 위해 유지한다.
+   * 조회에 성공하면 그 예약과 휴대전화 번호의 실패 기록을 지운다. IP 기록은 여러 대상을 훑는 경우를 막기 위해 유지한다.
    */
-  public void reset(Long reservationId) {
-    failures.remove(reservationKey(reservationId));
+  public void reset(String code, PhoneNumber phone) {
+    failures.remove(codeKey(code));
+    failures.remove(phoneKey(phone));
   }
 
   private boolean reachedLimit(String key, int limit, Instant now) {
@@ -65,8 +70,12 @@ public class GuestLookupThrottle {
         ? new Failures(1, now) : new Failures(entry.count() + 1, entry.windowStart()));
   }
 
-  private static String reservationKey(Long reservationId) {
-    return "reservation:" + reservationId;
+  private static String codeKey(String code) {
+    return "code:" + code;
+  }
+
+  private static String phoneKey(PhoneNumber phone) {
+    return "phone:" + phone.value();
   }
 
   private static String clientKey(String clientKey) {

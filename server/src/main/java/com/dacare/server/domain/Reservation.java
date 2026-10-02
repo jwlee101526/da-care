@@ -24,6 +24,8 @@ public class Reservation {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+  @Column(nullable = false, unique = true, updatable = false, length = ReservationCode.LENGTH)
+  private String code;
   @ManyToOne(optional = true)
   @JoinColumn(name = "customer_id", nullable = true)
   private Customer customer;
@@ -40,8 +42,8 @@ public class Reservation {
   private LocalDateTime confirmedAt;
   private String contactName;
   private PhoneNumber contactPhone;
-  @Column(length = 100)
-  private String guestPasswordHash;
+  /** 완료 또는 취소된 시각. 비회원 조회 가능 기간을 이 시각부터 센다. */
+  private LocalDateTime closedAt;
 
   public void setContact(String name, PhoneNumber phone) {
     this.contactName = name;
@@ -55,8 +57,9 @@ public class Reservation {
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt = LocalDateTime.now();
 
-  public Reservation(Customer customer, String deviceType, String symptomDescription,
+  public Reservation(String code, Customer customer, String deviceType, String symptomDescription,
       String visitAddress, LocalDateTime preferredAt) {
+    this.code = code;
     this.customer = customer;
     this.deviceType = deviceType;
     this.symptomDescription = symptomDescription;
@@ -65,9 +68,10 @@ public class Reservation {
     this.status = ReservationStatus.PENDING;
   }
 
-  public Reservation(String deviceType, String symptomDescription, String visitAddress,
-      LocalDateTime preferredAt, String contactName, PhoneNumber contactPhone,
-      String guestPasswordHash) {
+  public Reservation(String code, String deviceType, String symptomDescription,
+      String visitAddress, LocalDateTime preferredAt, String contactName,
+      PhoneNumber contactPhone) {
+    this.code = code;
     this.customer = null;
     this.deviceType = deviceType;
     this.symptomDescription = symptomDescription;
@@ -75,7 +79,6 @@ public class Reservation {
     this.preferredAt = preferredAt;
     this.contactName = contactName;
     this.contactPhone = contactPhone;
-    this.guestPasswordHash = guestPasswordHash;
     this.status = ReservationStatus.PENDING;
   }
 
@@ -92,24 +95,29 @@ public class Reservation {
     this.status = ReservationStatus.CONFIRMED;
   }
 
-  public void cancel() {
+  public void cancel(LocalDateTime now) {
       if (status != ReservationStatus.PENDING) {
           throw new IllegalStateException("대기 중인 예약만 취소할 수 있습니다.");
       }
-    this.status = ReservationStatus.CANCELLED;
+    close(ReservationStatus.CANCELLED, now);
   }
 
-  public void complete() {
+  public void complete(LocalDateTime now) {
       if (status != ReservationStatus.CONFIRMED) {
           throw new IllegalStateException("확정된 예약만 완료 처리할 수 있습니다.");
       }
-    this.status = ReservationStatus.COMPLETED;
+    close(ReservationStatus.COMPLETED, now);
   }
 
-  public void cancelByAdmin() {
+  public void cancelByAdmin(LocalDateTime now) {
       if (status == ReservationStatus.COMPLETED || status == ReservationStatus.CANCELLED) {
           throw new IllegalStateException("완료 또는 취소된 예약은 취소할 수 없습니다.");
       }
-    this.status = ReservationStatus.CANCELLED;
+    close(ReservationStatus.CANCELLED, now);
+  }
+
+  private void close(ReservationStatus status, LocalDateTime now) {
+    this.status = status;
+    this.closedAt = now;
   }
 }

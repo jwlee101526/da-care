@@ -102,17 +102,18 @@ public class DiagnosisTools {
   }
 
   @Tool(description = "로그인한 사용자의 예약 번호로 실제 예약 상태와 배정된 엔지니어를 조회합니다. 다른 사용자의 예약에는 접근할 수 없습니다.")
-  public synchronized ReservationStatusCard getReservationStatus(long reservationId) {
+  public synchronized ReservationStatusCard getReservationStatus(
+      @ToolParam(description = "숫자 8자리 예약 번호(예: 4821-7390)") String reservationCode) {
     started("getReservationStatus");
     if (email == null) {
       throw new IllegalStateException("예약 조회는 로그인이 필요합니다.");
     }
-    var reservation = reservations.mineOne(email, reservationId);
+    var reservation = reservations.mineOneByCode(email, reservationCode);
     ReservationStatusCard card = new ReservationStatusCard("reservation_status",
-        reservation.getId(),
+        reservation.getCode(),
         reservation.getStatus().name(), reservation.getPreferredAt(), reservation.getConfirmedAt(),
         reservation.getEngineer() == null ? null : reservation.getEngineer().getName());
-    cards.put("reservation_status:" + reservationId, card);
+    cards.put("reservation_status:" + reservation.getCode(), card);
     executedTools.add("getReservationStatus");
     completed("getReservationStatus", card);
     return card;
@@ -193,7 +194,7 @@ public class DiagnosisTools {
 
   }
 
-  public record ReservationStatusCard(String type, Long reservationId, String status,
+  public record ReservationStatusCard(String type, String reservationCode, String status,
                                       LocalDateTime preferredAt,
                                       LocalDateTime confirmedAt, String engineerName) implements
       Card {

@@ -13,6 +13,7 @@ import brandLogo from '../assets/brand/dacare-logo.svg'
 import type { ReservationSelection } from '../types'
 import { useLanguage } from '../context/LanguageContext'
 import { ApiError, fetchMyUsage, streamDiagnosis } from '../lib/api'
+import { formatReservationCode } from '../lib/reservationCode'
 import type { DiagnosisCard, DiagnosisToolProgress, UsageItem } from '../lib/api'
 import { getCategoryInfo } from '../lib/categories'
 import { useAuth } from '../context/AuthContext'
@@ -711,7 +712,7 @@ function DiagnosisCards({ cards, text, onBook, onRequestTool, onNavigate }: {
         )
         if (card.type === 'reservation_status') return (
           <article className="diagnosis-card visit-card" key={index}>
-            <div className="visit-card-heading"><strong>{text.reservation(card.reservationId)}</strong><span className={'reservation-status is-' + card.status.toLowerCase()}>{text.status[card.status]}</span></div>
+            <div className="visit-card-heading"><strong>{text.reservation(formatReservationCode(card.reservationCode))}</strong><span className={'reservation-status is-' + card.status.toLowerCase()}>{text.status[card.status]}</span></div>
             <dl><div><dt>{text.preferredAt}</dt><dd>{card.preferredAt.replace('T', ' ')}</dd></div><div><dt>{text.confirmedAt}</dt><dd>{card.confirmedAt?.replace('T', ' ') ?? text.notConfirmed}</dd></div><div><dt>{text.engineer}</dt><dd>{card.engineerName ?? text.notAssigned}</dd></div></dl>
           </article>
         )

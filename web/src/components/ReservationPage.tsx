@@ -3,7 +3,8 @@ import { ArrowLeft, Check, Clock, AlertCircle, Bell, ChevronRight } from 'lucide
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
-import { api, ApiError, type Reservation } from '../lib/api'
+import { api, ApiError, type GuestReservation } from '../lib/api'
+import { formatReservationCode } from '../lib/reservationCode'
 import { DEVICE_CATEGORIES, getCategoryDefinition, getCategoryInfo } from '../lib/categories'
 import { formatPhone, isValidPhone } from '../lib/phone'
 import { PhoneInput } from './PhoneInput'
@@ -68,12 +69,11 @@ export function ReservationPage() {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
-  const [guestPassword, setGuestPassword] = useState('')
   const [agreedPrivacy, setAgreedPrivacy] = useState(true)
 
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [savedReservation, setSavedReservation] = useState<Reservation | null>(null)
+  const [savedReservation, setSavedReservation] = useState<GuestReservation | null>(null)
 
   const topRef = useRef<HTMLDivElement>(null)
 
@@ -130,10 +130,6 @@ export function ReservationPage() {
       setError(lang === 'en' ? 'Please enter the visit address.' : '방문 주소를 입력해 주세요.')
       return
     }
-    if (!token && !/^\d{4}$/.test(guestPassword)) {
-      setError(lang === 'en' ? 'Please set a 4-digit lookup PIN.' : '조회용 비밀번호 4자리를 입력해 주세요.')
-      return
-    }
     if (!token && !agreedPrivacy) {
       setError(lang === 'en' ? 'Please agree to personal data collection for on-site service.' : '방문 수리 서비스 제공을 위한 개인정보 수집에 동의해 주세요.')
       return
@@ -147,9 +143,9 @@ export function ReservationPage() {
     setError('')
 
     try {
-      let reservation: Reservation
+      let reservation: GuestReservation
       if (token) {
-        reservation = await api<Reservation>('/api/reservations', {
+        reservation = await api<GuestReservation>('/api/reservations', {
           method: 'POST',
           body: JSON.stringify({
             deviceType: selectedDevice,
@@ -161,7 +157,7 @@ export function ReservationPage() {
           }),
         }, token)
       } else {
-        reservation = await api<Reservation>('/api/reservations/guest', {
+        reservation = await api<GuestReservation>('/api/reservations/guest', {
           method: 'POST',
           body: JSON.stringify({
             deviceType: selectedDevice,
@@ -170,7 +166,6 @@ export function ReservationPage() {
             preferredAt: `${date}T${time}:00`,
             contactName: name,
             contactPhone: phone,
-            guestPassword,
           }),
         })
       }
@@ -421,24 +416,6 @@ export function ReservationPage() {
                   </div>
 
                   {!token && (
-                    <div className="customer-field">
-                      <label htmlFor="guest-pwd">{lang === 'en' ? 'Lookup PIN (4 digits)' : '조회용 비밀번호 (4자리)'}</label>
-                      <input
-                        id="guest-pwd"
-                        required
-                        type="password"
-                        inputMode="numeric"
-                        maxLength={4}
-                        autoComplete="new-password"
-                        className="order-input"
-                        placeholder={lang === 'en' ? 'Needed to look up your booking' : '예약 조회 시 필요합니다'}
-                        value={guestPassword}
-                        onChange={e => setGuestPassword(e.target.value.replace(/[^0-9]/g, ''))}
-                      />
-                    </div>
-                  )}
-
-                  {!token && (
                     <div className="customer-field full guest-privacy-box">
                       <label className="guest-privacy-check">
                         <input
@@ -580,7 +557,7 @@ export function ReservationPage() {
                 <div className="order-complete-summary">
                   <div className="summary-row">
                     <span>{lang === 'en' ? 'Order Number' : '예약 번호'}</span>
-                    <strong>#{savedReservation.id}</strong>
+                    <strong>{formatReservationCode(savedReservation.code)}</strong>
                   </div>
                   <div className="summary-row">
                     <span>{lang === 'en' ? 'Category' : '수리 품목'}</span>
@@ -628,13 +605,13 @@ export function ReservationPage() {
                   <strong>{lang === 'en' ? 'Guest Reservation Notice' : '비회원 예약 접수 안내'}</strong>
                   <p>
                     {lang === 'en'
-                      ? `Your order #${savedReservation?.id} is registered. Our engineer will contact you at your mobile number (${formatPhone(phone)}) prior to visit.`
-                      : `비회원 예약 번호 #${savedReservation?.id}와 입력하신 휴대전화 번호(${formatPhone(phone)})로 정상 접수되었습니다. 담당 기사 배정 후 방문 전 유선으로 사전 연락드립니다.`}
+                      ? `Your order ${formatReservationCode(savedReservation?.code ?? '')} is registered. Our engineer will contact you at your mobile number (${formatPhone(phone)}) prior to visit.`
+                      : `비회원 예약 번호 ${formatReservationCode(savedReservation?.code ?? '')}와 입력하신 휴대전화 번호(${formatPhone(phone)})로 정상 접수되었습니다. 담당 기사 배정 후 방문 전 유선으로 사전 연락드립니다.`}
                   </p>
                   <p>
                     {lang === 'en'
-                      ? 'To check or cancel later, use Guest Booking Lookup with this reservation number, your mobile number and lookup PIN. Please keep the reservation number.'
-                      : '예약 확인·취소는 [비회원 예약 조회]에서 예약 번호, 휴대전화 번호, 조회용 비밀번호로 할 수 있습니다. 예약 번호를 꼭 메모해 두세요.'}
+                      ? 'To check or cancel later, use Guest Booking Lookup with this reservation number and your mobile number. Please keep the reservation number.'
+                      : '예약 확인·취소는 [비회원 예약 조회]에서 예약 번호와 휴대전화 번호로 할 수 있습니다. 예약 번호를 꼭 메모해 두세요.'}
                   </p>
                 </div>
               )}
@@ -656,7 +633,7 @@ export function ReservationPage() {
                 {!token && savedReservation && (
                   <Link
                     to={lang === 'en' ? '/en/reservations/lookup' : '/reservations/lookup'}
-                    state={{ reservationId: savedReservation.id, phone }}
+                    state={{ reservationCode: savedReservation.code, phone }}
                     className="button secondary full-width"
                   >
                     {lang === 'en' ? 'Go to Guest Booking Lookup' : '비회원 예약 조회로 이동'}

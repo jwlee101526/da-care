@@ -201,7 +201,7 @@ export const en: LocaleDict = {
       bookingTitle: 'Request inspection visit',
       bookingDescription: 'Your device and symptom will be pre-filled in the next step. Enter your preferred date and address to submit the request.',
       continueBooking: 'Continue booking',
-      reservation: (id: number) => `Reservation #${id}`,
+      reservation: (code: string) => `Reservation ${code}`,
       preferredAt: 'Preferred',
       confirmedAt: 'Confirmed',
       engineer: 'Engineer',

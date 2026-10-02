@@ -1,24 +1,26 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AlertCircle } from 'lucide-react'
+import { REGEXP_ONLY_DIGITS } from 'input-otp'
 import { useLanguage } from '../context/LanguageContext'
-import { api, ApiError, type Reservation } from '../lib/api'
+import { api, ApiError, type GuestReservation } from '../lib/api'
 import { isValidPhone } from '../lib/phone'
+import { isValidReservationCode } from '../lib/reservationCode'
 import { PhoneInput } from './PhoneInput'
 import { ReservationCard } from './ReservationCard'
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from './ui/input-otp'
 
 // 예약 완료 화면에서 넘어오면 예약 번호와 휴대전화 번호를 미리 채운다.
-type LookupState = { reservationId?: number; phone?: string } | null
+type LookupState = { reservationCode?: string; phone?: string } | null
 
 export function GuestLookupPage() {
   const { lang } = useLanguage()
   const location = useLocation()
   const initial = location.state as LookupState
 
-  const [reservationId, setReservationId] = useState(initial?.reservationId ? String(initial.reservationId) : '')
+  const [reservationCode, setReservationCode] = useState(initial?.reservationCode ?? '')
   const [phone, setPhone] = useState(initial?.phone ?? '')
-  const [guestPassword, setGuestPassword] = useState('')
-  const [reservation, setReservation] = useState<Reservation | null>(null)
+  const [reservation, setReservation] = useState<GuestReservation | null>(null)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [cancelling, setCancelling] = useState(false)
@@ -28,24 +30,20 @@ export function GuestLookupPage() {
   async function handleLookup(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (!reservationId) {
-      setError(lang === 'en' ? 'Please enter your reservation number.' : '예약 번호를 입력해 주세요.')
+    if (!isValidReservationCode(reservationCode)) {
+      setError(lang === 'en' ? 'Enter the 8-digit reservation number.' : '예약 번호 8자리를 입력해 주세요.')
       return
     }
     if (!isValidPhone(phone)) {
       setError(lang === 'en' ? 'Enter a valid mobile number.' : '올바른 휴대전화 번호를 입력해 주세요.')
       return
     }
-    if (!/^\d{4}$/.test(guestPassword)) {
-      setError(lang === 'en' ? 'Enter your 4-digit lookup PIN.' : '조회용 비밀번호 4자리를 입력해 주세요.')
-      return
-    }
 
     setSubmitting(true)
     try {
-      setReservation(await api<Reservation>('/api/reservations/guest/lookup', {
+      setReservation(await api<GuestReservation>('/api/reservations/guest/lookup', {
         method: 'POST',
-        body: JSON.stringify({ reservationId: Number(reservationId), contactPhone: phone, guestPassword }),
+        body: JSON.stringify({ reservationCode, contactPhone: phone }),
       }))
     } catch (err) {
       setError(err instanceof ApiError ? err.message : (lang === 'en' ? 'Failed to look up the reservation.' : '예약 조회에 실패했습니다.'))
@@ -60,9 +58,9 @@ export function GuestLookupPage() {
     setCancelling(true)
     setError('')
     try {
-      setReservation(await api<Reservation>(`/api/reservations/guest/${reservation.id}/cancel`, {
+      setReservation(await api<GuestReservation>(`/api/reservations/guest/${reservation.code}/cancel`, {
         method: 'PATCH',
-        body: JSON.stringify({ contactPhone: phone, guestPassword }),
+        body: JSON.stringify({ contactPhone: phone }),
       }))
     } catch (err) {
       setError(err instanceof ApiError ? err.message : (lang === 'en' ? 'Failed to cancel the reservation.' : '예약 취소 처리에 실패했습니다.'))
@@ -73,8 +71,7 @@ export function GuestLookupPage() {
 
   function handleReset() {
     setReservation(null)
-    setReservationId('')
-    setGuestPassword('')
+    setReservationCode('')
     setError('')
   }
 
@@ -86,8 +83,8 @@ export function GuestLookupPage() {
             <h1 className="order-page-title">{lang === 'en' ? 'Guest Reservation Lookup' : '비회원 예약 조회'}</h1>
             <p className="order-page-desc">
               {lang === 'en'
-                ? 'Enter the details you used when booking.'
-                : '예약할 때 입력한 정보로 예약 내역을 확인합니다.'}
+                ? 'Enter the reservation number and the mobile number used when booking.'
+                : '예약 번호와 예약할 때 입력한 휴대전화 번호로 조회합니다.'}
             </p>
           </div>
           {reservation && (
@@ -117,35 +114,36 @@ export function GuestLookupPage() {
           <form className="order-section-box" onSubmit={handleLookup} noValidate>
             <div className="customer-fields-grid">
               <div className="customer-field full">
-                <label htmlFor="lookup-id">{lang === 'en' ? 'Reservation Number' : '예약 번호'}</label>
-                <input
-                  id="lookup-id"
-                  required
+                <label htmlFor="lookup-code">{lang === 'en' ? 'Reservation Number' : '예약 번호'}</label>
+                {/* 기본값(one-time-code)이면 모바일 키보드가 문자로 받은 인증번호를 제안하므로 자동완성을 끈다.
+                    완료 화면에서 복사한 4821-7390 형식도 붙여넣을 수 있게 숫자만 남긴다. */}
+                <InputOTP
+                  id="lookup-code"
+                  maxLength={8}
+                  pattern={REGEXP_ONLY_DIGITS}
                   inputMode="numeric"
-                  className="order-input"
-                  placeholder={lang === 'en' ? 'Shown on the booking complete screen' : '예약 완료 화면에 표시된 번호'}
-                  value={reservationId}
-                  onChange={e => setReservationId(e.target.value.replace(/[^0-9]/g, ''))}
-                />
+                  autoComplete="off"
+                  pasteTransformer={text => text.replace(/\D/g, '')}
+                  containerClassName="reservation-code-input"
+                  aria-describedby="lookup-code-hint"
+                  value={reservationCode}
+                  onChange={setReservationCode}
+                >
+                  <InputOTPGroup>
+                    {[0, 1, 2, 3].map(index => <InputOTPSlot key={index} index={index} />)}
+                  </InputOTPGroup>
+                  <InputOTPSeparator />
+                  <InputOTPGroup>
+                    {[4, 5, 6, 7].map(index => <InputOTPSlot key={index} index={index} />)}
+                  </InputOTPGroup>
+                </InputOTP>
+                <small id="lookup-code-hint" className="reservation-code-hint">
+                  {lang === 'en' ? 'The 8-digit number shown on the booking complete screen' : '예약 완료 화면에 표시된 숫자 8자리'}
+                </small>
               </div>
               <div className="customer-field full">
                 <label htmlFor="lookup-phone">{lang === 'en' ? 'Mobile Number' : '휴대전화 번호'}</label>
                 <PhoneInput id="lookup-phone" required className="order-input" value={phone} onChange={setPhone} />
-              </div>
-              <div className="customer-field full">
-                <label htmlFor="lookup-pin">{lang === 'en' ? 'Lookup PIN' : '조회용 비밀번호'}</label>
-                <input
-                  id="lookup-pin"
-                  required
-                  type="password"
-                  inputMode="numeric"
-                  maxLength={4}
-                  autoComplete="off"
-                  className="order-input"
-                  placeholder={lang === 'en' ? '4 digits set when booking' : '예약 시 정한 숫자 4자리'}
-                  value={guestPassword}
-                  onChange={e => setGuestPassword(e.target.value.replace(/[^0-9]/g, ''))}
-                />
               </div>
             </div>
 
@@ -155,9 +153,9 @@ export function GuestLookupPage() {
               </button>
             </div>
 
-            <p className="guest-lookup-member-hint">
+            <p className="guest-lookup-notes">
               {lang === 'en' ? 'Booked as a member? ' : '회원으로 예약하셨나요? '}
-              <Link to={loginPath}>{lang === 'en' ? 'Sign in to see My Reservations' : '로그인 후 내 예약에서 확인하세요'}</Link>
+              <Link to={loginPath}>{lang === 'en' ? 'Sign in to see all your reservations' : '로그인하면 전체 예약 내역을 볼 수 있습니다'}</Link>
             </p>
           </form>
         )}

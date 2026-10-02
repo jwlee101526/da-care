@@ -199,7 +199,7 @@ export const ko = {
       bookingTitle: '방문 점검 신청',
       bookingDescription: '선택하신 기기와 증상은 다음 단계에 미리 입력해 두겠습니다. 방문을 원하는 날짜와 장소를 입력하면 예약을 신청할 수 있습니다.',
       continueBooking: '예약 계속하기',
-      reservation: (id: number) => `예약 #${id}`,
+      reservation: (code: string) => `예약 ${code}`,
       preferredAt: '희망 일시',
       confirmedAt: '확정 일시',
       engineer: '담당 기사',

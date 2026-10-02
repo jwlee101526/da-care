@@ -1,10 +1,11 @@
 import { Check, Clock, CheckCircle2, AlertCircle, Bell } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
-import type { Reservation } from '../lib/api'
+import type { GuestReservation } from '../lib/api'
+import { formatReservationCode } from '../lib/reservationCode'
 import { getCategoryInfo } from '../lib/categories'
 
 interface ReservationCardProps {
-  item: Reservation
+  item: GuestReservation
   onCancel?: () => void
   cancelling?: boolean
   cancelDisabled?: boolean
@@ -27,7 +28,7 @@ export function ReservationCard({ item, onCancel, cancelling = false, cancelDisa
       <div className="card-header-row">
         <div>
           <span className="order-number-label">
-            {lang === 'en' ? 'Order' : '예약 번호'} #{item.id}
+            {lang === 'en' ? 'Order' : '예약 번호'} {formatReservationCode(item.code)}
           </span>
         </div>
       </div>
