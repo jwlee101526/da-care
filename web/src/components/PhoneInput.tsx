@@ -4,6 +4,7 @@ import type { CountryCode } from 'libphonenumber-js/mobile'
 import { useLanguage } from '../context/LanguageContext'
 import { DEFAULT_COUNTRY, canAppendDigit, countryOf, examplePhone, isValidPhone } from '../lib/phone'
 import { PhoneCountrySelect } from './PhoneCountrySelect'
+import './PhoneInput.css'
 
 // placeholder는 선택한 국가의 예시 번호로 자동으로 채운다.
 type PhoneInputProps = Omit<ComponentPropsWithoutRef<'input'>, 'value' | 'defaultValue' | 'onChange' | 'type' | 'placeholder'> & {

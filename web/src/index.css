@@ -11,6 +11,48 @@
   --brand: #2457d6;
   --muted: #68707c;
   --line: #e4e7ec;
+
+  /* 색상 토큰. 화면 CSS에는 hex 대신 이 변수를 쓴다. */
+  --brand-hover: #1d46ae;
+  --brand-soft: #eaf2ff;
+  --brand-soft-border: #bfdbfe;
+  --navy: #182946;
+
+  --text-strong: #1e293b;
+  --text-body: #334155;
+  --text-secondary: #475569;
+  --text-subtle: #64748b;
+  --text-faint: #94a3b8;
+
+  --surface-subtle: #f8fafc;
+  --surface-muted: #f1f5f9;
+
+  --line-subtle: #eef2f6;
+  --line-default: #e2e8f0;
+  --line-strong: #cbd5e1;
+
+  --danger: #dc2626;
+  --danger-strong: #b91c1c;
+  --danger-soft: #fef2f2;
+  --danger-border: #fecaca;
+  --success: #16a34a;
+  --success-strong: #15803d;
+  --success-soft: #f0fdf4;
+  --success-border: #bbf7d0;
+  --warning: #d97706;
+  --warning-soft: #fffbeb;
+  --warning-border: #fde68a;
+}
+
+/* Tailwind 유틸리티(bg-brand, text-text-subtle 등)에서도 같은 토큰을 쓴다. */
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-navy: var(--navy);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 96px; }

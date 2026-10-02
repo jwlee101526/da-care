@@ -1,0 +1,74 @@
+/* 비회원 예약 조회 페이지 */
+
+.guest-lookup-container {
+  width: min(520px, 100%);
+}
+
+.guest-lookup-container .customer-fields-grid {
+  margin-top: 0;
+}
+
+/* 예약 번호 8칸 입력(input-otp). 4칸씩 두 묶음을 하이픈으로 나눠 화면 표시 형식(4821-7390)과 맞춘다. */
+.reservation-code-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.reservation-code-input [data-slot="input-otp-group"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.reservation-code-input [data-slot="input-otp-slot"] {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  height: 48px;
+  border-top-width: 1.5px;
+  border-bottom-width: 1.5px;
+  border-right-width: 1.5px;
+  border-color: var(--line-strong);
+  background: #ffffff;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.reservation-code-input [data-slot="input-otp-slot"]:first-child {
+  border-left-width: 1.5px;
+  border-radius: 10px 0 0 10px;
+}
+
+.reservation-code-input [data-slot="input-otp-slot"]:last-child {
+  border-radius: 0 10px 10px 0;
+}
+
+.reservation-code-input [data-slot="input-otp-slot"][data-active="true"] {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(36, 87, 214, 0.15);
+}
+
+.reservation-code-input [data-slot="input-otp-separator"] {
+  color: var(--text-faint);
+}
+
+.reservation-code-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-subtle);
+}
+
+.guest-lookup-notes {
+  margin: 16px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-subtle);
+  text-align: center;
+}
+
+.guest-lookup-notes a {
+  color: var(--brand);
+  font-weight: 600;
+}

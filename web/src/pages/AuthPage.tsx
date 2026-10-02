@@ -7,6 +7,7 @@ import { PhoneInput } from '../components/PhoneInput'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import dacareLogo from '../assets/brand/dacare-logo.svg'
+import './AuthPage.css'
 
 export function AuthPage({ signup = false }: { signup?: boolean }) {
   const showDemoAccount = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO_ACCOUNT === 'true'

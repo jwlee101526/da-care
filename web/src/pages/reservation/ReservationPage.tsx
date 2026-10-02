@@ -17,6 +17,8 @@ import {
 import { ReservationFormStep } from './ReservationFormStep'
 import { ReservationSummaryStep } from './ReservationSummaryStep'
 import { ReservationCompleteStep } from './ReservationCompleteStep'
+import '../../styles/order-form.css'
+import './ReservationPage.css'
 
 export function ReservationPage() {
   const { lang } = useLanguage()

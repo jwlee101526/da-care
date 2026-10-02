@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext'
 import { api, ApiError } from '../lib/api'
 import type { Reservation } from '../lib/api'
 import { ReservationCard } from '../components/ReservationCard'
+import '../styles/order-page.css'
+import './ReservationsPage.css'
 
 interface ReservationsPageProps {
   onOpenReservation?: () => void

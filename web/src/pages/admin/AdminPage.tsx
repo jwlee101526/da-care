@@ -9,6 +9,7 @@ import { EngineerSection } from './EngineerSection'
 import { ReservationSection } from './ReservationSection'
 import { UsageSummary } from './UsageSummary'
 import type { AdminFeedback } from './types'
+import './AdminPage.css'
 
 const SMS_USAGE_TEXT: UsageToastText = {
   used: (used: number, limit: number) => `이번 주 SMS ${used}/${limit}회 사용`,

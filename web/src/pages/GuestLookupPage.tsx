@@ -9,6 +9,9 @@ import { isValidReservationCode } from '../lib/reservationCode'
 import { PhoneInput } from '../components/PhoneInput'
 import { ReservationCard } from '../components/ReservationCard'
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '../components/ui/input-otp'
+import '../styles/order-page.css'
+import '../styles/order-form.css'
+import './GuestLookupPage.css'
 
 // 예약 완료 화면에서 넘어오면 예약 번호와 휴대전화 번호를 미리 채운다.
 type LookupState = { reservationCode?: string; phone?: string } | null

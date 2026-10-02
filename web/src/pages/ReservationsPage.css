@@ -1,0 +1,34 @@
+/* 내 예약 목록 페이지 */
+
+.order-main-container {
+  width: min(860px, 100%);
+  margin-inline: auto;
+}
+
+.order-empty-card {
+  background: #ffffff;
+  border: 1px solid var(--line-default);
+  border-radius: 16px;
+  padding: 64px 32px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(24, 41, 70, 0.04);
+}
+
+.order-empty-card h3 {
+  font-size: 20px;
+  font-weight: 650;
+  color: var(--text-strong);
+  margin-bottom: 10px;
+}
+
+.order-empty-card p {
+  font-size: 14px;
+  color: var(--text-subtle);
+  max-width: 420px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.order-empty-card .button {
+  margin-top: 20px;
+}

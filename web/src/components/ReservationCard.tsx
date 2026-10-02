@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext'
 import type { GuestReservation } from '../lib/api'
 import { formatReservationCode } from '../lib/reservationCode'
 import { getCategoryInfo } from '../lib/categories'
+import './ReservationCard.css'
 
 interface ReservationCardProps {
   item: GuestReservation
