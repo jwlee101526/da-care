@@ -8,7 +8,7 @@ import { formatPhone, isValidPhone } from '../lib/phone'
 import type { Engineer, Reservation, UsageItem } from '../lib/api'
 import { useUsage } from '../hooks/useUsage'
 import { notifyUsage } from '../lib/usageToast'
-import { PhoneInput } from './PhoneInput'
+import { PhoneInput } from '../components/PhoneInput'
 
 const SMS_USAGE_TEXT = {
   used: (used: number, limit: number) => `이번 주 SMS ${used}/${limit}회 사용`,

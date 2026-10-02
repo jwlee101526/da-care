@@ -1,4 +1,4 @@
-package com.dacare.server.service;
+package com.dacare.server.config;
 
 import com.dacare.server.domain.AppUser;
 import com.dacare.server.domain.Customer;

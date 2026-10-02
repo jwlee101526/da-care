@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
 import { api, ApiError } from '../lib/api'
 import type { Reservation } from '../lib/api'
-import { ReservationCard } from './ReservationCard'
+import { ReservationCard } from '../components/ReservationCard'
 
 interface ReservationsPageProps {
   onOpenReservation?: () => void

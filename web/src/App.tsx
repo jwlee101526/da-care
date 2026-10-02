@@ -16,11 +16,11 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import { Toaster } from './components/ui/sonner'
 
 // 첫 화면(랜딩)을 뺀 페이지는 방문할 때 불러온다.
-const AuthPage = lazy(() => import('./components/AuthPage').then(module => ({ default: module.AuthPage })))
-const ReservationsPage = lazy(() => import('./components/ReservationsPage').then(module => ({ default: module.ReservationsPage })))
-const AdminPage = lazy(() => import('./components/AdminPage').then(module => ({ default: module.AdminPage })))
-const ReservationPage = lazy(() => import('./components/ReservationPage').then(module => ({ default: module.ReservationPage })))
-const GuestLookupPage = lazy(() => import('./components/GuestLookupPage').then(module => ({ default: module.GuestLookupPage })))
+const AuthPage = lazy(() => import('./pages/AuthPage').then(module => ({ default: module.AuthPage })))
+const ReservationsPage = lazy(() => import('./pages/ReservationsPage').then(module => ({ default: module.ReservationsPage })))
+const AdminPage = lazy(() => import('./pages/AdminPage').then(module => ({ default: module.AdminPage })))
+const ReservationPage = lazy(() => import('./pages/ReservationPage').then(module => ({ default: module.ReservationPage })))
+const GuestLookupPage = lazy(() => import('./pages/GuestLookupPage').then(module => ({ default: module.GuestLookupPage })))
 
 function LandingContent({
   onOpenReservation,

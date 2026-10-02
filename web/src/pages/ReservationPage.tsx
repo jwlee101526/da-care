@@ -7,7 +7,7 @@ import { api, ApiError, type GuestReservation } from '../lib/api'
 import { formatReservationCode } from '../lib/reservationCode'
 import { DEVICE_CATEGORIES, getCategoryDefinition, getCategoryInfo } from '../lib/categories'
 import { formatPhone, isValidPhone } from '../lib/phone'
-import { PhoneInput } from './PhoneInput'
+import { PhoneInput } from '../components/PhoneInput'
 import type { DeviceType, ReservationSelection } from '../types'
 
 const QUICK_SYMPTOMS_KO = [

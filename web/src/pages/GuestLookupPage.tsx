@@ -6,9 +6,9 @@ import { useLanguage } from '../context/LanguageContext'
 import { api, ApiError, type GuestReservation } from '../lib/api'
 import { isValidPhone } from '../lib/phone'
 import { isValidReservationCode } from '../lib/reservationCode'
-import { PhoneInput } from './PhoneInput'
-import { ReservationCard } from './ReservationCard'
-import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from './ui/input-otp'
+import { PhoneInput } from '../components/PhoneInput'
+import { ReservationCard } from '../components/ReservationCard'
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '../components/ui/input-otp'
 
 // 예약 완료 화면에서 넘어오면 예약 번호와 휴대전화 번호를 미리 채운다.
 type LookupState = { reservationCode?: string; phone?: string } | null
