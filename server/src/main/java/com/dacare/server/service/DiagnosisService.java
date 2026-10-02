@@ -78,7 +78,7 @@ public class DiagnosisService {
   private static List<Message> messages(String question, List<ConversationTurn> history) {
     List<Message> messages = new ArrayList<>();
     if (history != null) {
-      history.forEach(turn -> messages.add(turn.role() == Role.user
+      history.forEach(turn -> messages.add(turn.role() == Speaker.user
           ? new UserMessage(turn.text()) : new AssistantMessage(turn.text())));
     }
     messages.add(new UserMessage(question));
@@ -97,9 +97,10 @@ public class DiagnosisService {
 
   }
 
-  public enum Role {user, assistant}
+  /** 대화 이력의 발화자. 웹 클라이언트가 보내는 role 값과 같다. */
+  public enum Speaker {user, assistant}
 
-  public record ConversationTurn(@NotNull Role role, @NotBlank @Size(max = 4000) String text) {
+  public record ConversationTurn(@NotNull Speaker role, @NotBlank @Size(max = 4000) String text) {
 
   }
 

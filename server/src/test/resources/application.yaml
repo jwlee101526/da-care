@@ -24,6 +24,7 @@ app:
   slack:
     webhook-url:
   diagnosis:
+    timeout: 75s
     similarity-threshold: 0.4
   usage:
     weekly-limit:

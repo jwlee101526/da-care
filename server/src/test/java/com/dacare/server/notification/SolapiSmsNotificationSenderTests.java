@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.dacare.server.domain.NotificationHistory;
+import com.dacare.server.domain.NotificationStatus;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.repository.NotificationHistoryRepository;
 import com.dacare.server.service.ApiUsageService;
@@ -34,7 +35,7 @@ class SolapiSmsNotificationSenderTests {
     ArgumentCaptor<NotificationHistory> history = ArgumentCaptor.forClass(
         NotificationHistory.class);
     verify(histories).save(history.capture());
-    assertThat(history.getValue().getStatus()).isEqualTo("SKIPPED");
+    assertThat(history.getValue().getStatus()).isEqualTo(NotificationStatus.SKIPPED);
     assertThat(history.getValue().getFailureReason()).isEqualTo("주간 SMS 한도 초과");
   }
 }

@@ -1,5 +1,6 @@
 package com.dacare.server.security;
 
+import com.dacare.server.domain.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -39,7 +40,8 @@ class JwtAuthenticationFilter extends OncePerRequestFilter {
     if (header != null && header.startsWith(BEARER_PREFIX)) {
       try {
         Claims claims = jwtService.parse(header.substring(BEARER_PREFIX.length()));
-        var authority = new SimpleGrantedAuthority("ROLE_" + claims.get("role", String.class));
+        var authority = new SimpleGrantedAuthority(
+            Role.from(claims.get("role", String.class)).authority());
         SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken(claims.getSubject(), null, List.of(authority)));
       } catch (JwtException | IllegalArgumentException exception) {

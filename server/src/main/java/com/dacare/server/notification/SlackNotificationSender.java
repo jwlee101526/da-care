@@ -1,5 +1,10 @@
 package com.dacare.server.notification;
 
+import static com.dacare.server.domain.NotificationChannel.SLACK;
+import static com.dacare.server.domain.NotificationStatus.FAILED;
+import static com.dacare.server.domain.NotificationStatus.SKIPPED;
+import static com.dacare.server.domain.NotificationStatus.SUCCESS;
+
 import com.dacare.server.domain.NotificationHistory;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.domain.ReservationCode;
@@ -30,17 +35,17 @@ public class SlackNotificationSender {
   public void sendReservationReceived(Reservation reservation) {
     String message = message(reservation);
     if (webhookUrl.isBlank()) {
-      histories.save(new NotificationHistory(reservation, "SLACK", "SKIPPED", message,
+      histories.save(new NotificationHistory(reservation, SLACK, SKIPPED, message,
           "SLACK_WEBHOOK_URL 미설정"));
       return;
     }
 
     try {
       client.post().uri(webhookUrl).body(Map.of("text", message)).retrieve().toBodilessEntity();
-      histories.save(new NotificationHistory(reservation, "SLACK", "SUCCESS", message, null));
+      histories.save(new NotificationHistory(reservation, SLACK, SUCCESS, message, null));
     } catch (RuntimeException e) {
       histories.save(
-          new NotificationHistory(reservation, "SLACK", "FAILED", message, e.getMessage()));
+          new NotificationHistory(reservation, SLACK, FAILED, message, e.getMessage()));
     }
   }
 

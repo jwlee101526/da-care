@@ -1,5 +1,6 @@
 package com.dacare.server.web;
 
+import com.dacare.server.domain.Role;
 import com.dacare.server.service.UsageSubject;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
@@ -37,10 +38,10 @@ public class UsageSubjectResolver {
   }
 
   public UsageSubject resolve(Authentication authentication, HttpServletRequest request) {
-    if (hasRole(authentication, "ROLE_ADMIN")) {
+    if (hasRole(authentication, Role.ADMIN)) {
       return UsageSubject.admin(authentication.getName());
     }
-    if (hasRole(authentication, "ROLE_CUSTOMER")) {
+    if (hasRole(authentication, Role.CUSTOMER)) {
       return UsageSubject.customer(authentication.getName());
     }
     return UsageSubject.guest(clientIpHash(request));
@@ -53,10 +54,10 @@ public class UsageSubjectResolver {
     return hash(clientIp(request));
   }
 
-  private static boolean hasRole(Authentication authentication, String role) {
+  private static boolean hasRole(Authentication authentication, Role role) {
     return authentication != null && authentication.isAuthenticated()
         && authentication.getAuthorities().stream()
-        .anyMatch(authority -> role.equals(authority.getAuthority()));
+        .anyMatch(authority -> role.authority().equals(authority.getAuthority()));
   }
 
   private String clientIp(HttpServletRequest request) {

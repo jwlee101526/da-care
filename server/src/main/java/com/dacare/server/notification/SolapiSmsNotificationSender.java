@@ -1,5 +1,10 @@
 package com.dacare.server.notification;
 
+import static com.dacare.server.domain.NotificationChannel.SMS;
+import static com.dacare.server.domain.NotificationStatus.FAILED;
+import static com.dacare.server.domain.NotificationStatus.SKIPPED;
+import static com.dacare.server.domain.NotificationStatus.SUCCESS;
+
 import com.dacare.server.domain.NotificationHistory;
 import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.domain.Reservation;
@@ -39,21 +44,21 @@ public class SolapiSmsNotificationSender {
     String message = message(reservation);
     if (!isConfigured()) {
       histories.save(
-          new NotificationHistory(reservation, "SMS", "SKIPPED", message, "SOLAPI 설정 미완료"));
+          new NotificationHistory(reservation, SMS, SKIPPED, message, "SOLAPI 설정 미완료"));
       return;
     }
     if (!usage.tryAcquireSms()) {
       histories.save(
-          new NotificationHistory(reservation, "SMS", "SKIPPED", message, "주간 SMS 한도 초과"));
+          new NotificationHistory(reservation, SMS, SKIPPED, message, "주간 SMS 한도 초과"));
       return;
     }
     try {
       DefaultMessageService service = SolapiClient.INSTANCE.createInstance(apiKey, apiSecret);
       service.send(createMessage(reservation, message), null);
-      histories.save(new NotificationHistory(reservation, "SMS", "SUCCESS", message, null));
+      histories.save(new NotificationHistory(reservation, SMS, SUCCESS, message, null));
     } catch (Exception e) {
       histories.save(
-          new NotificationHistory(reservation, "SMS", "FAILED", message, e.getMessage()));
+          new NotificationHistory(reservation, SMS, FAILED, message, e.getMessage()));
     }
   }
 

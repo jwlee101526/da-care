@@ -40,7 +40,7 @@ public class DiagnosisController implements DiagnosisApiDocs {
 
   public DiagnosisController(DiagnosisService service, DiagnosisExecutor executor,
       ApiUsageService usage, UsageSubjectResolver subjects,
-      @Value("${app.diagnosis.timeout:75s}") Duration timeout) {
+      @Value("${app.diagnosis.timeout}") Duration timeout) {
     this.service = service;
     this.executor = executor;
     this.usage = usage;
