@@ -20,6 +20,7 @@ const AuthPage = lazy(() => import('./components/AuthPage').then(module => ({ de
 const ReservationsPage = lazy(() => import('./components/ReservationsPage').then(module => ({ default: module.ReservationsPage })))
 const AdminPage = lazy(() => import('./components/AdminPage').then(module => ({ default: module.AdminPage })))
 const ReservationPage = lazy(() => import('./components/ReservationPage').then(module => ({ default: module.ReservationPage })))
+const GuestLookupPage = lazy(() => import('./components/GuestLookupPage').then(module => ({ default: module.GuestLookupPage })))
 
 function LandingContent({
   onOpenReservation,
@@ -78,6 +79,8 @@ function AppShell() {
           <Route path="/en/reserve" element={<ReservationPage />} />
           <Route path="/en/reservations/new" element={<Navigate to="/en/reserve" replace />} />
           <Route path="/reservations" element={<CustomerOnly><ReservationsPage key={reservationRevision} onOpenReservation={() => openReservation()} /></CustomerOnly>} />
+          <Route path="/reservations/lookup" element={<GuestLookupPage />} />
+          <Route path="/en/reservations/lookup" element={<GuestLookupPage />} />
           <Route path="/order" element={<Navigate to="/reservations" replace />} />
           <Route path="/en/reservations" element={<CustomerOnly><ReservationsPage key={reservationRevision} onOpenReservation={() => openReservation()} /></CustomerOnly>} />
           <Route path="/login" element={<AuthPage />} />

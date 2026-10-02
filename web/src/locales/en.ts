@@ -11,6 +11,8 @@ export const en: LocaleDict = {
     login: 'Log in',
     logout: 'Log out',
     myReservations: 'My Bookings',
+    guestLookup: 'Guest Booking Lookup',
+    lookup: 'Find Booking',
     ariaHome: 'DA-CARE, Device & Appliance Care Home',
     ariaMenu: 'Main Navigation',
     ariaMobileMenu: 'Mobile Navigation',

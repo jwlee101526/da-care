@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.springframework.security.core.Authentication;
 
@@ -41,7 +42,7 @@ public interface ReservationApiDocs {
       ) ReservationRequest request
   );
 
-  @Operation(summary = "비회원 예약 접수", description = "연락처와 조회용 비밀번호로 비회원 예약을 접수합니다.")
+  @Operation(summary = "비회원 예약 접수", description = "연락처와 조회용 비밀번호(숫자 4자리)로 비회원 예약을 접수합니다.")
   @ApiResponses(
       {
           @ApiResponse(responseCode = "200", description = "예약 접수 완료"),
@@ -55,27 +56,37 @@ public interface ReservationApiDocs {
               schema = @Schema(implementation = GuestReservationRequest.class),
               examples = @ExampleObject(
                   """
-                      {"deviceType":"세탁기","symptomDescription":"탈수 시 큰 소음 발생","visitAddress":"서울특별시 강남구 테헤란로 1","preferredAt":"2026-10-01T14:00:00","contactName":"홍길동","contactPhone":"010-1234-5678","guestPassword":"guest1234"}
+                      {"deviceType":"세탁기","symptomDescription":"탈수 시 큰 소음 발생","visitAddress":"서울특별시 강남구 테헤란로 1","preferredAt":"2026-10-01T14:00:00","contactName":"홍길동","contactPhone":"010-1234-5678","guestPassword":"1234"}
                       """)
           )
       ) GuestReservationRequest request
   );
 
-  @Operation(summary = "비회원 예약 조회", description = "예약 번호, 연락처, 조회용 비밀번호로 예약을 조회합니다.")
+  @Operation(summary = "비회원 예약 조회",
+      description = "예약 번호, 연락처, 조회용 비밀번호로 예약을 조회합니다. "
+          + "어느 값이 틀렸는지는 구분하지 않고 404로 응답하며, 실패가 반복되면 15분간 429로 거부합니다.")
+  @ApiResponses(
+      {
+          @ApiResponse(responseCode = "200", description = "조회 완료"),
+          @ApiResponse(responseCode = "404", description = "일치하는 비회원 예약 없음"),
+          @ApiResponse(responseCode = "429", description = "조회 실패 횟수 초과")
+      }
+  )
   ReservationResponse lookupGuest(
       @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
           content = @Content(
               schema = @Schema(implementation = GuestLookupRequest.class),
               examples = @ExampleObject(
                   """
-                      {"reservationId":1,"contactPhone":"010-1234-5678","guestPassword":"guest1234"}
+                      {"reservationId":1,"contactPhone":"010-1234-5678","guestPassword":"1234"}
                       """
               )
           )
-      ) GuestLookupRequest request
+      ) GuestLookupRequest request,
+      @Parameter(hidden = true) HttpServletRequest servletRequest
   );
 
-  @Operation(summary = "비회원 예약 취소", description = "대기 상태의 비회원 예약을 취소합니다.")
+  @Operation(summary = "비회원 예약 취소", description = "대기 상태의 비회원 예약을 취소합니다. 조회와 같은 확인과 실패 횟수 제한을 거칩니다.")
   ReservationResponse cancelGuest(
       @Parameter(description = "예약 번호") Long id,
       @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -84,11 +95,12 @@ public interface ReservationApiDocs {
               schema = @Schema(implementation = GuestCancelRequest.class),
               examples = @ExampleObject(
                   """
-                      {"contactPhone":"010-1234-5678","guestPassword":"guest1234"}
+                      {"contactPhone":"010-1234-5678","guestPassword":"1234"}
                       """
               )
           )
-      ) GuestCancelRequest request
+      ) GuestCancelRequest request,
+      @Parameter(hidden = true) HttpServletRequest servletRequest
   );
 
   @Operation(summary = "내 예약 목록 조회", description = "로그인한 회원의 예약 목록을 조회합니다.")

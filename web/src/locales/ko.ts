@@ -9,6 +9,8 @@ export const ko = {
     login: '로그인',
     logout: '로그아웃',
     myReservations: '내 예약',
+    guestLookup: '비회원 예약 조회',
+    lookup: '예약 조회',
     ariaHome: '다케어, Device and Appliance Care 홈',
     ariaMenu: '주 메뉴',
     ariaMobileMenu: '모바일 메뉴',

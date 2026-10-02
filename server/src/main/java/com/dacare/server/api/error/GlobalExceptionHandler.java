@@ -1,6 +1,7 @@
 package com.dacare.server.api.error;
 
 import com.dacare.server.service.DiagnosisService.DiagnosisUnavailableException;
+import com.dacare.server.service.GuestLookupThrottle.TooManyAttemptsException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -17,6 +18,12 @@ public class GlobalExceptionHandler {
   ResponseEntity<ErrorResponse> diagnosisUnavailable(DiagnosisUnavailableException e) {
     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
         .body(ErrorResponse.of("DIAGNOSIS_UNAVAILABLE", e.getMessage()));
+  }
+
+  @ExceptionHandler(TooManyAttemptsException.class)
+  ResponseEntity<ErrorResponse> tooManyAttempts(TooManyAttemptsException e) {
+    return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+        .body(ErrorResponse.of("TOO_MANY_ATTEMPTS", e.getMessage()));
   }
 
   @ExceptionHandler(IllegalArgumentException.class)

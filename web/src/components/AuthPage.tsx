@@ -226,6 +226,12 @@ export function AuthPage({ signup = false }: { signup?: boolean }) {
             </Link>
           </div>
 
+          {!signup && (
+            <Link to={lang === 'en' ? '/en/reservations/lookup' : '/reservations/lookup'} className="auth-back-link">
+              {lang === 'en' ? 'Booked without an account? Look up your booking' : '비회원으로 예약하셨나요? 비회원 예약 조회'}
+            </Link>
+          )}
+
           <Link to={homePath} className="auth-back-link">
             {lang === 'en' ? '← Back to Home' : '← 메인 홈으로 돌아가기'}
           </Link>

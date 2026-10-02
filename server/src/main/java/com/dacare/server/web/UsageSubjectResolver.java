@@ -43,7 +43,14 @@ public class UsageSubjectResolver {
     if (hasRole(authentication, "ROLE_CUSTOMER")) {
       return UsageSubject.customer(authentication.getName());
     }
-    return UsageSubject.guest(hash(clientIp(request)));
+    return UsageSubject.guest(clientIpHash(request));
+  }
+
+  /**
+   * 비로그인 요청을 IP별로 세기 위한 키. 원문 IP 대신 HMAC을 돌려준다.
+   */
+  public String clientIpHash(HttpServletRequest request) {
+    return hash(clientIp(request));
   }
 
   private static boolean hasRole(Authentication authentication, String role) {

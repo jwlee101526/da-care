@@ -25,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReservationService {
 
   private static final String RESERVATION_NOT_FOUND = "예약을 찾을 수 없습니다.";
+  private static final String GUEST_RESERVATION_NOT_FOUND =
+      "예약 정보를 찾을 수 없습니다. 예약 번호, 휴대전화 번호, 비밀번호를 확인해 주세요.";
 
   private final AppUserRepository users;
   private final CustomerRepository customers;
@@ -32,17 +34,20 @@ public class ReservationService {
   private final ReservationRepository reservations;
   private final ApplicationEventPublisher events;
   private final PasswordEncoder encoder;
+  private final GuestLookupThrottle throttle;
   private final Clock clock;
 
   public ReservationService(AppUserRepository users, CustomerRepository customers,
       EngineerRepository engineers, ReservationRepository reservations,
-      ApplicationEventPublisher events, PasswordEncoder encoder, Clock clock) {
+      ApplicationEventPublisher events, PasswordEncoder encoder, GuestLookupThrottle throttle,
+      Clock clock) {
     this.users = users;
     this.customers = customers;
     this.engineers = engineers;
     this.reservations = reservations;
     this.events = events;
     this.encoder = encoder;
+    this.throttle = throttle;
     this.clock = clock;
   }
 
@@ -60,30 +65,31 @@ public class ReservationService {
   @Transactional
   public Reservation createGuest(ReservationDraft draft, String guestPassword) {
     requireFuture(draft.preferredAt(), "희망 방문 일시는 미래여야 합니다.");
-    String passwordHash =
-        (guestPassword == null || guestPassword.isBlank()) ? null : encoder.encode(guestPassword);
     return receive(new Reservation(draft.deviceType(), draft.symptomDescription(),
         draft.visitAddress(), draft.preferredAt(), draft.contactName(), draft.contactPhone(),
-        passwordHash));
+        encoder.encode(guestPassword)));
   }
 
-  public Reservation findGuest(Long id, PhoneNumber contactPhone, String guestPassword) {
-    Reservation reservation = getReservation(id);
-    // 다른 예약의 존재 여부가 드러나지 않도록 회원 예약과 연락처 불일치는 모두 '없음'으로 응답한다.
-    if (!reservation.isGuest() || !contactPhone.equals(reservation.getContactPhone())) {
-      throw new NoSuchElementException(RESERVATION_NOT_FOUND);
-    }
-    String passwordHash = reservation.getGuestPasswordHash();
-    if (passwordHash != null && (guestPassword == null
-        || !encoder.matches(guestPassword, passwordHash))) {
-      throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");
-    }
+  /**
+   * @param clientKey 비밀번호 대입 시도를 IP별로 세기 위한 요청 IP의 해시
+   */
+  public Reservation findGuest(Long id, PhoneNumber contactPhone, String guestPassword,
+      String clientKey) {
+    throttle.check(id, clientKey);
+    Reservation reservation = reservations.findById(id)
+        .filter(found -> matchesGuest(found, contactPhone, guestPassword))
+        .orElseThrow(() -> {
+          throttle.recordFailure(id, clientKey);
+          return new NoSuchElementException(GUEST_RESERVATION_NOT_FOUND);
+        });
+    throttle.reset(id);
     return reservation;
   }
 
   @Transactional
-  public Reservation cancelGuest(Long id, PhoneNumber contactPhone, String guestPassword) {
-    Reservation reservation = findGuest(id, contactPhone, guestPassword);
+  public Reservation cancelGuest(Long id, PhoneNumber contactPhone, String guestPassword,
+      String clientKey) {
+    Reservation reservation = findGuest(id, contactPhone, guestPassword, clientKey);
     reservation.cancel();
     return reservation;
   }
@@ -142,6 +148,17 @@ public class ReservationService {
     Reservation saved = reservations.save(reservation);
     events.publishEvent(new ReservationReceivedEvent(saved.getId()));
     return saved;
+  }
+
+  /**
+   * 어떤 항목이 틀렸는지 드러나지 않도록 회원 예약, 연락처 불일치, 비밀번호 불일치를 구분하지 않는다. 비밀번호 없이 접수된 예전 예약은
+   * 예약 번호와 연락처만으로 열리지 않도록 조회 대상에서 뺀다.
+   */
+  private boolean matchesGuest(Reservation reservation, PhoneNumber contactPhone,
+      String guestPassword) {
+    String passwordHash = reservation.getGuestPasswordHash();
+    return reservation.isGuest() && contactPhone.equals(reservation.getContactPhone())
+        && passwordHash != null && encoder.matches(guestPassword, passwordHash);
   }
 
   private Reservation getReservation(Long id) {

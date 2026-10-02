@@ -110,6 +110,15 @@ export function Navbar({ onOpenReservation, onOpenChat }: NavbarProps) {
           >
             {token ? (role === 'ADMIN' ? (lang === 'en' ? 'Admin' : '관리자') : t.nav.myReservations) : t.nav.login}
           </Link>
+          {!token && (
+            <Link
+              className="button header-lookup-btn compact"
+              to={lang === 'en' ? '/en/reservations/lookup' : '/reservations/lookup'}
+              aria-label={t.nav.guestLookup}
+            >
+              {t.nav.lookup}
+            </Link>
+          )}
           {token && (
             <button
               type="button"
@@ -181,12 +190,20 @@ export function Navbar({ onOpenReservation, onOpenChat }: NavbarProps) {
               </button>
             </>
           ) : (
-            <Link
-              to={lang === 'en' ? '/en/login' : '/login'}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {t.nav.login}
-            </Link>
+            <>
+              <Link
+                to={lang === 'en' ? '/en/login' : '/login'}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t.nav.login}
+              </Link>
+              <Link
+                to={lang === 'en' ? '/en/reservations/lookup' : '/reservations/lookup'}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t.nav.guestLookup}
+              </Link>
+            </>
           )}
           <div className="mobile-lang-row">
             <span className="mobile-lang-label">Language / 언어</span>

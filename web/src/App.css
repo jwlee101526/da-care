@@ -80,14 +80,16 @@ h2 { font-size: 34px; letter-spacing: -.045em; line-height: 1.35; font-weight: 6
 .lang-btn.active { background: #ffffff; color: #2457d6; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
 .mobile-lang-row { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; margin-top: 12px; border-top: 1px solid var(--line); }
 .mobile-lang-label { font-size: 13px; color: var(--muted); font-weight: 500; }
-.header-logout-btn {
+.header-logout-btn,
+.header-lookup-btn {
   background: transparent;
   border: 1px solid #d9dfe8;
   color: #5f7192;
   cursor: pointer;
   transition: all .15s ease;
 }
-.header-logout-btn:hover {
+.header-logout-btn:hover,
+.header-lookup-btn:hover {
   background: #f4f6f9;
   color: #1e293b;
   border-color: #cbd5e1;
@@ -321,6 +323,8 @@ h2 { font-size: 34px; letter-spacing: -.045em; line-height: 1.35; font-weight: 6
 @media (max-width: 850px) {
   .desktop-nav { display: none; }
   .mobile-menu-toggle { display: inline-flex; }
+  /* 좁은 화면에서는 모바일 메뉴의 비회원 예약 조회로 대신한다. */
+  .header-actions .header-lookup-btn { display: none; }
   .mobile-nav { display: flex; flex-direction: column; padding-block: 8px 20px; }
   .mobile-nav a { display: flex; align-items: center; min-height: 44px; font-size: 15px; }
   .mobile-nav .text-button { font-size: 15px; }
@@ -921,6 +925,22 @@ h2 { font-size: 34px; letter-spacing: -.045em; line-height: 1.35; font-weight: 6
   color: #2563eb;
   margin: 0;
   line-height: 1.5;
+}
+
+.guest-complete-notice p + p {
+  margin-top: 6px;
+}
+
+.guest-lookup-member-hint {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+}
+
+.guest-lookup-member-hint a {
+  color: var(--brand);
+  font-weight: 600;
 }
 
 .order-page-header {
