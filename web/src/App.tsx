@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Navbar } from './components/Navbar'
 import { BrandHeroSection } from './components/BrandHeroSection'
 import { HeroSection } from './components/HeroSection'
@@ -13,12 +13,13 @@ import { LanguageProvider, useLanguage } from './context/LanguageContext'
 import type { ReservationSelection } from './types'
 import './App.css'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { AuthPage } from './components/AuthPage'
-import { ReservationsPage } from './components/ReservationsPage'
-import { AdminPage } from './components/AdminPage'
-
-import { ReservationPage } from './components/ReservationPage'
 import { Toaster } from './components/ui/sonner'
+
+// 첫 화면(랜딩)을 뺀 페이지는 방문할 때 불러온다.
+const AuthPage = lazy(() => import('./components/AuthPage').then(module => ({ default: module.AuthPage })))
+const ReservationsPage = lazy(() => import('./components/ReservationsPage').then(module => ({ default: module.ReservationsPage })))
+const AdminPage = lazy(() => import('./components/AdminPage').then(module => ({ default: module.AdminPage })))
+const ReservationPage = lazy(() => import('./components/ReservationPage').then(module => ({ default: module.ReservationPage })))
 
 function LandingContent({
   onOpenReservation,
@@ -68,24 +69,26 @@ function AppShell() {
     <>
       <a className="skip-link" href="#main">{t.nav.skip}</a>
       <Navbar onOpenReservation={() => openReservation()} onOpenChat={openChat} />
-      <Routes>
-        <Route path="/" element={<LandingContent onOpenReservation={openReservation} onOpenChat={openChat} />} />
-        <Route path="/en" element={<LandingContent onOpenReservation={openReservation} onOpenChat={openChat} />} />
-        <Route path="/reserve" element={<ReservationPage />} />
-        <Route path="/reservations/new" element={<Navigate to="/reserve" replace />} />
-        <Route path="/en/reserve" element={<ReservationPage />} />
-        <Route path="/en/reservations/new" element={<Navigate to="/en/reserve" replace />} />
-        <Route path="/reservations" element={<CustomerOnly><ReservationsPage key={reservationRevision} onOpenReservation={() => openReservation()} /></CustomerOnly>} />
-        <Route path="/order" element={<Navigate to="/reservations" replace />} />
-        <Route path="/en/reservations" element={<CustomerOnly><ReservationsPage key={reservationRevision} onOpenReservation={() => openReservation()} /></CustomerOnly>} />
-        <Route path="/login" element={<AuthPage />} />
-        <Route path="/signup" element={<AuthPage signup />} />
-        <Route path="/en/login" element={<AuthPage />} />
-        <Route path="/en/signup" element={<AuthPage signup />} />
-        <Route path="/admin" element={<AdminOnly><AdminPage /></AdminOnly>} />
-        <Route path="/ko" element={<Navigate to="/" replace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<div className="page-loading" aria-busy="true" />}>
+        <Routes>
+          <Route path="/" element={<LandingContent onOpenReservation={openReservation} onOpenChat={openChat} />} />
+          <Route path="/en" element={<LandingContent onOpenReservation={openReservation} onOpenChat={openChat} />} />
+          <Route path="/reserve" element={<ReservationPage />} />
+          <Route path="/reservations/new" element={<Navigate to="/reserve" replace />} />
+          <Route path="/en/reserve" element={<ReservationPage />} />
+          <Route path="/en/reservations/new" element={<Navigate to="/en/reserve" replace />} />
+          <Route path="/reservations" element={<CustomerOnly><ReservationsPage key={reservationRevision} onOpenReservation={() => openReservation()} /></CustomerOnly>} />
+          <Route path="/order" element={<Navigate to="/reservations" replace />} />
+          <Route path="/en/reservations" element={<CustomerOnly><ReservationsPage key={reservationRevision} onOpenReservation={() => openReservation()} /></CustomerOnly>} />
+          <Route path="/login" element={<AuthPage />} />
+          <Route path="/signup" element={<AuthPage signup />} />
+          <Route path="/en/login" element={<AuthPage />} />
+          <Route path="/en/signup" element={<AuthPage signup />} />
+          <Route path="/admin" element={<AdminOnly><AdminPage /></AdminOnly>} />
+          <Route path="/ko" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
       <ChatWidget isOpen={isChatOpen} onToggle={() => setIsChatOpen(value => !value)} onBookWithSymptom={openReservation} />
       <Toaster position="top-center" richColors />
     </>
