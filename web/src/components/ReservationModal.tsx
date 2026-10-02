@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Check, X } from 'lucide-react'
 import type { DeviceType, ReservationSelection } from '../types'
 import { useLanguage } from '../context/LanguageContext'
+import { PhoneInput } from './PhoneInput'
 
 const deviceTypes: ('laptop' | 'smartphone' | 'appliance' | 'etc')[] = ['laptop', 'smartphone', 'appliance', 'etc']
 
@@ -147,13 +148,10 @@ export function ReservationModal({ initialSelection, onClose }: { initialSelecti
                   </label>
                   <label className="field">
                     {t.modal.phoneLabel}
-                    <input
+                    <PhoneInput
                       required
-                      type="tel"
-                      pattern="[0-9\-]{9,13}"
                       value={form.phone}
-                      onChange={event => setForm({ ...form, phone: event.target.value })}
-                      placeholder={t.modal.phonePlaceholder}
+                      onChange={phone => setForm({ ...form, phone })}
                       autoComplete="off"
                     />
                   </label>

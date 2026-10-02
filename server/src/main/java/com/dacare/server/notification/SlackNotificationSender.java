@@ -50,7 +50,7 @@ public class SlackNotificationSender {
         + "*진행 상태*  배정 대기\n\n"
         + "*고객 정보*\n"
         + "• 성함: " + reservation.getContactName() + "\n"
-        + "• 연락처: " + reservation.getContactPhone() + "\n"
+        + "• 연락처: " + reservation.getContactPhone().format() + "\n"
         + "• 방문 주소: " + reservation.getVisitAddress() + "\n\n"
         + "*수리 요청*\n"
         + "• 품목: " + deviceName(reservation.getDeviceType()) + "\n"

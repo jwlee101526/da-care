@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '../lib/api'
+import { isValidPhone } from '../lib/phone'
+import { PhoneInput } from './PhoneInput'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import dacareLogo from '../assets/brand/dacare-logo.svg'
@@ -43,7 +45,7 @@ export function AuthPage({ signup = false }: { signup?: boolean }) {
     setEmail(`user${randomId}@dacare.com`)
     setPassword('password1234')
     setName('홍길동')
-    setPhone('010-1234-5678')
+    setPhone('+821012345678')
     setAddress('서울특별시 서초구 방배동 100')
     setError('')
   }
@@ -51,6 +53,10 @@ export function AuthPage({ signup = false }: { signup?: boolean }) {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
+    if (signup && !isValidPhone(phone)) {
+      setError(lang === 'en' ? 'Enter a valid mobile number.' : '올바른 휴대전화 번호를 입력해 주세요.')
+      return
+    }
     setIsSubmitting(true)
     try {
       const role = signup ? await auth.signup({ email, password, name, phone, address }) : await auth.login(email, password)
@@ -169,15 +175,11 @@ export function AuthPage({ signup = false }: { signup?: boolean }) {
                   />
                 </label>
                 <label className="auth-label">
-                  <span>{lang === 'en' ? 'Phone Number' : '연락처'}</span>
-                  <input
+                  <span>{lang === 'en' ? 'Mobile Number' : '휴대전화 번호'}</span>
+                  <PhoneInput
                     required
-                    type="tel"
-                    placeholder="010-1234-5678"
-                    pattern="[0-9-]{9,13}"
                     value={phone}
-                    onChange={e => setPhone(e.target.value)}
-                    autoComplete="tel"
+                    onChange={setPhone}
                   />
                 </label>
                 <label className="auth-label">

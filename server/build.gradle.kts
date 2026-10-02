@@ -33,6 +33,7 @@ dependencies {
     implementation("org.springframework.ai:spring-ai-starter-vector-store-pgvector")
     implementation("org.springframework.ai:spring-ai-vector-store-advisor")
     implementation("com.solapi:sdk:1.2.0")
+    implementation("com.googlecode.libphonenumber:libphonenumber:9.0.40")
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     compileOnly("org.projectlombok:lombok")
     runtimeOnly("org.postgresql:postgresql")

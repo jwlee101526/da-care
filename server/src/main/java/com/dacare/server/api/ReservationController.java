@@ -1,13 +1,14 @@
 package com.dacare.server.api;
 
 import com.dacare.server.api.docs.ReservationApiDocs;
+import com.dacare.server.api.validation.ValidPhoneNumber;
+import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.service.ReservationDraft;
 import com.dacare.server.service.ReservationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,7 +46,7 @@ public class ReservationController implements ReservationApiDocs {
   @PostMapping("/guest/lookup")
   public ReservationResponse lookupGuest(@Valid @RequestBody GuestLookupRequest request) {
     return ReservationResponse.from(
-        service.findGuest(request.reservationId(), request.contactPhone(),
+        service.findGuest(request.reservationId(), PhoneNumber.of(request.contactPhone()),
             request.guestPassword()));
   }
 
@@ -53,7 +54,7 @@ public class ReservationController implements ReservationApiDocs {
   public ReservationResponse cancelGuest(@PathVariable Long id,
       @Valid @RequestBody GuestCancelRequest request) {
     return ReservationResponse.from(
-        service.cancelGuest(id, request.contactPhone(), request.guestPassword()));
+        service.cancelGuest(id, PhoneNumber.of(request.contactPhone()), request.guestPassword()));
   }
 
   @GetMapping("/me")
@@ -76,11 +77,11 @@ public class ReservationController implements ReservationApiDocs {
                             @NotBlank @Size(max = 200) String visitAddress,
                             @NotNull LocalDateTime preferredAt,
                             @Size(min = 1, max = 50) String contactName,
-                            @Pattern(regexp = "^[0-9-]{9,13}$") String contactPhone) {
+                            @ValidPhoneNumber(mobile = true) String contactPhone) {
 
     ReservationDraft toDraft() {
       return new ReservationDraft(deviceType, symptomDescription, visitAddress, preferredAt,
-          contactName, contactPhone);
+          contactName, PhoneNumber.ofNullableMobile(contactPhone));
     }
   }
 
@@ -89,22 +90,22 @@ public class ReservationController implements ReservationApiDocs {
                                  @NotBlank @Size(max = 200) String visitAddress,
                                  @NotNull LocalDateTime preferredAt,
                                  @NotBlank @Size(min = 1, max = 50) String contactName,
-                                 @NotBlank @Pattern(regexp = "^[0-9-]{9,13}$") String contactPhone,
+                                 @NotBlank @ValidPhoneNumber(mobile = true) String contactPhone,
                                  @Size(max = 20) String guestPassword) {
 
     ReservationDraft toDraft() {
       return new ReservationDraft(deviceType, symptomDescription, visitAddress, preferredAt,
-          contactName, contactPhone);
+          contactName, PhoneNumber.ofMobile(contactPhone));
     }
   }
 
   public record GuestLookupRequest(@NotNull Long reservationId,
-                            @NotBlank @Pattern(regexp = "^[0-9-]{9,13}$") String contactPhone,
+                            @NotBlank @ValidPhoneNumber String contactPhone,
                             String guestPassword) {
 
   }
 
-  public record GuestCancelRequest(@NotBlank @Pattern(regexp = "^[0-9-]{9,13}$") String contactPhone,
+  public record GuestCancelRequest(@NotBlank @ValidPhoneNumber String contactPhone,
                             String guestPassword) {
 
   }
@@ -120,7 +121,8 @@ public class ReservationController implements ReservationApiDocs {
           reservation.getPreferredAt(), reservation.getConfirmedAt(),
           reservation.getStatus().name(),
           reservation.getEngineer() == null ? null : reservation.getEngineer().getName(),
-          reservation.getContactName(), reservation.getContactPhone());
+          reservation.getContactName(),
+          reservation.getContactPhone() == null ? null : reservation.getContactPhone().value());
     }
   }
 }

@@ -39,11 +39,11 @@ public class Reservation {
   private LocalDateTime preferredAt;
   private LocalDateTime confirmedAt;
   private String contactName;
-  private String contactPhone;
+  private PhoneNumber contactPhone;
   @Column(length = 100)
   private String guestPasswordHash;
 
-  public void setContact(String name, String phone) {
+  public void setContact(String name, PhoneNumber phone) {
     this.contactName = name;
     this.contactPhone = phone;
   }
@@ -66,7 +66,7 @@ public class Reservation {
   }
 
   public Reservation(String deviceType, String symptomDescription, String visitAddress,
-      LocalDateTime preferredAt, String contactName, String contactPhone,
+      LocalDateTime preferredAt, String contactName, PhoneNumber contactPhone,
       String guestPasswordHash) {
     this.customer = null;
     this.deviceType = deviceType;

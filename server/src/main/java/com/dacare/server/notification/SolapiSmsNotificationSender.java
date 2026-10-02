@@ -1,6 +1,7 @@
 package com.dacare.server.notification;
 
 import com.dacare.server.domain.NotificationHistory;
+import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.repository.NotificationHistoryRepository;
 import com.dacare.server.service.ApiUsageService;
@@ -58,10 +59,24 @@ public class SolapiSmsNotificationSender {
 
   private Message createMessage(Reservation reservation, String text) {
     Message message = new Message();
-    message.setFrom(sender.replace("-", ""));
-    message.setTo(reservation.getContactPhone().replace("-", ""));
+    // 발신번호는 솔라피에 등록한 국내 번호만 쓸 수 있다.
+    message.setFrom(PhoneNumber.of(sender).nationalDialingNumber());
+    setRecipient(message, reservation.getContactPhone());
     message.setText(text);
     return message;
+  }
+
+  /**
+   * 솔라피는 수신번호를 국가번호와 분리해 받는다. 국내 번호는 국내 형식(01012345678)으로, 해외 번호는 국가번호와
+   * 국내 접두어를 뺀 번호로 보낸다.
+   */
+  private void setRecipient(Message message, PhoneNumber to) {
+    if (to.isDomestic()) {
+      message.setTo(to.nationalDialingNumber());
+      return;
+    }
+    message.setCountry(String.valueOf(to.countryCode()));
+    message.setTo(to.nationalSignificantNumber());
   }
 
   private String message(Reservation reservation) {

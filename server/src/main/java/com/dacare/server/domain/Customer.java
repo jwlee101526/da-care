@@ -25,11 +25,11 @@ public class Customer {
   @Column(nullable = false)
   private String name;
   @Column(nullable = false)
-  private String phone;
+  private PhoneNumber phone;
   @Column(nullable = false)
   private String address;
 
-  public Customer(AppUser user, String name, String phone, String address) {
+  public Customer(AppUser user, String name, PhoneNumber phone, String address) {
     this.user = user;
     this.name = name;
     this.phone = phone;

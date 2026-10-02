@@ -2,6 +2,7 @@ package com.dacare.server.service;
 
 import com.dacare.server.domain.Customer;
 import com.dacare.server.domain.Engineer;
+import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.repository.AppUserRepository;
 import com.dacare.server.repository.CustomerRepository;
@@ -66,10 +67,10 @@ public class ReservationService {
         passwordHash));
   }
 
-  public Reservation findGuest(Long id, String contactPhone, String guestPassword) {
+  public Reservation findGuest(Long id, PhoneNumber contactPhone, String guestPassword) {
     Reservation reservation = getReservation(id);
     // 다른 예약의 존재 여부가 드러나지 않도록 회원 예약과 연락처 불일치는 모두 '없음'으로 응답한다.
-    if (!reservation.isGuest() || !samePhone(reservation.getContactPhone(), contactPhone)) {
+    if (!reservation.isGuest() || !contactPhone.equals(reservation.getContactPhone())) {
       throw new NoSuchElementException(RESERVATION_NOT_FOUND);
     }
     String passwordHash = reservation.getGuestPasswordHash();
@@ -81,7 +82,7 @@ public class ReservationService {
   }
 
   @Transactional
-  public Reservation cancelGuest(Long id, String contactPhone, String guestPassword) {
+  public Reservation cancelGuest(Long id, PhoneNumber contactPhone, String guestPassword) {
     Reservation reservation = findGuest(id, contactPhone, guestPassword);
     reservation.cancel();
     return reservation;
@@ -160,10 +161,5 @@ public class ReservationService {
     if (!dateTime.isAfter(LocalDateTime.now(clock))) {
       throw new IllegalArgumentException(message);
     }
-  }
-
-  private static boolean samePhone(String saved, String input) {
-    return saved != null && input != null
-        && saved.replace("-", "").equals(input.replace("-", ""));
   }
 }

@@ -3,9 +3,11 @@ import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { api, ApiError, fetchTotalUsage } from '../lib/api'
+import { formatPhone, isValidPhone } from '../lib/phone'
 import type { Engineer, Reservation, UsageItem } from '../lib/api'
 import { useUsage } from '../hooks/useUsage'
 import { notifyUsage } from '../lib/usageToast'
+import { PhoneInput } from './PhoneInput'
 
 const SMS_USAGE_TEXT = {
   used: (used: number, limit: number) => `이번 주 SMS ${used}/${limit}회 사용`,
@@ -20,7 +22,7 @@ function UsageMeter({ label, item }: { label: string; item: UsageItem }) {
 }
 
 export function AdminPage() {
-  const { token, logout } = useAuth(); const [engineers, setEngineers] = useState<Engineer[]>([]); const [reservations, setReservations] = useState<Reservation[]>([]); const [error, setError] = useState(''); const [notice, setNotice] = useState(''); const [submitting, setSubmitting] = useState(false); const { usage, refresh: refreshUsage } = useUsage(useCallback(() => fetchTotalUsage(token), [token]))
+  const { token, logout } = useAuth(); const [engineers, setEngineers] = useState<Engineer[]>([]); const [reservations, setReservations] = useState<Reservation[]>([]); const [error, setError] = useState(''); const [notice, setNotice] = useState(''); const [submitting, setSubmitting] = useState(false); const [engineerPhone, setEngineerPhone] = useState(''); const { usage, refresh: refreshUsage } = useUsage(useCallback(() => fetchTotalUsage(token), [token]))
   const load = useCallback(() => Promise.all([api<Engineer[]>('/api/admin/engineers', {}, token), api<Reservation[]>('/api/admin/reservations', {}, token)])
     .then(([e, r]) => {
       setEngineers(e)
@@ -31,14 +33,14 @@ export function AdminPage() {
   useEffect(() => { void load() }, [load])
   async function addEngineer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const form = new FormData(event.currentTarget)
-    const phone = String(form.get('phone') ?? '').replace(/\D/g, '')
+    const formElement = event.currentTarget
+    const form = new FormData(formElement)
     setSubmitting(true)
     setError('')
     setNotice('')
 
-    if (!/^0\d{8,10}$/.test(phone)) {
-      setError('연락처를 010-1234-5678 형식으로 입력해 주세요.')
+    if (!isValidPhone(engineerPhone)) {
+      setError('올바른 휴대전화 번호를 입력해 주세요.')
       setSubmitting(false)
       return
     }
@@ -46,7 +48,7 @@ export function AdminPage() {
     try {
       await api('/api/admin/engineers', {
         method: 'POST',
-        body: JSON.stringify({ ...Object.fromEntries(form), phone }),
+        body: JSON.stringify({ ...Object.fromEntries(form), phone: engineerPhone }),
       }, token)
     } catch (e) {
       setError(e instanceof ApiError ? e.message : '기사 등록에 실패했습니다.')
@@ -54,7 +56,8 @@ export function AdminPage() {
       return
     }
 
-    event.currentTarget.reset()
+    formElement.reset()
+    setEngineerPhone('')
     setNotice('기사가 등록되었습니다.')
     try {
       await load()
@@ -90,6 +93,6 @@ export function AdminPage() {
     }
   }
   async function removeEngineer(id: number) { if (!window.confirm('기사를 삭제하시겠습니까?')) return; try { await api(`/api/admin/engineers/${id}`, { method: 'DELETE' }, token); void load() } catch (e) { setError(e instanceof ApiError ? e.message : '기사 삭제에 실패했습니다.') } }
-  async function editEngineer(engineer: Engineer) { const name = window.prompt('이름', engineer.name); const phone = window.prompt('연락처', engineer.phone); const specialty = window.prompt('전문 분야', engineer.specialty); const region = window.prompt('지역', engineer.region); if (!name || !phone || !specialty || !region) return; try { await api(`/api/admin/engineers/${engineer.id}`, { method: 'PUT', body: JSON.stringify({ name, phone, specialty, region }) }, token); void load() } catch (e) { setError(e instanceof ApiError ? e.message : '기사 수정에 실패했습니다.') } }
-  return <main className="dashboard"><header><Link to="/">DA-CARE 관리자</Link><button onClick={logout}>로그아웃</button></header><h1>예약 운영</h1>{error && <p className="form-error" role="alert">{error}</p>}{notice && <p className="form-success" role="status">{notice}</p>}{usage && <section className="usage-summary"><h2>이번 주 사용량</h2><p>유료 API의 서비스 전체 주간 한도입니다. 매주 월요일 0시(한국 시간)에 초기화됩니다.</p><UsageMeter label="AI 상담" item={usage.diagnosis} /><UsageMeter label="SMS 발송" item={usage.sms} /></section>}<section><h2>기사 등록</h2><form className="inline-form" onSubmit={addEngineer}><input required name="name" placeholder="이름" /><input required name="phone" type="tel" placeholder="연락처" pattern="[0-9-]{9,13}" /><input required name="specialty" placeholder="전문 분야" /><input required name="region" placeholder="지역" /><button className="button primary" disabled={submitting}>{submitting ? '등록 중...' : '등록'}</button></form><ul>{engineers.map(e => <li key={e.id}>{e.name} · {e.specialty} · {e.region} <button onClick={() => editEngineer(e)}>수정</button> <button onClick={() => removeEngineer(e.id)}>삭제</button></li>)}</ul></section><section><h2>예약 목록</h2>{reservations.map(r => <article className="admin-reservation" key={r.id}><strong>#{r.id} {r.deviceType} · {r.status}</strong><p>{r.symptomDescription} / {r.visitAddress}</p><p>희망: {r.preferredAt.replace('T', ' ')}</p>{r.status === 'PENDING' && <form className="inline-form" onSubmit={e => { e.preventDefault(); void confirm(r.id, e.currentTarget) }}><select required name="engineerId" defaultValue=""><option value="" disabled>기사 선택</option>{engineers.map(x => <option value={x.id} key={x.id}>{x.name}</option>)}</select><input required name="confirmedAt" type="datetime-local" /><button className="button primary">확정</button><button type="button" className="button secondary" onClick={() => change(r.id, 'cancel')}>취소</button></form>}{r.status === 'CONFIRMED' && <><button className="button primary" onClick={() => change(r.id, 'complete')}>완료 처리</button> <button className="button secondary" onClick={() => change(r.id, 'cancel')}>취소</button></>}</article>)}</section></main>
+  async function editEngineer(engineer: Engineer) { const name = window.prompt('이름', engineer.name); const phone = window.prompt('휴대전화 번호', formatPhone(engineer.phone)); const specialty = window.prompt('전문 분야', engineer.specialty); const region = window.prompt('지역', engineer.region); if (!name || !phone || !specialty || !region) return; try { await api(`/api/admin/engineers/${engineer.id}`, { method: 'PUT', body: JSON.stringify({ name, phone, specialty, region }) }, token); void load() } catch (e) { setError(e instanceof ApiError ? e.message : '기사 수정에 실패했습니다.') } }
+  return <main className="dashboard"><header><Link to="/">DA-CARE 관리자</Link><button onClick={logout}>로그아웃</button></header><h1>예약 운영</h1>{error && <p className="form-error" role="alert">{error}</p>}{notice && <p className="form-success" role="status">{notice}</p>}{usage && <section className="usage-summary"><h2>이번 주 사용량</h2><p>유료 API의 서비스 전체 주간 한도입니다. 매주 월요일 0시(한국 시간)에 초기화됩니다.</p><UsageMeter label="AI 상담" item={usage.diagnosis} /><UsageMeter label="SMS 발송" item={usage.sms} /></section>}<section><h2>기사 등록</h2><form className="inline-form" onSubmit={addEngineer}><input required name="name" placeholder="이름" /><PhoneInput required aria-label="휴대전화 번호" value={engineerPhone} onChange={setEngineerPhone} /><input required name="specialty" placeholder="전문 분야" /><input required name="region" placeholder="지역" /><button className="button primary" disabled={submitting}>{submitting ? '등록 중...' : '등록'}</button></form><ul>{engineers.map(e => <li key={e.id}>{e.name} · {formatPhone(e.phone)} · {e.specialty} · {e.region} <button onClick={() => editEngineer(e)}>수정</button> <button onClick={() => removeEngineer(e.id)}>삭제</button></li>)}</ul></section><section><h2>예약 목록</h2>{reservations.map(r => <article className="admin-reservation" key={r.id}><strong>#{r.id} {r.deviceType} · {r.status}</strong><p>{r.symptomDescription} / {r.visitAddress}</p>{r.contactName && <p>고객: {r.contactName}{r.contactPhone && ` · ${formatPhone(r.contactPhone)}`}</p>}<p>희망: {r.preferredAt.replace('T', ' ')}</p>{r.status === 'PENDING' && <form className="inline-form" onSubmit={e => { e.preventDefault(); void confirm(r.id, e.currentTarget) }}><select required name="engineerId" defaultValue=""><option value="" disabled>기사 선택</option>{engineers.map(x => <option value={x.id} key={x.id}>{x.name}</option>)}</select><input required name="confirmedAt" type="datetime-local" /><button className="button primary">확정</button><button type="button" className="button secondary" onClick={() => change(r.id, 'cancel')}>취소</button></form>}{r.status === 'CONFIRMED' && <><button className="button primary" onClick={() => change(r.id, 'complete')}>완료 처리</button> <button className="button secondary" onClick={() => change(r.id, 'cancel')}>취소</button></>}</article>)}</section></main>
 }

@@ -1,5 +1,6 @@
 package com.dacare.server.service;
 
+import com.dacare.server.domain.PhoneNumber;
 import java.time.LocalDateTime;
 
 /**
@@ -7,6 +8,6 @@ import java.time.LocalDateTime;
  */
 public record ReservationDraft(String deviceType, String symptomDescription, String visitAddress,
                                LocalDateTime preferredAt, String contactName,
-                               String contactPhone) {
+                               PhoneNumber contactPhone) {
 
 }

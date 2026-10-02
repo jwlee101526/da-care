@@ -1,6 +1,7 @@
 package com.dacare.server.service;
 
 import com.dacare.server.domain.Engineer;
+import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.repository.EngineerRepository;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -22,12 +23,12 @@ public class EngineerService {
   }
 
   @Transactional
-  public Engineer create(String name, String phone, String specialty, String region) {
+  public Engineer create(String name, PhoneNumber phone, String specialty, String region) {
     return engineers.save(new Engineer(name, phone, specialty, region));
   }
 
   @Transactional
-  public Engineer update(Long id, String name, String phone, String specialty, String region) {
+  public Engineer update(Long id, String name, PhoneNumber phone, String specialty, String region) {
     Engineer engineer = engineers.findById(id)
         .orElseThrow(() -> new NoSuchElementException("기사를 찾을 수 없습니다."));
     engineer.update(name, phone, specialty, region);

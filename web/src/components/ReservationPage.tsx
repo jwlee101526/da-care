@@ -5,6 +5,8 @@ import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
 import { api, ApiError, type Reservation } from '../lib/api'
 import { DEVICE_CATEGORIES, getCategoryDefinition, getCategoryInfo } from '../lib/categories'
+import { formatPhone, isValidPhone } from '../lib/phone'
+import { PhoneInput } from './PhoneInput'
 import type { DeviceType, ReservationSelection } from '../types'
 
 const QUICK_SYMPTOMS_KO = [
@@ -44,30 +46,6 @@ function getTomorrowDate(): string {
     String(tomorrow.getMonth() + 1).padStart(2, '0'),
     String(tomorrow.getDate()).padStart(2, '0'),
   ].join('-')
-}
-
-function normalizePhone(phone: string): string {
-  return phone.replace(/\D/g, '')
-}
-
-function formatPhone(value: string): string {
-  const digits = normalizePhone(value)
-  if (digits.startsWith('02')) {
-    const local = digits.slice(0, 10)
-    if (local.length <= 2) return local
-    if (local.length <= 5) return `${local.slice(0, 2)}-${local.slice(2)}`
-    if (local.length <= 9) return `${local.slice(0, 2)}-${local.slice(2, 5)}-${local.slice(5)}`
-    return `${local.slice(0, 2)}-${local.slice(2, 6)}-${local.slice(6)}`
-  }
-  const local = digits.slice(0, 11)
-  if (local.length <= 3) return local
-  if (local.length <= 6) return `${local.slice(0, 3)}-${local.slice(3)}`
-  if (local.length <= 10) return `${local.slice(0, 3)}-${local.slice(3, 6)}-${local.slice(6)}`
-  return `${local.slice(0, 3)}-${local.slice(3, 7)}-${local.slice(7)}`
-}
-
-function isValidPhone(phone: string): boolean {
-  return /^0\d{8,10}$/.test(normalizePhone(phone))
 }
 
 export function ReservationPage() {
@@ -141,11 +119,11 @@ export function ReservationPage() {
       return
     }
     if (!phone.trim()) {
-      setError(lang === 'en' ? 'Please enter your phone number.' : '연락처를 입력해 주세요.')
+      setError(lang === 'en' ? 'Please enter your mobile number.' : '휴대전화 번호를 입력해 주세요.')
       return
     }
     if (!isValidPhone(phone)) {
-      setError(lang === 'en' ? 'Enter a valid phone number.' : '올바른 연락처를 입력해 주세요. (숫자만 입력해도 됩니다)')
+      setError(lang === 'en' ? 'Enter a valid mobile number.' : '올바른 휴대전화 번호를 입력해 주세요.')
       return
     }
     if (!address.trim()) {
@@ -173,7 +151,7 @@ export function ReservationPage() {
             deviceType: selectedDevice,
             symptomDescription: symptom,
             contactName: name,
-            contactPhone: normalizePhone(phone),
+            contactPhone: phone,
             visitAddress: address,
             preferredAt: `${date}T${time}:00`,
           }),
@@ -187,7 +165,7 @@ export function ReservationPage() {
             visitAddress: address,
             preferredAt: `${date}T${time}:00`,
             contactName: name,
-            contactPhone: normalizePhone(phone),
+            contactPhone: phone,
             guestPassword: guestPassword || '1234',
           }),
         })
@@ -301,9 +279,6 @@ export function ReservationPage() {
               <div className="order-section-title">
                 <span className="order-step-badge">2</span>
                 <h3>{lang === 'en' ? 'Symptom & Description' : '고장 증상 및 요청 사항'}</h3>
-                <span className="time-selected-badge">
-                  {lang === 'en' ? selectedCategory.labelEn : selectedCategory.labelKo}
-                </span>
               </div>
               <p className="order-section-sub">
                 {lang === 'en'
@@ -318,10 +293,11 @@ export function ReservationPage() {
                     <button
                       key={s}
                       type="button"
-                      className="quick-tag-chip"
+                      className={`quick-tag-chip ${symptom.includes(s) ? 'active' : ''}`}
+                      aria-pressed={symptom.includes(s)}
                       onClick={() => handleQuickSymptom(s)}
                     >
-                      + {s}
+                      {s}
                     </button>
                   ))}
                 </div>
@@ -407,7 +383,7 @@ export function ReservationPage() {
                 </p>
 
                 <div className="customer-fields-grid">
-                  <div className="customer-field">
+                  <div className="customer-field full">
                     <label htmlFor="client-name">{lang === 'en' ? 'Customer Name' : '성함 (신청자)'}</label>
                     <input
                       id="client-name"
@@ -418,20 +394,14 @@ export function ReservationPage() {
                       onChange={e => setName(e.target.value)}
                     />
                   </div>
-                  <div className="customer-field">
-                    <label htmlFor="client-phone">{lang === 'en' ? 'Phone Number' : '연락처'}</label>
-                    <input
+                  <div className="customer-field full">
+                    <label htmlFor="client-phone">{lang === 'en' ? 'Mobile Number' : '휴대전화 번호'}</label>
+                    <PhoneInput
                       id="client-phone"
                       required
-                      type="tel"
-                      inputMode="numeric"
-                      autoComplete="tel"
-                      pattern="[0-9-]{9,13}"
-                      maxLength={13}
                       className="order-input"
-                      placeholder="010-1234-5678"
                       value={phone}
-                      onChange={e => setPhone(formatPhone(e.target.value))}
+                      onChange={setPhone}
                     />
                   </div>
                   <div className="customer-field full">
@@ -473,7 +443,7 @@ export function ReservationPage() {
                         <span>
                           {lang === 'en'
                             ? '[Required] I consent to personal contact & address collection for dispatching visit service.'
-                            : '[필수] 전담 엔지니어 배정 및 방문 수리 서비스 제공을 위한 개인정보(성함, 연락처, 주소) 수집·이용에 동의합니다.'}
+                            : '[필수] 전담 엔지니어 배정 및 방문 수리 서비스 제공을 위한 개인정보(성함, 휴대전화 번호, 주소) 수집·이용에 동의합니다.'}
                         </span>
                       </label>
                     </div>
@@ -524,8 +494,8 @@ export function ReservationPage() {
                       <span className="kv-val font-bold">{name}</span>
                     </div>
                     <div className="summary-kv-item">
-                      <span className="kv-label">{lang === 'en' ? 'Contact' : '연락처'}</span>
-                      <span className="kv-val">{phone}</span>
+                      <span className="kv-label">{lang === 'en' ? 'Mobile' : '휴대전화 번호'}</span>
+                      <span className="kv-val">{formatPhone(phone)}</span>
                     </div>
                     <div className="summary-kv-item">
                       <span className="kv-label">{lang === 'en' ? 'Address' : '방문 주소'}</span>
@@ -640,7 +610,7 @@ export function ReservationPage() {
                     <span className="notification-guide-marker pending" aria-hidden="true"><Clock size={14} /></span>
                     <div>
                       <strong>{lang === 'en' ? 'Technician assigned and schedule confirmed' : '기사 배정 및 방문 일정 확정'}</strong>
-                      <p>{lang === 'en' ? 'Once confirmed, the assigned technician and visit time will be sent to your registered phone number by SMS.' : '확정되면 담당 기사와 방문 일시를 입력하신 연락처로 문자로 보내드립니다.'}</p>
+                      <p>{lang === 'en' ? 'Once confirmed, the assigned technician and visit time will be sent to your mobile number by SMS.' : '확정되면 담당 기사와 방문 일시를 입력하신 휴대전화 번호로 문자로 보내드립니다.'}</p>
                     </div>
                   </li>
                 </ol>
@@ -651,8 +621,8 @@ export function ReservationPage() {
                   <strong>{lang === 'en' ? 'Guest Reservation Notice' : '비회원 예약 접수 안내'}</strong>
                   <p>
                     {lang === 'en'
-                      ? `Your order #${savedReservation?.id} is registered. Our engineer will contact you via phone (${phone}) prior to visit.`
-                      : `비회원 예약 번호 #${savedReservation?.id}와 입력하신 연락처(${phone})로 정상 접수되었습니다. 담당 기사 배정 후 방문 전 유선으로 사전 연락드립니다.`}
+                      ? `Your order #${savedReservation?.id} is registered. Our engineer will contact you at your mobile number (${formatPhone(phone)}) prior to visit.`
+                      : `비회원 예약 번호 #${savedReservation?.id}와 입력하신 휴대전화 번호(${formatPhone(phone)})로 정상 접수되었습니다. 담당 기사 배정 후 방문 전 유선으로 사전 연락드립니다.`}
                   </p>
                 </div>
               )}

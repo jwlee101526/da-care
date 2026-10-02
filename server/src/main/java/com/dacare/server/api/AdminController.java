@@ -2,7 +2,9 @@ package com.dacare.server.api;
 
 import com.dacare.server.api.ReservationController.ReservationResponse;
 import com.dacare.server.api.docs.AdminApiDocs;
+import com.dacare.server.api.validation.ValidPhoneNumber;
 import com.dacare.server.domain.Engineer;
+import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.service.ApiUsageService;
 import com.dacare.server.service.ApiUsageService.TotalUsage;
 import com.dacare.server.service.EngineerService;
@@ -10,7 +12,6 @@ import com.dacare.server.service.ReservationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -50,13 +51,13 @@ public class AdminController implements AdminApiDocs {
 
   @PostMapping("/engineers")
   public EngineerResponse create(@Valid @RequestBody EngineerRequest request) {
-    return EngineerResponse.from(engineers.create(request.name(), request.phone(),
+    return EngineerResponse.from(engineers.create(request.name(), PhoneNumber.ofMobile(request.phone()),
         request.specialty(), request.region()));
   }
 
   @PutMapping("/engineers/{id}")
   public EngineerResponse update(@PathVariable Long id, @Valid @RequestBody EngineerRequest request) {
-    return EngineerResponse.from(engineers.update(id, request.name(), request.phone(),
+    return EngineerResponse.from(engineers.update(id, request.name(), PhoneNumber.ofMobile(request.phone()),
         request.specialty(), request.region()));
   }
 
@@ -87,7 +88,7 @@ public class AdminController implements AdminApiDocs {
     return ReservationResponse.from(reservations.cancelByAdmin(id));
   }
 
-  public record EngineerRequest(@NotBlank String name, @Pattern(regexp = "^[0-9-]{9,13}$") String phone,
+  public record EngineerRequest(@NotBlank String name, @NotBlank @ValidPhoneNumber(mobile = true) String phone,
                          @NotBlank String specialty, @NotBlank String region) {
 
   }
@@ -99,7 +100,7 @@ public class AdminController implements AdminApiDocs {
   public record EngineerResponse(Long id, String name, String phone, String specialty, String region) {
 
     static EngineerResponse from(Engineer engineer) {
-      return new EngineerResponse(engineer.getId(), engineer.getName(), engineer.getPhone(),
+      return new EngineerResponse(engineer.getId(), engineer.getName(), engineer.getPhone().value(),
           engineer.getSpecialty(), engineer.getRegion());
     }
   }

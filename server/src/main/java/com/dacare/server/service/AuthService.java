@@ -2,6 +2,7 @@ package com.dacare.server.service;
 
 import com.dacare.server.domain.AppUser;
 import com.dacare.server.domain.Customer;
+import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.domain.Role;
 import com.dacare.server.repository.AppUserRepository;
 import com.dacare.server.repository.CustomerRepository;
@@ -29,7 +30,7 @@ public class AuthService {
   }
 
   @Transactional
-  public String signup(String email, String password, String name, String phone, String address) {
+  public String signup(String email, String password, String name, PhoneNumber phone, String address) {
     if (users.existsByEmail(email)) {
       throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
     }
