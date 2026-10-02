@@ -36,8 +36,9 @@ public class DiagnosisTools {
     this.progress = progress;
   }
 
-  @Tool(description = "기기 증상에 해당하는 실제 매뉴얼을 검색합니다. 빈 결과이면 근거가 없습니다.")
-  public synchronized List<ManualSource> searchManuals(String query) {
+  @Tool(description = "기기 증상에 해당하는 실제 매뉴얼을 검색합니다. 빈 결과이면 근거가 없습니다. 한 번에 기기 하나의 증상 하나만 검색하고, 여러 기기나 증상은 각각 따로 호출하세요.")
+  public synchronized List<ManualSource> searchManuals(
+      @ToolParam(description = "검색할 기기와 증상 하나(예: 스마트폰 화면 터치가 안 됨). 다른 기기나 이전 대화의 증상을 섞지 마세요.") String query) {
     started("searchManuals");
     requireText(query, 2000);
     if (vectorStore == null) {
@@ -55,7 +56,7 @@ public class DiagnosisTools {
     return result;
   }
 
-  @Tool(description = "검색된 매뉴얼에 근거한 점검 안내를 표시합니다. sourceIds에는 searchManuals가 반환한 문서 ID만 전달하세요. 서버가 해당 원문을 근거로 첨부합니다. 근거가 없으면 호출하지 마세요.")
+  @Tool(description = "검색된 매뉴얼에 근거한 점검 안내를 표시합니다. 기기마다 한 번씩 호출할 수 있습니다. sourceIds에는 searchManuals가 반환한 문서 ID만 전달하세요. 서버가 해당 원문을 근거로 첨부합니다. 근거가 없으면 호출하지 마세요.")
   public synchronized InspectionCard showInspectionCard(
       @ToolParam(description = "사용자에게 표시할 점검 제목") String title,
       DeviceType deviceType,
@@ -86,7 +87,8 @@ public class DiagnosisTools {
             ? null : suspectedCause;
     InspectionCard card = new InspectionCard("inspection", title, deviceType, deviceName, cause,
         inspectionDetails, List.copyOf(evidence));
-    cards.put("inspection", card);
+    // 여러 기기를 함께 상담하면 기기별 안내가 모두 남도록 기기 분류로 구분한다.
+    cards.put("inspection:" + deviceType, card);
     executedTools.add("showInspectionCard");
     completed("showInspectionCard", card);
     return card;
