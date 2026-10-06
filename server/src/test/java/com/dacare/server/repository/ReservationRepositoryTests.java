@@ -8,6 +8,7 @@ import com.dacare.server.domain.DeviceType;
 import com.dacare.server.domain.Engineer;
 import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.domain.Reservation;
+import com.dacare.server.domain.ReservationCode;
 import com.dacare.server.domain.Role;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -52,7 +53,8 @@ class ReservationRepositoryTests {
       Engineer engineer = new Engineer("기사" + i, PhoneNumber.ofMobile("010-3333-000" + i), "가전",
           "서울");
       entityManager.persist(engineer);
-      Reservation reservation = Reservation.forCustomer("1000000" + i, customer, DeviceType.tv, "화면이 꺼짐",
+      Reservation reservation = Reservation.forCustomer(ReservationCode.parse("1000000" + i).orElseThrow(),
+          customer, DeviceType.tv, "화면이 꺼짐",
           "서울", NOW.plusDays(1), "홍길동", customer.getPhone(), NOW.plusMinutes(i));
       reservation.confirm(engineer, NOW.plusDays(2));
       entityManager.persist(reservation);

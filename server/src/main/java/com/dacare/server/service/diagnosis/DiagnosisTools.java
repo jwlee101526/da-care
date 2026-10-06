@@ -125,10 +125,10 @@ public class DiagnosisTools {
     }
     var reservation = reservations.mineOneByCode(email, reservationCode);
     ReservationStatusCard card = new ReservationStatusCard("reservation_status",
-        reservation.getCode(),
+        reservation.getCode().value(),
         reservation.getStatus().name(), reservation.getPreferredAt(), reservation.getConfirmedAt(),
         reservation.getEngineer() == null ? null : reservation.getEngineer().getName());
-    cards.put("reservation_status:" + reservation.getCode(), card);
+    cards.put("reservation_status:" + reservation.getCode().value(), card);
     executedTools.add("getReservationStatus");
     completed("getReservationStatus", card);
     return card;

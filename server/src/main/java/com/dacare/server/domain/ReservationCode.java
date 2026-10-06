@@ -17,30 +17,63 @@ public final class ReservationCode {
   private static final Pattern DIGITS = Pattern.compile("\\d{" + LENGTH + "}");
   private static final SecureRandom RANDOM = new SecureRandom();
 
-  private ReservationCode() {
+  private final String value;
+
+  private ReservationCode(String value) {
+    this.value = value;
   }
 
-  public static String generate() {
-    return String.format("%0" + LENGTH + "d", RANDOM.nextInt(BOUND));
+  public static ReservationCode generate() {
+    return new ReservationCode(String.format("%0" + LENGTH + "d", RANDOM.nextInt(BOUND)));
+  }
+
+  /**
+   * 고객이 입력한 값을 읽는다. 하이픈과 공백은 무시한다.
+   *
+   * @return 숫자 8자리가 아니면 빈 값
+   */
+  public static Optional<ReservationCode> parse(String input) {
+    if (input == null) {
+      return Optional.empty();
+    }
+    String digits = input.replaceAll("[\\s-]", "");
+    return DIGITS.matcher(digits).matches() ? Optional.of(new ReservationCode(digits))
+        : Optional.empty();
+  }
+
+  /**
+   * DB에 저장된 값을 다시 읽는다. 저장할 때 이미 검증했으므로 형식을 다시 확인하지 않는다.
+   */
+  static ReservationCode restore(String stored) {
+    return new ReservationCode(stored);
+  }
+
+  /**
+   * 저장 형식(숫자 8자리). 예: 48217390
+   */
+  public String value() {
+    return value;
   }
 
   /**
    * 사람이 읽는 형식. 48217390 → 4821-7390
    */
-  public static String format(String code) {
-    return code.substring(0, LENGTH / 2) + "-" + code.substring(LENGTH / 2);
+  public String format() {
+    return value.substring(0, LENGTH / 2) + "-" + value.substring(LENGTH / 2);
   }
 
-  /**
-   * 고객이 입력한 값을 저장 형식으로 바꾼다. 하이픈과 공백은 무시한다.
-   *
-   * @return 숫자 8자리가 아니면 빈 값
-   */
-  public static Optional<String> normalize(String input) {
-    if (input == null) {
-      return Optional.empty();
-    }
-    String digits = input.replaceAll("[\\s-]", "");
-    return DIGITS.matcher(digits).matches() ? Optional.of(digits) : Optional.empty();
+  @Override
+  public boolean equals(Object o) {
+    return o instanceof ReservationCode other && value.equals(other.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return value.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return value;
   }
 }

@@ -27,7 +27,7 @@ public class Reservation {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
   @Column(nullable = false, unique = true, updatable = false, length = ReservationCode.LENGTH)
-  private String code;
+  private ReservationCode code;
   @ManyToOne(optional = true)
   @JoinColumn(name = "customer_id", nullable = true)
   private Customer customer;
@@ -58,7 +58,7 @@ public class Reservation {
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  private Reservation(String code, Customer customer, DeviceType deviceType,
+  private Reservation(ReservationCode code, Customer customer, DeviceType deviceType,
       String symptomDescription, String visitAddress, LocalDateTime preferredAt,
       String contactName, PhoneNumber contactPhone, LocalDateTime createdAt) {
     this.code = code;
@@ -76,8 +76,8 @@ public class Reservation {
   /**
    * 회원 예약. 고객 계정과 연결되며 '내 예약'에서 조회한다.
    */
-  public static Reservation forCustomer(String code, Customer customer, DeviceType deviceType,
-      String symptomDescription, String visitAddress, LocalDateTime preferredAt,
+  public static Reservation forCustomer(ReservationCode code, Customer customer,
+      DeviceType deviceType, String symptomDescription, String visitAddress, LocalDateTime preferredAt,
       String contactName, PhoneNumber contactPhone, LocalDateTime now) {
     return new Reservation(code, customer, deviceType, symptomDescription, visitAddress,
         preferredAt, contactName, contactPhone, now);
@@ -86,7 +86,7 @@ public class Reservation {
   /**
    * 비회원 예약. 예약 번호와 휴대전화 번호로만 조회할 수 있다.
    */
-  public static Reservation forGuest(String code, DeviceType deviceType,
+  public static Reservation forGuest(ReservationCode code, DeviceType deviceType,
       String symptomDescription, String visitAddress, LocalDateTime preferredAt, String contactName,
       PhoneNumber contactPhone, LocalDateTime now) {
     return new Reservation(code, null, deviceType, symptomDescription, visitAddress,
