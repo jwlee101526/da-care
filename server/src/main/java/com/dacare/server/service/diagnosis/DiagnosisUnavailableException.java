@@ -1,4 +1,4 @@
-package com.dacare.server.service;
+package com.dacare.server.service.diagnosis;
 
 import com.dacare.server.error.BusinessException;
 import com.dacare.server.error.ErrorCode;

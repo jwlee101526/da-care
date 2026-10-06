@@ -14,9 +14,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.dacare.server.service.ApiUsageService;
 import com.dacare.server.service.ApiUsageService.AcquireResult;
-import com.dacare.server.service.DiagnosisExecutor;
-import com.dacare.server.service.DiagnosisCancelledException;
-import com.dacare.server.service.DiagnosisService;
+import com.dacare.server.service.diagnosis.DiagnosisExecutor;
+import com.dacare.server.service.diagnosis.DiagnosisCancelledException;
+import com.dacare.server.service.diagnosis.DiagnosisService;
 import com.dacare.server.service.UsageSubject;
 import com.dacare.server.web.UsageSubjectResolver;
 import java.time.Duration;

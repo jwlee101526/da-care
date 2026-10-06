@@ -1,6 +1,6 @@
 package com.dacare.server.api.dto.request;
 
-import com.dacare.server.service.DiagnosisService.ConversationTurn;
+import com.dacare.server.service.diagnosis.DiagnosisService.ConversationTurn;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

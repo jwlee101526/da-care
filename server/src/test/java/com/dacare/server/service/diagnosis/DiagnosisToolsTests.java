@@ -1,4 +1,4 @@
-package com.dacare.server.service;
+package com.dacare.server.service.diagnosis;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

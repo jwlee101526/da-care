@@ -1,10 +1,11 @@
-package com.dacare.server.service;
+package com.dacare.server.service.diagnosis;
 
-import com.dacare.server.service.DiagnosisCard.BookingCard;
-import com.dacare.server.service.DiagnosisCard.Evidence;
-import com.dacare.server.service.DiagnosisCard.InspectionCard;
-import com.dacare.server.service.DiagnosisCard.NavigationCard;
-import com.dacare.server.service.DiagnosisCard.ReservationStatusCard;
+import com.dacare.server.service.ReservationService;
+import com.dacare.server.service.diagnosis.DiagnosisCard.BookingCard;
+import com.dacare.server.service.diagnosis.DiagnosisCard.Evidence;
+import com.dacare.server.service.diagnosis.DiagnosisCard.InspectionCard;
+import com.dacare.server.service.diagnosis.DiagnosisCard.NavigationCard;
+import com.dacare.server.service.diagnosis.DiagnosisCard.ReservationStatusCard;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;

@@ -1,5 +1,6 @@
-package com.dacare.server.service;
+package com.dacare.server.service.diagnosis;
 
+import com.dacare.server.service.ReservationService;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;

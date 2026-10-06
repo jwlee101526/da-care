@@ -1,4 +1,4 @@
-package com.dacare.server.service;
+package com.dacare.server.service.diagnosis;
 
 import java.time.Duration;
 import java.util.concurrent.ArrayBlockingQueue;

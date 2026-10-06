@@ -1,7 +1,7 @@
-package com.dacare.server.service;
+package com.dacare.server.service.diagnosis;
 
-import com.dacare.server.service.DiagnosisTools.DeviceType;
-import com.dacare.server.service.DiagnosisTools.Page;
+import com.dacare.server.service.diagnosis.DiagnosisTools.DeviceType;
+import com.dacare.server.service.diagnosis.DiagnosisTools.Page;
 import java.time.LocalDateTime;
 import java.util.List;
 
