@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dacare.server.service.diagnosis.DiagnosisTools;
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -18,7 +19,7 @@ import org.junit.jupiter.api.Test;
 class ManualIngestionServiceTests {
 
   private final ManualIngestionService service = new ManualIngestionService(null,
-      "text-embedding-3-small");
+      "text-embedding-3-small", Clock.systemDefaultZone());
   private final List<ManualIngestionService.ManualSection> sections = service.loadSections();
 
   @Test

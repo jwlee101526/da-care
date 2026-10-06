@@ -59,14 +59,16 @@ public class ReservationService {
     return receive(Reservation.forCustomer(newCode(), customer, draft.deviceType(),
         draft.symptomDescription(), draft.visitAddress(), draft.preferredAt(),
         Objects.requireNonNullElse(draft.contactName(), customer.getName()),
-        Objects.requireNonNullElse(draft.contactPhone(), customer.getPhone())));
+        Objects.requireNonNullElse(draft.contactPhone(), customer.getPhone()),
+        LocalDateTime.now(clock)));
   }
 
   @Transactional
   public Reservation createGuest(ReservationDraft draft) {
     requireFuture(draft.preferredAt(), "희망 방문 일시는 미래여야 합니다.");
     return receive(Reservation.forGuest(newCode(), draft.deviceType(), draft.symptomDescription(),
-        draft.visitAddress(), draft.preferredAt(), draft.contactName(), draft.contactPhone()));
+        draft.visitAddress(), draft.preferredAt(), draft.contactName(), draft.contactPhone(),
+        LocalDateTime.now(clock)));
   }
 
   /**

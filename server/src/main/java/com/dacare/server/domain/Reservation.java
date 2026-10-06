@@ -54,11 +54,11 @@ public class Reservation {
   @Column(nullable = false, length = 20)
   private ReservationStatus status;
   @Column(nullable = false, updatable = false)
-  private LocalDateTime createdAt = LocalDateTime.now();
+  private LocalDateTime createdAt;
 
   private Reservation(String code, Customer customer, String deviceType,
       String symptomDescription, String visitAddress, LocalDateTime preferredAt,
-      String contactName, PhoneNumber contactPhone) {
+      String contactName, PhoneNumber contactPhone, LocalDateTime createdAt) {
     this.code = code;
     this.customer = customer;
     this.deviceType = deviceType;
@@ -68,6 +68,7 @@ public class Reservation {
     this.contactName = contactName;
     this.contactPhone = contactPhone;
     this.status = ReservationStatus.PENDING;
+    this.createdAt = createdAt;
   }
 
   /**
@@ -75,9 +76,9 @@ public class Reservation {
    */
   public static Reservation forCustomer(String code, Customer customer, String deviceType,
       String symptomDescription, String visitAddress, LocalDateTime preferredAt,
-      String contactName, PhoneNumber contactPhone) {
+      String contactName, PhoneNumber contactPhone, LocalDateTime now) {
     return new Reservation(code, customer, deviceType, symptomDescription, visitAddress,
-        preferredAt, contactName, contactPhone);
+        preferredAt, contactName, contactPhone, now);
   }
 
   /**
@@ -85,9 +86,9 @@ public class Reservation {
    */
   public static Reservation forGuest(String code, String deviceType, String symptomDescription,
       String visitAddress, LocalDateTime preferredAt, String contactName,
-      PhoneNumber contactPhone) {
+      PhoneNumber contactPhone, LocalDateTime now) {
     return new Reservation(code, null, deviceType, symptomDescription, visitAddress,
-        preferredAt, contactName, contactPhone);
+        preferredAt, contactName, contactPhone, now);
   }
 
   public boolean isGuest() {

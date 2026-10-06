@@ -6,9 +6,12 @@ import static com.dacare.server.domain.NotificationStatus.SKIPPED;
 import static com.dacare.server.domain.NotificationStatus.SUCCESS;
 
 import com.dacare.server.domain.NotificationHistory;
+import com.dacare.server.domain.NotificationStatus;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.domain.ReservationCode;
 import com.dacare.server.repository.NotificationHistoryRepository;
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,30 +26,36 @@ public class SlackNotificationSender {
 
   private final String webhookUrl;
   private final NotificationHistoryRepository histories;
+  private final Clock clock;
   private final RestClient client = RestClient.create();
 
   public SlackNotificationSender(
       @Value("${app.slack.webhook-url:}") String webhookUrl,
-      NotificationHistoryRepository histories) {
+      NotificationHistoryRepository histories, Clock clock) {
     this.webhookUrl = webhookUrl;
     this.histories = histories;
+    this.clock = clock;
   }
 
   public void sendReservationReceived(Reservation reservation) {
     String message = message(reservation);
     if (webhookUrl.isBlank()) {
-      histories.save(new NotificationHistory(reservation, SLACK, SKIPPED, message,
-          "SLACK_WEBHOOK_URL 미설정"));
+      record(reservation, SKIPPED, message, "SLACK_WEBHOOK_URL 미설정");
       return;
     }
 
     try {
       client.post().uri(webhookUrl).body(Map.of("text", message)).retrieve().toBodilessEntity();
-      histories.save(new NotificationHistory(reservation, SLACK, SUCCESS, message, null));
+      record(reservation, SUCCESS, message, null);
     } catch (RuntimeException e) {
-      histories.save(
-          new NotificationHistory(reservation, SLACK, FAILED, message, e.getMessage()));
+      record(reservation, FAILED, message, e.getMessage());
     }
+  }
+
+  private void record(Reservation reservation, NotificationStatus status, String message,
+      String failureReason) {
+    histories.save(new NotificationHistory(reservation, SLACK, status, message, failureReason,
+        LocalDateTime.now(clock)));
   }
 
   private String message(Reservation reservation) {

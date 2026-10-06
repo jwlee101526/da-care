@@ -37,15 +37,15 @@ public class NotificationHistory {
   private String message;
   private String failureReason;
   @Column(nullable = false)
-  private LocalDateTime createdAt = LocalDateTime.now();
+  private LocalDateTime createdAt;
 
   public NotificationHistory(Reservation reservation, NotificationChannel channel,
-      NotificationStatus status, String message,
-      String failureReason) {
+      NotificationStatus status, String message, String failureReason, LocalDateTime createdAt) {
     this.reservation = reservation;
     this.channel = channel;
     this.status = status;
     this.message = message;
     this.failureReason = failureReason;
+    this.createdAt = createdAt;
   }
 }

@@ -8,6 +8,8 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -63,11 +65,14 @@ public class ManualIngestionService {
       .build();
   private final ManualImportRepository imports;
   private final String embeddingModel;
+  private final Clock clock;
 
   public ManualIngestionService(ManualImportRepository imports,
-      @Value("${spring.ai.openai.embedding.model:text-embedding-ada-002}") String embeddingModel) {
+      @Value("${spring.ai.openai.embedding.model:text-embedding-ada-002}") String embeddingModel,
+      Clock clock) {
     this.imports = imports;
     this.embeddingModel = embeddingModel;
+    this.clock = clock;
   }
 
   @Transactional
@@ -91,7 +96,7 @@ public class ManualIngestionService {
     vectorStore.delete(filter.and(filter.eq("source", "manual"), filter.ne("version", version))
         .build());
     vectorStore.delete(filter.eq("file_name", LEGACY_PDF).build());
-    imports.save(new ManualImport(source));
+    imports.save(new ManualImport(source, LocalDateTime.now(clock)));
   }
 
   /**
