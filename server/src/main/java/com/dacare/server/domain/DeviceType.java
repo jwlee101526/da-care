@@ -1,7 +1,7 @@
 package com.dacare.server.domain;
 
 /**
- * 수리 예약을 받는 기기 분류. 값은 웹 클라이언트가 주고받는 소문자 이름 그대로 저장한다.
+ * 수리 예약 화면에서 고르는 기기 분류 12종. 값은 웹 클라이언트가 주고받는 소문자 이름 그대로 저장한다. 목록에 없는 기기는 긴급 출장 A/S로 접수한다.
  */
 public enum DeviceType {
   smartphone("스마트폰 · 태블릿"),
@@ -15,8 +15,7 @@ public enum DeviceType {
   cleaner("청소기"),
   internet("네트워크 · 공유기"),
   audio("음향 기기 · 오디오"),
-  repair("긴급 출장 A/S"),
-  etc("기타 기기");
+  repair("긴급 출장 A/S");
 
   private final String label;
 

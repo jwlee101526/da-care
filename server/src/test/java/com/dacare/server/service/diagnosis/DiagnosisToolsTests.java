@@ -28,9 +28,16 @@ class DiagnosisToolsTests {
   @Test
   void everyDiagnosisDeviceTypeIsReservable() {
     for (DiagnosisTools.DeviceType type : DiagnosisTools.DeviceType.values()) {
-      assertDoesNotThrow(() -> com.dacare.server.domain.DeviceType.valueOf(type.name()),
-          type.name());
+      assertDoesNotThrow(type::reservable, type.name());
     }
+  }
+
+  @Test
+  void otherDeviceIsBookedAsEmergencyRepair() {
+    DiagnosisCard.BookingCard card = tools().prepareReservation(DiagnosisTools.DeviceType.etc,
+        "제습기 전원이 켜지지 않습니다.");
+
+    assertEquals(com.dacare.server.domain.DeviceType.repair, card.deviceType());
   }
 
   @Test

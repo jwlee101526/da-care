@@ -22,7 +22,10 @@ public sealed interface DiagnosisCard permits DiagnosisCard.InspectionCard,
 
   }
 
-  record BookingCard(String type, DeviceType deviceType, String symptom,
+  /**
+   * @param deviceType 예약 화면에서 고를 기기 분류
+   */
+  record BookingCard(String type, com.dacare.server.domain.DeviceType deviceType, String symptom,
                      boolean loginRequired) implements DiagnosisCard {
 
   }

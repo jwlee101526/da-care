@@ -109,7 +109,8 @@ public class DiagnosisTools {
     started("prepareReservation");
     Objects.requireNonNull(deviceType);
     requireText(symptom, 2000);
-    BookingCard card = new BookingCard("booking", deviceType, symptom.strip(), email == null);
+    BookingCard card = new BookingCard("booking", deviceType.reservable(), symptom.strip(),
+        email == null);
     cards.put("booking", card);
     executedTools.add("prepareReservation");
     completed("prepareReservation", card);
@@ -182,12 +183,17 @@ public class DiagnosisTools {
   }
 
   /**
-   * 예약 기기 분류({@link com.dacare.server.domain.DeviceType}) 중 매뉴얼로 상담하는 항목. 이름이 같아 상담 카드의 값을 그대로
-   * 예약에 쓸 수 있다. 긴급 출장(repair)은 증상 분류가 아니므로 뺐다. 매뉴얼 PDF도 같은 이름의 폴더로 분류한다.
+   * 상담에서 쓰는 기기 분류. 매뉴얼 PDF도 같은 이름의 폴더로 분류한다. 예약 기기 분류와 이름이 같고, 예약에는 없는 etc(그 밖의 생활 가전)만
+   * 예약으로 넘길 때 긴급 출장 A/S로 바꾼다.
    */
   public enum DeviceType {
     smartphone, computer, tv, console, aircon, washing, fridge, microwave, cleaner, internet,
-    audio, etc
+    audio, etc;
+
+    com.dacare.server.domain.DeviceType reservable() {
+      return this == etc ? com.dacare.server.domain.DeviceType.repair
+          : com.dacare.server.domain.DeviceType.valueOf(name());
+    }
   }
 
   public enum Page {reservations, reserve}
