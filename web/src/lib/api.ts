@@ -7,7 +7,7 @@ export class ApiError extends Error {
 }
 
 /** code는 고객에게 보여주는 예약 번호(숫자 8자리)이고, id는 회원·관리자 API에서만 쓰는 내부 번호다. */
-export type Reservation = { id: number; code: string; deviceType: string; symptomDescription: string; visitAddress: string; preferredAt: string; confirmedAt: string | null; status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'; engineerName: string | null; contactName: string | null; contactPhone: string | null }
+export type Reservation = { id: number; code: string; deviceType: import('../types').DeviceType; symptomDescription: string; visitAddress: string; preferredAt: string; confirmedAt: string | null; status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'; engineerName: string | null; contactName: string | null; contactPhone: string | null }
 /** 비회원 예약 응답. 순번인 id는 내려오지 않고, 조회 응답의 이름·연락처·주소는 일부 가려져 있다. */
 export type GuestReservation = Omit<Reservation, 'id'>
 export type Engineer = { id: number; name: string; phone: string; specialty: string; region: string }

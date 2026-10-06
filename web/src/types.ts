@@ -1,7 +1,6 @@
 export type DeviceType =
   | 'smartphone'
   | 'computer'
-  | 'laptop'
   | 'tv'
   | 'console'
   | 'aircon'
@@ -12,7 +11,6 @@ export type DeviceType =
   | 'internet'
   | 'audio'
   | 'repair'
-  | 'appliance'
   | 'etc'
 
 export interface ReservationSelection {
