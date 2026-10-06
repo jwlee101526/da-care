@@ -1,6 +1,7 @@
 package com.dacare.server.api.controller;
 
 import com.dacare.server.api.error.ErrorResponse;
+import com.dacare.server.error.ErrorCode;
 import java.io.IOException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
@@ -51,8 +52,12 @@ final class DiagnosisStream {
     }
   }
 
-  void fail(String code, String message) {
-    finish("error", ErrorResponse.of(code, message));
+  void fail(ErrorCode errorCode) {
+    fail(errorCode, errorCode.message());
+  }
+
+  void fail(ErrorCode errorCode, String message) {
+    finish("error", ErrorResponse.of(errorCode, message));
   }
 
   void close() {

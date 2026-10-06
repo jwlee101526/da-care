@@ -16,7 +16,7 @@ public class GlobalExceptionHandler {
   ResponseEntity<ErrorResponse> business(BusinessException e) {
     ErrorCode errorCode = e.errorCode();
     return ResponseEntity.status(errorCode.status())
-        .body(ErrorResponse.of(errorCode.name(), e.getMessage()));
+        .body(ErrorResponse.of(errorCode, e.getMessage()));
   }
 
   /**
@@ -24,7 +24,8 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(IllegalArgumentException.class)
   ResponseEntity<ErrorResponse> illegal(IllegalArgumentException e) {
-    return ResponseEntity.badRequest().body(ErrorResponse.of("INVALID_REQUEST", e.getMessage()));
+    return ResponseEntity.status(ErrorCode.INVALID_REQUEST.status())
+        .body(ErrorResponse.of(ErrorCode.INVALID_REQUEST, e.getMessage()));
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -32,7 +33,7 @@ public class GlobalExceptionHandler {
     Map<String, String> fields = new LinkedHashMap<>();
     e.getBindingResult().getFieldErrors()
         .forEach(error -> fields.putIfAbsent(error.getField(), error.getDefaultMessage()));
-    return ResponseEntity.badRequest()
-        .body(new ErrorResponse("VALIDATION_ERROR", "입력값을 확인하세요.", fields));
+    return ResponseEntity.status(ErrorCode.VALIDATION_ERROR.status())
+        .body(ErrorResponse.withFields(ErrorCode.VALIDATION_ERROR, fields));
   }
 }

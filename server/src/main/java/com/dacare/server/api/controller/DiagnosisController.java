@@ -1,6 +1,7 @@
 package com.dacare.server.api.controller;
 
 import com.dacare.server.api.docs.DiagnosisApiDocs;
+import com.dacare.server.error.ErrorCode;
 import com.dacare.server.api.dto.request.QuestionRequest;
 import com.dacare.server.service.ApiUsageService.AcquireResult;
 import com.dacare.server.service.ApiUsageService;
@@ -53,19 +54,19 @@ public class DiagnosisController implements DiagnosisApiDocs {
     UsageSubject subject = subjects.resolve(authentication, servletRequest);
     AcquireResult acquired = usage.tryAcquireDiagnosis(subject);
     if (acquired != AcquireResult.ACQUIRED) {
-      stream.fail(limitCode(acquired), limitMessage(acquired, subject));
+      stream.fail(limitError(acquired), limitMessage(acquired, subject));
       return stream.emitter();
     }
     try {
       stream.start(executor.submit(() -> diagnose(stream, request, authentication)),
           executor.schedule(() -> {
             // 작업 중단보다 안내를 먼저 보낸다. 중단된 작업이 먼저 스트림을 닫으면 안내가 유실된다.
-            stream.fail("DIAGNOSIS_TIMEOUT", "진단 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.");
+            stream.fail(ErrorCode.DIAGNOSIS_TIMEOUT);
             stream.cancel();
           }, timeout));
     } catch (RejectedExecutionException exception) {
       usage.releaseDiagnosis(subject);
-      stream.fail("DIAGNOSIS_BUSY", "상담 요청이 많아 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      stream.fail(ErrorCode.DIAGNOSIS_BUSY);
     }
     return stream.emitter();
   }
@@ -79,23 +80,21 @@ public class DiagnosisController implements DiagnosisApiDocs {
     } catch (DiagnosisCancelledException exception) {
       stream.close();
     } catch (DiagnosisUnavailableException exception) {
-      stream.fail("DIAGNOSIS_UNAVAILABLE", exception.getMessage());
+      stream.fail(exception.errorCode(), exception.getMessage());
     } catch (RuntimeException exception) {
-      stream.fail("DIAGNOSIS_FAILED", "진단 요청을 처리하지 못했습니다.");
+      stream.fail(ErrorCode.DIAGNOSIS_FAILED);
     }
   }
 
-  private static String limitCode(AcquireResult result) {
-    return result == AcquireResult.TOTAL_LIMIT_REACHED ? "SERVICE_LIMIT_EXCEEDED"
-        : "WEEKLY_LIMIT_EXCEEDED";
+  private static ErrorCode limitError(AcquireResult result) {
+    return result == AcquireResult.TOTAL_LIMIT_REACHED ? ErrorCode.SERVICE_LIMIT_EXCEEDED
+        : ErrorCode.WEEKLY_LIMIT_EXCEEDED;
   }
 
   private static String limitMessage(AcquireResult result, UsageSubject subject) {
-    if (result == AcquireResult.TOTAL_LIMIT_REACHED) {
-      return "이번 주 서비스 전체 AI 상담 한도가 소진되었습니다. 다음 주 월요일에 다시 이용해 주세요.";
+    if (result == AcquireResult.SUBJECT_LIMIT_REACHED && subject.isGuest()) {
+      return "이번 주 비로그인 상담 가능 횟수를 모두 사용했습니다. 로그인하면 상담을 계속 이용할 수 있습니다.";
     }
-    return subject.isGuest()
-        ? "이번 주 비로그인 상담 가능 횟수를 모두 사용했습니다. 로그인하면 상담을 계속 이용할 수 있습니다."
-        : "이번 주 AI 상담 가능 횟수를 모두 사용했습니다. 다음 주 월요일에 다시 이용해 주세요.";
+    return limitError(result).message();
   }
 }
