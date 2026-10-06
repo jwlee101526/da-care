@@ -14,6 +14,7 @@ public enum ErrorCode {
   EMAIL_ALREADY_USED(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
   CUSTOMER_NOT_FOUND(HttpStatus.NOT_FOUND, "고객 정보를 찾을 수 없습니다."),
   ENGINEER_NOT_FOUND(HttpStatus.NOT_FOUND, "기사를 찾을 수 없습니다."),
+  ENGINEER_IN_USE(HttpStatus.CONFLICT, "배정된 예약이 있는 기사는 삭제할 수 없습니다."),
   RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "예약을 찾을 수 없습니다."),
   GUEST_RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND,
       "예약 정보를 찾을 수 없습니다. 예약 번호와 휴대전화 번호를 확인해 주세요."),

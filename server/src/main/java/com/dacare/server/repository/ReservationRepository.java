@@ -1,6 +1,7 @@
 package com.dacare.server.repository;
 
 import com.dacare.server.domain.Customer;
+import com.dacare.server.domain.Engineer;
 import com.dacare.server.domain.Reservation;
 import java.util.List;
 import java.util.Optional;
@@ -15,4 +16,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
   Optional<Reservation> findByCode(String code);
 
   boolean existsByCode(String code);
+
+  boolean existsByEngineer(Engineer engineer);
 }

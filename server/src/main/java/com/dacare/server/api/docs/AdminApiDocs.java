@@ -47,8 +47,14 @@ public interface AdminApiDocs {
   )
   EngineerResponse update(@Parameter(description = "기사 번호") Long id, EngineerRequest request);
 
-  @Operation(summary = "기사 삭제")
-  @ApiResponse(responseCode = "200", description = "기사 삭제 완료")
+  @Operation(summary = "기사 삭제", description = "배정된 예약이 있는 기사는 삭제할 수 없습니다.")
+  @ApiResponses(
+      {
+          @ApiResponse(responseCode = "200", description = "기사 삭제 완료"),
+          @ApiResponse(responseCode = "404", description = "기사 없음"),
+          @ApiResponse(responseCode = "409", description = "배정된 예약이 있는 기사")
+      }
+  )
   void delete(@Parameter(description = "기사 번호") Long id);
 
   @Operation(summary = "서비스 전체 이번 주 사용량 조회",
