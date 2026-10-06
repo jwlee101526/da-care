@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dacare.server.domain.AppUser;
 import com.dacare.server.domain.Customer;
+import com.dacare.server.domain.DeviceType;
 import com.dacare.server.domain.Engineer;
 import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.domain.Reservation;
@@ -18,8 +19,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 
 /**
  * 예약 목록 응답이 고객·기사 정보를 함께 쓰므로, 목록 조회가 예약 수만큼 추가 쿼리를 내지 않는지 확인한다.
@@ -51,7 +52,7 @@ class ReservationRepositoryTests {
       Engineer engineer = new Engineer("기사" + i, PhoneNumber.ofMobile("010-3333-000" + i), "가전",
           "서울");
       entityManager.persist(engineer);
-      Reservation reservation = Reservation.forCustomer("1000000" + i, customer, "tv", "화면이 꺼짐",
+      Reservation reservation = Reservation.forCustomer("1000000" + i, customer, DeviceType.tv, "화면이 꺼짐",
           "서울", NOW.plusDays(1), "홍길동", customer.getPhone(), NOW.plusMinutes(i));
       reservation.confirm(engineer, NOW.plusDays(2));
       entityManager.persist(reservation);

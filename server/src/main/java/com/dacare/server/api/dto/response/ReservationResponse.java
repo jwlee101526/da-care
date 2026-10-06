@@ -38,7 +38,7 @@ public record ReservationResponse(Long id, String code, String deviceType,
 
   private static ReservationResponse of(Reservation reservation, Long id, String visitAddress,
       String contactName, String contactPhone) {
-    return new ReservationResponse(id, reservation.getCode(), reservation.getDeviceType(),
+    return new ReservationResponse(id, reservation.getCode(), reservation.getDeviceType().name(),
         reservation.getSymptomDescription(), visitAddress, reservation.getPreferredAt(),
         reservation.getConfirmedAt(), reservation.getStatus().name(),
         reservation.getEngineer() == null ? null : reservation.getEngineer().getName(),

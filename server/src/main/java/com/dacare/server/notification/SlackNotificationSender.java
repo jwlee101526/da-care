@@ -69,28 +69,8 @@ public class SlackNotificationSender {
         + "• 연락처: " + reservation.getContactPhone().format() + "\n"
         + "• 방문 주소: " + reservation.getVisitAddress() + "\n\n"
         + "*수리 요청*\n"
-        + "• 품목: " + deviceName(reservation.getDeviceType()) + "\n"
+        + "• 품목: " + reservation.getDeviceType().label() + "\n"
         + "• 증상: " + reservation.getSymptomDescription() + "\n"
         + "• 희망 방문: " + reservation.getPreferredAt().format(DATE_TIME_FORMAT) + "\n";
-  }
-
-  private String deviceName(String deviceType) {
-    return switch (deviceType.toLowerCase()) {
-      case "smartphone" -> "스마트폰 · 태블릿";
-      case "computer", "laptop" -> "데스크탑 · PC / 노트북";
-      case "tv" -> "스마트 TV";
-      case "aircon" -> "에어컨";
-      case "washing" -> "세탁기 · 건조기";
-      case "fridge" -> "냉장고";
-      case "microwave" -> "전자레인지 · 인덕션";
-      case "cleaner" -> "청소기";
-      case "console" -> "게임 콘솔";
-      case "internet" -> "네트워크 · 공유기";
-      case "audio" -> "음향 기기 · 오디오";
-      case "repair" -> "긴급 출장 A/S";
-      case "appliance" -> "생활 가전";
-      case "etc" -> "기타 기기";
-      default -> deviceType;
-    };
   }
 }

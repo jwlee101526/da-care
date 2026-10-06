@@ -182,7 +182,8 @@ public class DiagnosisTools {
   }
 
   /**
-   * 예약 화면의 기기 카테고리와 같은 값을 쓴다. 매뉴얼 PDF도 같은 이름의 폴더로 분류한다.
+   * 예약 기기 분류({@link com.dacare.server.domain.DeviceType}) 중 매뉴얼로 상담하는 항목. 이름이 같아 상담 카드의 값을 그대로
+   * 예약에 쓸 수 있다. 긴급 출장(repair)은 증상 분류가 아니므로 뺐다. 매뉴얼 PDF도 같은 이름의 폴더로 분류한다.
    */
   public enum DeviceType {
     smartphone, computer, tv, console, aircon, washing, fridge, microwave, cleaner, internet,

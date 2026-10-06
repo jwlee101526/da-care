@@ -36,6 +36,15 @@ class GuestReservationApiTests {
   private JdbcTemplate jdbc;
 
   @Test
+  void unknownDeviceTypeIsRejected() throws Exception {
+    mvc.perform(post("/api/reservations/guest").header("API-Version", "1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(createBody("+821011110009").replace("\"washing\"", "\"세탁기\"")))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+  }
+
+  @Test
   void createResponseHasCodeButNoSequentialId() throws Exception {
     mvc.perform(post("/api/reservations/guest").header("API-Version", "1")
             .contentType(MediaType.APPLICATION_JSON).content(createBody("+821011110000")))
@@ -151,7 +160,7 @@ class GuestReservationApiTests {
   private static String createBody(String phone) {
     LocalDateTime preferredAt = LocalDateTime.now().plusDays(3).truncatedTo(ChronoUnit.HOURS);
     return """
-        {"deviceType":"washer","symptomDescription":"탈수 시 소음",\
+        {"deviceType":"washing","symptomDescription":"탈수 시 소음",\
         "visitAddress":"서울특별시 강남구 테헤란로 1 101동 1203호","preferredAt":"%s",\
         "contactName":"홍길동","contactPhone":"%s"}"""
         .formatted(preferredAt, phone);

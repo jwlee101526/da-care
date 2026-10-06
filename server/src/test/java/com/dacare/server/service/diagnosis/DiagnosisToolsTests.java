@@ -1,5 +1,6 @@
 package com.dacare.server.service.diagnosis;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -22,6 +23,14 @@ class DiagnosisToolsTests {
   private DiagnosisTools tools() {
     return new DiagnosisTools(null, null, null, 0.4, ignored -> {
     });
+  }
+
+  @Test
+  void everyDiagnosisDeviceTypeIsReservable() {
+    for (DiagnosisTools.DeviceType type : DiagnosisTools.DeviceType.values()) {
+      assertDoesNotThrow(() -> com.dacare.server.domain.DeviceType.valueOf(type.name()),
+          type.name());
+    }
   }
 
   @Test

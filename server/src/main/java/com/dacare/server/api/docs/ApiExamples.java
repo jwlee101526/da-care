@@ -19,7 +19,7 @@ final class ApiExamples {
       """;
 
   static final String RESERVATION = """
-      {"deviceType":"세탁기","symptomDescription":"탈수 시 큰 소음 발생",
+      {"deviceType":"washing","symptomDescription":"탈수 시 큰 소음 발생",
        "visitAddress":"서울특별시 강남구 테헤란로 1","preferredAt":"2026-10-01T14:00:00",
        "contactName":"홍길동","contactPhone":"010-1234-5678"}
       """;

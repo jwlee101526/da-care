@@ -33,8 +33,10 @@ public class Reservation {
   private Customer customer;
   @ManyToOne
   private Engineer engineer;
-  @Column(nullable = false)
-  private String deviceType;
+  @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(Types.VARCHAR)
+  @Column(nullable = false, length = 20)
+  private DeviceType deviceType;
   @Column(nullable = false, length = 2000)
   private String symptomDescription;
   @Column(nullable = false)
@@ -56,7 +58,7 @@ public class Reservation {
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  private Reservation(String code, Customer customer, String deviceType,
+  private Reservation(String code, Customer customer, DeviceType deviceType,
       String symptomDescription, String visitAddress, LocalDateTime preferredAt,
       String contactName, PhoneNumber contactPhone, LocalDateTime createdAt) {
     this.code = code;
@@ -74,7 +76,7 @@ public class Reservation {
   /**
    * 회원 예약. 고객 계정과 연결되며 '내 예약'에서 조회한다.
    */
-  public static Reservation forCustomer(String code, Customer customer, String deviceType,
+  public static Reservation forCustomer(String code, Customer customer, DeviceType deviceType,
       String symptomDescription, String visitAddress, LocalDateTime preferredAt,
       String contactName, PhoneNumber contactPhone, LocalDateTime now) {
     return new Reservation(code, customer, deviceType, symptomDescription, visitAddress,
@@ -84,8 +86,8 @@ public class Reservation {
   /**
    * 비회원 예약. 예약 번호와 휴대전화 번호로만 조회할 수 있다.
    */
-  public static Reservation forGuest(String code, String deviceType, String symptomDescription,
-      String visitAddress, LocalDateTime preferredAt, String contactName,
+  public static Reservation forGuest(String code, DeviceType deviceType,
+      String symptomDescription, String visitAddress, LocalDateTime preferredAt, String contactName,
       PhoneNumber contactPhone, LocalDateTime now) {
     return new Reservation(code, null, deviceType, symptomDescription, visitAddress,
         preferredAt, contactName, contactPhone, now);
