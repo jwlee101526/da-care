@@ -1,13 +1,13 @@
 package com.dacare.server.api.docs;
 
 import com.dacare.server.service.ApiUsageService.SubjectUsage;
-import io.swagger.v3.oas.annotations.Parameter;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.security.core.Authentication;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.Authentication;
 
 @Tag(name = "Usage", description = "유료 API 주간 사용량 API")
 public interface UsageApiDocs {

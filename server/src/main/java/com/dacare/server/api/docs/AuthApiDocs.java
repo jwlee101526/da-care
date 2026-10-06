@@ -25,8 +25,8 @@ public interface AuthApiDocs {
               schema = @Schema(implementation = SignupRequest.class),
               examples = @ExampleObject(
                   """
-                      {"email":"user@example.com","password":"password1234","name":"홍길동","phone":"010-1234-5678","address":"서울특별시 강남구 테헤란로 1"}
-                  """)
+                          {"email":"user@example.com","password":"password1234","name":"홍길동","phone":"010-1234-5678","address":"서울특별시 강남구 테헤란로 1"}
+                      """)
           )
       ) SignupRequest request
   );

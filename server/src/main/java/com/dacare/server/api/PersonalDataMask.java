@@ -4,8 +4,8 @@ import com.dacare.server.domain.PhoneNumber;
 import java.util.Arrays;
 
 /**
- * 비회원 예약 조회 응답에 내보내는 개인정보를 일부 가린다. 예약 번호와 휴대전화 번호를 맞힌 사람이 본인이 아니더라도 이름·연락처·상세 주소가
- * 그대로 드러나지 않게 하기 위해서다.
+ * 비회원 예약 조회 응답에 내보내는 개인정보를 일부 가린다. 예약 번호와 휴대전화 번호를 맞힌 사람이 본인이 아니더라도 이름·연락처·상세 주소가 그대로 드러나지 않게 하기
+ * 위해서다.
  */
 final class PersonalDataMask {
 
@@ -16,7 +16,9 @@ final class PersonalDataMask {
   private PersonalDataMask() {
   }
 
-  /** 홍길동 → 홍*동, 김철 → 김*, 이 → * */
+  /**
+   * 홍길동 → 홍*동, 김철 → 김*, 이 → *
+   */
   static String name(String name) {
     if (name == null || name.isBlank()) {
       return name;
@@ -35,7 +37,9 @@ final class PersonalDataMask {
     return masked.toString();
   }
 
-  /** 첫 묶음과 마지막 4자리만 남긴다. 010-1234-5678 → 010-****-5678, +1 201-555-0123 → +1 ***-***-0123 */
+  /**
+   * 첫 묶음과 마지막 4자리만 남긴다. 010-1234-5678 → 010-****-5678, +1 201-555-0123 → +1 ***-***-0123
+   */
   static String phone(PhoneNumber phone) {
     if (phone == null) {
       return null;
@@ -57,7 +61,9 @@ final class PersonalDataMask {
     return masked.toString();
   }
 
-  /** 시·도와 시·군·구까지만 남긴다. 서울특별시 강남구 테헤란로 1 → 서울특별시 강남구 *** */
+  /**
+   * 시·도와 시·군·구까지만 남긴다. 서울특별시 강남구 테헤란로 1 → 서울특별시 강남구 ***
+   */
   static String address(String address) {
     if (address == null || address.isBlank()) {
       return address;

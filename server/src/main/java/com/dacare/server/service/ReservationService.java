@@ -27,8 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReservationService {
 
   /**
-   * 비회원 예약을 완료·취소 후에도 조회할 수 있는 기간. 해지된 번호가 다른 사람에게 다시 배정되는 경우 등을 고려해 지난 예약이 계속
-   * 열려 있지 않게 한다. 전체 이력은 회원의 '내 예약'에서 제공한다.
+   * 비회원 예약을 완료·취소 후에도 조회할 수 있는 기간. 해지된 번호가 다른 사람에게 다시 배정되는 경우 등을 고려해 지난 예약이 계속 열려 있지 않게 한다. 전체 이력은
+   * 회원의 '내 예약'에서 제공한다.
    */
   static final Duration GUEST_LOOKUP_PERIOD = Duration.ofDays(90);
 

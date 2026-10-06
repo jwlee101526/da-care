@@ -15,13 +15,13 @@ public class ManualIngestionConfig {
       com.dacare.server.service.ManualIngestionService ingestionService,
       @Value("${OPENAI_API_KEY:}") String openAiApiKey) {
     return arguments -> {
-        if (openAiApiKey.isBlank()) {
-            return;
-        }
+      if (openAiApiKey.isBlank()) {
+        return;
+      }
       VectorStore vectorStore = vectorStoreProvider.getIfAvailable();
-        if (vectorStore == null) {
-            return;
-        }
+      if (vectorStore == null) {
+        return;
+      }
       ingestionService.ingest(vectorStore);
     };
   }

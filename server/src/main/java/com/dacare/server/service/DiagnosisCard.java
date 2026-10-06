@@ -17,7 +17,8 @@ public sealed interface DiagnosisCard permits DiagnosisCard.InspectionCard,
 
   record InspectionCard(String type, String title, DeviceType deviceType, String deviceName,
                         String suspectedCause,
-                        String inspectionDetails, List<Evidence> evidence) implements DiagnosisCard {
+                        String inspectionDetails, List<Evidence> evidence) implements
+      DiagnosisCard {
 
   }
 

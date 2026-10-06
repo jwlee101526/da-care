@@ -52,7 +52,8 @@ public class SlackNotificationSender {
   private String message(Reservation reservation) {
     return "🔔 *새 수리 예약이 접수되었습니다*\n"
         + "━━━━━━━━━━━━━━━━━━\n"
-        + "*접수 번호*  " + ReservationCode.format(reservation.getCode()) + " (#" + reservation.getId() + ")\n"
+        + "*접수 번호*  " + ReservationCode.format(reservation.getCode()) + " (#" + reservation.getId()
+        + ")\n"
         + "*진행 상태*  배정 대기\n\n"
         + "*고객 정보*\n"
         + "• 성함: " + reservation.getContactName() + "\n"

@@ -65,7 +65,8 @@ class InitialDataLoader implements ApplicationRunner {
     if (users.findByEmail(DEMO_CUSTOMER_EMAIL).isEmpty()) {
       AppUser demo = users.save(
           new AppUser(DEMO_CUSTOMER_EMAIL, encoder.encode(DEMO_CUSTOMER_PASSWORD), Role.CUSTOMER));
-      customers.save(new Customer(demo, "홍길동", PhoneNumber.ofMobile("010-1234-5678"), "서울특별시 강남구 테헤란로 123"));
+      customers.save(
+          new Customer(demo, "홍길동", PhoneNumber.ofMobile("010-1234-5678"), "서울특별시 강남구 테헤란로 123"));
     }
   }
 }

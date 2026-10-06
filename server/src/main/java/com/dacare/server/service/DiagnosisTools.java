@@ -141,9 +141,9 @@ public class DiagnosisTools {
       case reservations ->
           new NavigationCard("navigation", page, "예약 내역 조회", "접수한 방문 점검의 상태와 확정 일정을 확인할 수 있습니다.",
               "예약 내역으로 이동");
-      case reserve ->
-          new NavigationCard("navigation", page, "방문 점검 신청", "기기와 증상, 방문 희망 일시와 장소를 입력해 방문 점검을 신청할 수 있습니다.",
-              "예약 신청하기");
+      case reserve -> new NavigationCard("navigation", page, "방문 점검 신청",
+          "기기와 증상, 방문 희망 일시와 장소를 입력해 방문 점검을 신청할 수 있습니다.",
+          "예약 신청하기");
     };
     cards.put("navigation:" + page, card);
     executedTools.add("navigateTo");

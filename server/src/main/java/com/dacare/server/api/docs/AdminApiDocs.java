@@ -24,10 +24,11 @@ public interface AdminApiDocs {
 
   @Operation(summary = "기사 등록")
   @ApiResponse(responseCode = "200", description = "기사 등록 완료")
-  EngineerResponse create(@io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
-      content = @Content(schema = @Schema(implementation = EngineerRequest.class), examples = @ExampleObject("""
-          {"name":"김기사","phone":"010-9876-5432","specialty":"생활가전","region":"서울"}
-          """))) EngineerRequest request);
+  EngineerResponse create(
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
+          content = @Content(schema = @Schema(implementation = EngineerRequest.class), examples = @ExampleObject("""
+              {"name":"김기사","phone":"010-9876-5432","specialty":"생활가전","region":"서울"}
+              """))) EngineerRequest request);
 
   @Operation(summary = "기사 수정")
   EngineerResponse update(@Parameter(description = "기사 번호") Long id,

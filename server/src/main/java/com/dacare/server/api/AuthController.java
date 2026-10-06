@@ -1,9 +1,9 @@
 package com.dacare.server.api;
 
-import com.dacare.server.service.AuthService;
 import com.dacare.server.api.docs.AuthApiDocs;
 import com.dacare.server.api.validation.ValidPhoneNumber;
 import com.dacare.server.domain.PhoneNumber;
+import com.dacare.server.service.AuthService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -26,7 +26,8 @@ public class AuthController implements AuthApiDocs {
   @PostMapping("/signup")
   public TokenResponse signup(@Valid @RequestBody SignupRequest request) {
     return new TokenResponse(
-        service.signup(request.email(), request.password(), request.name(), PhoneNumber.ofMobile(request.phone()),
+        service.signup(request.email(), request.password(), request.name(),
+            PhoneNumber.ofMobile(request.phone()),
             request.address()));
   }
 
@@ -36,8 +37,9 @@ public class AuthController implements AuthApiDocs {
   }
 
   public record SignupRequest(@NotBlank @Email String email, @Size(min = 8) String password,
-                       @NotBlank String name, @NotBlank @ValidPhoneNumber(mobile = true) String phone,
-                       @NotBlank String address) {
+                              @NotBlank String name,
+                              @NotBlank @ValidPhoneNumber(mobile = true) String phone,
+                              @NotBlank String address) {
 
   }
 

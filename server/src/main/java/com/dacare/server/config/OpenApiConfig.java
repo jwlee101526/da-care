@@ -18,7 +18,7 @@ public class OpenApiConfig {
     return new OpenAPI()
         .info(
             new Info().title("DACARE API").version("v1")
-            .description("Device & Appliance Care Service API")
+                .description("Device & Appliance Care Service API")
         )
         .components(
             new Components().addSecuritySchemes("bearerAuth",

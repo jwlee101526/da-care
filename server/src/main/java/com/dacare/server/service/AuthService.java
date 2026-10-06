@@ -30,7 +30,8 @@ public class AuthService {
   }
 
   @Transactional
-  public String signup(String email, String password, String name, PhoneNumber phone, String address) {
+  public String signup(String email, String password, String name, PhoneNumber phone,
+      String address) {
     if (users.existsByEmail(email)) {
       throw new BusinessException(ErrorCode.EMAIL_ALREADY_USED);
     }

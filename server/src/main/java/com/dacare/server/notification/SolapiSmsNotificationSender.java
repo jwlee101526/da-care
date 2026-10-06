@@ -72,8 +72,7 @@ public class SolapiSmsNotificationSender {
   }
 
   /**
-   * 솔라피는 수신번호를 국가번호와 분리해 받는다. 국내 번호는 국내 형식(01012345678)으로, 해외 번호는 국가번호와
-   * 국내 접두어를 뺀 번호로 보낸다.
+   * 솔라피는 수신번호를 국가번호와 분리해 받는다. 국내 번호는 국내 형식(01012345678)으로, 해외 번호는 국가번호와 국내 접두어를 뺀 번호로 보낸다.
    */
   private void setRecipient(Message message, PhoneNumber to) {
     if (to.isDomestic()) {

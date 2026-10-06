@@ -3,9 +3,9 @@ package com.dacare.server.api;
 import com.dacare.server.api.docs.DiagnosisApiDocs;
 import com.dacare.server.service.ApiUsageService;
 import com.dacare.server.service.ApiUsageService.AcquireResult;
+import com.dacare.server.service.DiagnosisCancelledException;
 import com.dacare.server.service.DiagnosisExecutor;
 import com.dacare.server.service.DiagnosisService;
-import com.dacare.server.service.DiagnosisCancelledException;
 import com.dacare.server.service.DiagnosisService.ConversationTurn;
 import com.dacare.server.service.DiagnosisService.DiagnosisResult;
 import com.dacare.server.service.DiagnosisService.Speaker;
@@ -53,7 +53,8 @@ public class DiagnosisController implements DiagnosisApiDocs {
   public SseEmitter stream(@Valid @RequestBody QuestionRequest request,
       Authentication authentication, HttpServletRequest servletRequest) {
     // 서버 기한 이후 오류 이벤트를 보낼 수 있도록 SSE 연결 자체는 조금 더 길게 유지한다.
-    DiagnosisStream stream = new DiagnosisStream(new SseEmitter(timeout.plusSeconds(10).toMillis()));
+    DiagnosisStream stream = new DiagnosisStream(
+        new SseEmitter(timeout.plusSeconds(10).toMillis()));
     UsageSubject subject = subjects.resolve(authentication, servletRequest);
     AcquireResult acquired = usage.tryAcquireDiagnosis(subject);
     if (acquired != AcquireResult.ACQUIRED) {
@@ -104,7 +105,7 @@ public class DiagnosisController implements DiagnosisApiDocs {
   }
 
   public record QuestionRequest(@NotBlank @Size(max = 2000) String question,
-                         @Size(max = 12) List<@NotNull @Valid ConversationTurnRequest> history) {
+                                @Size(max = 12) List<@NotNull @Valid ConversationTurnRequest> history) {
 
     List<ConversationTurn> turns() {
       return history == null ? List.of()

@@ -77,11 +77,11 @@ public class ReservationController implements ReservationApiDocs {
   }
 
   public record ReservationRequest(@NotBlank @Size(max = 50) String deviceType,
-                            @NotBlank @Size(max = 2000) String symptomDescription,
-                            @NotBlank @Size(max = 200) String visitAddress,
-                            @NotNull LocalDateTime preferredAt,
-                            @Size(min = 1, max = 50) String contactName,
-                            @ValidPhoneNumber(mobile = true) String contactPhone) {
+                                   @NotBlank @Size(max = 2000) String symptomDescription,
+                                   @NotBlank @Size(max = 200) String visitAddress,
+                                   @NotNull LocalDateTime preferredAt,
+                                   @Size(min = 1, max = 50) String contactName,
+                                   @ValidPhoneNumber(mobile = true) String contactPhone) {
 
     ReservationDraft toDraft() {
       return new ReservationDraft(deviceType, symptomDescription, visitAddress, preferredAt,
@@ -90,11 +90,11 @@ public class ReservationController implements ReservationApiDocs {
   }
 
   public record GuestReservationRequest(@NotBlank @Size(max = 50) String deviceType,
-                                 @NotBlank @Size(max = 2000) String symptomDescription,
-                                 @NotBlank @Size(max = 200) String visitAddress,
-                                 @NotNull LocalDateTime preferredAt,
-                                 @NotBlank @Size(min = 1, max = 50) String contactName,
-                                 @NotBlank @ValidPhoneNumber(mobile = true) String contactPhone) {
+                                        @NotBlank @Size(max = 2000) String symptomDescription,
+                                        @NotBlank @Size(max = 200) String visitAddress,
+                                        @NotNull LocalDateTime preferredAt,
+                                        @NotBlank @Size(min = 1, max = 50) String contactName,
+                                        @NotBlank @ValidPhoneNumber(mobile = true) String contactPhone) {
 
     ReservationDraft toDraft() {
       return new ReservationDraft(deviceType, symptomDescription, visitAddress, preferredAt,
@@ -103,7 +103,7 @@ public class ReservationController implements ReservationApiDocs {
   }
 
   public record GuestLookupRequest(@NotBlank @Size(max = 20) String reservationCode,
-                            @NotBlank @ValidPhoneNumber String contactPhone) {
+                                   @NotBlank @ValidPhoneNumber String contactPhone) {
 
   }
 

@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
 /**
  * AI 상담 SSE 작업 전용 스레드 풀.
  * <p>
- * 모델 응답을 기다리며 오래 블로킹되는 작업이 공용 ForkJoinPool을 점유하지 않도록 분리하고, 동시 처리 수와 대기열을 제한한다.
- * 애플리케이션 기본 TaskExecutor 자동 구성에 영향을 주지 않도록 Executor 빈으로 노출하지 않는다.
+ * 모델 응답을 기다리며 오래 블로킹되는 작업이 공용 ForkJoinPool을 점유하지 않도록 분리하고, 동시 처리 수와 대기열을 제한한다. 애플리케이션 기본
+ * TaskExecutor 자동 구성에 영향을 주지 않도록 Executor 빈으로 노출하지 않는다.
  */
 @Component
 public class DiagnosisExecutor implements DisposableBean {

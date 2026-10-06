@@ -44,7 +44,9 @@ public class Reservation {
   private LocalDateTime confirmedAt;
   private String contactName;
   private PhoneNumber contactPhone;
-  /** 완료 또는 취소된 시각. 비회원 조회 가능 기간을 이 시각부터 센다. */
+  /**
+   * 완료 또는 취소된 시각. 비회원 조회 가능 기간을 이 시각부터 센다.
+   */
   private LocalDateTime closedAt;
 
   @Enumerated(EnumType.STRING)
@@ -68,7 +70,9 @@ public class Reservation {
     this.status = ReservationStatus.PENDING;
   }
 
-  /** 회원 예약. 고객 계정과 연결되며 '내 예약'에서 조회한다. */
+  /**
+   * 회원 예약. 고객 계정과 연결되며 '내 예약'에서 조회한다.
+   */
   public static Reservation forCustomer(String code, Customer customer, String deviceType,
       String symptomDescription, String visitAddress, LocalDateTime preferredAt,
       String contactName, PhoneNumber contactPhone) {
@@ -76,7 +80,9 @@ public class Reservation {
         preferredAt, contactName, contactPhone);
   }
 
-  /** 비회원 예약. 예약 번호와 휴대전화 번호로만 조회할 수 있다. */
+  /**
+   * 비회원 예약. 예약 번호와 휴대전화 번호로만 조회할 수 있다.
+   */
   public static Reservation forGuest(String code, String deviceType, String symptomDescription,
       String visitAddress, LocalDateTime preferredAt, String contactName,
       PhoneNumber contactPhone) {

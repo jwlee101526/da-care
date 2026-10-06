@@ -94,7 +94,9 @@ public class DiagnosisService {
 
   }
 
-  /** 대화 이력의 발화자. 웹 클라이언트가 보내는 role 값과 같다. */
+  /**
+   * 대화 이력의 발화자. 웹 클라이언트가 보내는 role 값과 같다.
+   */
   public enum Speaker {user, assistant}
 
   public record ConversationTurn(Speaker role, String text) {

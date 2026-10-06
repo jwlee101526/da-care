@@ -36,7 +36,8 @@ public class SecurityConfig {
       JsonMapper jsonMapper) throws Exception {
     return http.csrf(AbstractHttpConfigurer::disable)
         .cors(Customizer.withDefaults())
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(authorize -> authorize
             .requestMatchers(PUBLIC_API).permitAll()
             .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.name())

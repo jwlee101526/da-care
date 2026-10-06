@@ -3,7 +3,9 @@ package com.dacare.server.domain;
 public enum Role {
   CUSTOMER, ADMIN;
 
-  /** Spring Security 권한 이름. {@code hasRole}이 비교하는 ROLE_ 접두어를 붙인다. */
+  /**
+   * Spring Security 권한 이름. {@code hasRole}이 비교하는 ROLE_ 접두어를 붙인다.
+   */
   public String authority() {
     return "ROLE_" + name();
   }
