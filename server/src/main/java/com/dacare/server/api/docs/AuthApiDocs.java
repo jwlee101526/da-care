@@ -18,7 +18,8 @@ public interface AuthApiDocs {
   @ApiResponses(
       {
           @ApiResponse(responseCode = "200", description = "회원 가입 완료"),
-          @ApiResponse(responseCode = "400", description = "입력값 오류")
+          @ApiResponse(responseCode = "400", description = "입력값 오류"),
+          @ApiResponse(responseCode = "409", description = "이미 사용 중인 이메일")
       }
   )
   TokenResponse signup(
@@ -29,7 +30,8 @@ public interface AuthApiDocs {
   @ApiResponses(
       {
           @ApiResponse(responseCode = "200", description = "로그인 완료"),
-          @ApiResponse(responseCode = "400", description = "입력값 오류")
+          @ApiResponse(responseCode = "400", description = "입력값 오류"),
+          @ApiResponse(responseCode = "401", description = "이메일 또는 비밀번호 불일치")
       }
   )
   TokenResponse login(

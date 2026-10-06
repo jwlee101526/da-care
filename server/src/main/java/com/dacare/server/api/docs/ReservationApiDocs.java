@@ -26,7 +26,8 @@ public interface ReservationApiDocs {
   @ApiResponses(
       {
           @ApiResponse(responseCode = "200", description = "예약 접수 완료"),
-          @ApiResponse(responseCode = "400", description = "입력값 오류")
+          @ApiResponse(responseCode = "400", description = "입력값 오류 또는 지난 방문 일시"),
+          @ApiResponse(responseCode = "401", description = "로그인 필요")
       }
   )
   ReservationResponse create(Authentication authentication,
@@ -37,7 +38,7 @@ public interface ReservationApiDocs {
   @ApiResponses(
       {
           @ApiResponse(responseCode = "200", description = "예약 접수 완료"),
-          @ApiResponse(responseCode = "400", description = "입력값 오류")
+          @ApiResponse(responseCode = "400", description = "입력값 오류 또는 지난 방문 일시")
       }
   )
   ReservationResponse createGuest(
@@ -51,6 +52,7 @@ public interface ReservationApiDocs {
   @ApiResponses(
       {
           @ApiResponse(responseCode = "200", description = "조회 완료"),
+          @ApiResponse(responseCode = "400", description = "입력값 오류"),
           @ApiResponse(responseCode = "404", description = "일치하는 비회원 예약 없음"),
           @ApiResponse(responseCode = "429", description = "조회 실패 횟수 초과")
       }
@@ -61,6 +63,15 @@ public interface ReservationApiDocs {
       @Parameter(hidden = true) HttpServletRequest servletRequest);
 
   @Operation(summary = "비회원 예약 취소", description = "대기 상태의 비회원 예약을 취소합니다. 조회와 같은 확인과 실패 횟수 제한을 거칩니다.")
+  @ApiResponses(
+      {
+          @ApiResponse(responseCode = "200", description = "예약 취소 완료"),
+          @ApiResponse(responseCode = "400", description = "입력값 오류"),
+          @ApiResponse(responseCode = "404", description = "일치하는 비회원 예약 없음"),
+          @ApiResponse(responseCode = "409", description = "취소할 수 없는 예약 상태"),
+          @ApiResponse(responseCode = "429", description = "조회 실패 횟수 초과")
+      }
+  )
   ReservationResponse cancelGuest(
       @Parameter(description = "예약 번호(예: 4821-7390)") String code,
       @RequestBody(content = @Content(examples = @ExampleObject(ApiExamples.GUEST_CANCEL)))
@@ -69,15 +80,36 @@ public interface ReservationApiDocs {
 
   @Operation(summary = "내 예약 목록 조회", description = "로그인한 회원의 예약 목록을 조회합니다.")
   @SecurityRequirement(name = "bearerAuth")
+  @ApiResponses(
+      {
+          @ApiResponse(responseCode = "200", description = "조회 완료"),
+          @ApiResponse(responseCode = "401", description = "로그인 필요")
+      }
+  )
   List<ReservationResponse> mine(Authentication authentication);
 
   @Operation(summary = "내 예약 상세 조회", description = "로그인한 회원의 예약 한 건을 조회합니다.")
   @SecurityRequirement(name = "bearerAuth")
+  @ApiResponses(
+      {
+          @ApiResponse(responseCode = "200", description = "조회 완료"),
+          @ApiResponse(responseCode = "401", description = "로그인 필요"),
+          @ApiResponse(responseCode = "404", description = "예약 없음")
+      }
+  )
   ReservationResponse mineOne(Authentication authentication,
       @Parameter(description = "예약 번호") Long id);
 
   @Operation(summary = "회원 예약 취소", description = "로그인한 회원의 대기 상태 예약을 취소합니다.")
   @SecurityRequirement(name = "bearerAuth")
+  @ApiResponses(
+      {
+          @ApiResponse(responseCode = "200", description = "예약 취소 완료"),
+          @ApiResponse(responseCode = "401", description = "로그인 필요"),
+          @ApiResponse(responseCode = "404", description = "예약 없음"),
+          @ApiResponse(responseCode = "409", description = "취소할 수 없는 예약 상태")
+      }
+  )
   ReservationResponse cancel(Authentication authentication,
       @Parameter(description = "예약 번호") Long id);
 }

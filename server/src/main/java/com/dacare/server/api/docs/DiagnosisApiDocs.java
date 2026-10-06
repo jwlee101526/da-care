@@ -25,8 +25,7 @@ public interface DiagnosisApiDocs {
           @ApiResponse(responseCode = "200", description = "SSE 스트림 연결 완료",
               content = @Content(mediaType = "text/event-stream",
                   examples = @ExampleObject(ApiExamples.DIAGNOSIS_STREAM))),
-          @ApiResponse(responseCode = "400", description = "입력값 오류"),
-          @ApiResponse(responseCode = "503", description = "진단 서비스 이용 불가")
+          @ApiResponse(responseCode = "400", description = "입력값 오류")
       }
   )
   SseEmitter stream(
