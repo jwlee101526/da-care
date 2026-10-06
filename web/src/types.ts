@@ -11,7 +11,6 @@ export type DeviceType =
   | 'internet'
   | 'audio'
   | 'repair'
-  | 'etc'
 
 export interface ReservationSelection {
   device: DeviceType

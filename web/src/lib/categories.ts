@@ -120,7 +120,8 @@ export const DEVICE_CATEGORIES: CategoryDefinition[] = [
   },
 ]
 
-export function getCategoryInfo(deviceType: DeviceType, lang: 'ko' | 'en' = 'ko'): string {
+/** 상담 카드는 예약 품목에 없는 기타 기기(etc)도 표시한다. */
+export function getCategoryInfo(deviceType: DeviceType | 'etc', lang: 'ko' | 'en' = 'ko'): string {
   if (deviceType === 'etc') return lang === 'en' ? 'Other Device' : '기타 기기'
   const match = DEVICE_CATEGORIES.find(c => c.deviceType === deviceType)
   if (match) return lang === 'en' ? match.labelEn : match.labelKo

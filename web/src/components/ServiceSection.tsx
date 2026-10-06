@@ -1,6 +1,7 @@
 import type { DeviceType, ReservationSelection } from '../types'
 import { Reveal } from './Reveal'
 import { useLanguage } from '../context/LanguageContext'
+import { getCategoryInfo } from '../lib/categories'
 
 import smartphoneTabletIcon from '../assets/icons/smartphone-tablet.svg'
 import computerIcon from '../assets/icons/computer.svg'
@@ -18,28 +19,27 @@ import { cn } from '@/lib/utils'
 import { eyebrow, sectionContainer, sectionHeading, sectionHeadingDesc, sectionPadding, sectionTitle, snapCentered } from './landing'
 
 interface CategoryItem {
-  id: keyof typeof import('../locales/ko').ko['services']['categories']
   iconSrc: string
   device: DeviceType
 }
 
 const categories: CategoryItem[] = [
-  { id: 'phone-tablet', iconSrc: smartphoneTabletIcon, device: 'smartphone' },
-  { id: 'computer', iconSrc: computerIcon, device: 'computer' },
-  { id: 'tv', iconSrc: smartTvIcon, device: 'tv' },
-  { id: 'console', iconSrc: consoleIcon, device: 'console' },
-  { id: 'aircon', iconSrc: airconIcon, device: 'aircon' },
-  { id: 'washing', iconSrc: washingIcon, device: 'washing' },
-  { id: 'fridge', iconSrc: fridgeIcon, device: 'fridge' },
-  { id: 'microwave', iconSrc: microwaveIcon, device: 'microwave' },
-  { id: 'cleaner', iconSrc: vacuumIcon, device: 'cleaner' },
-  { id: 'internet', iconSrc: wifiIcon, device: 'internet' },
-  { id: 'etc', iconSrc: audioIcon, device: 'audio' },
-  { id: 'repair', iconSrc: emergencyAsIcon, device: 'repair' },
+  { iconSrc: smartphoneTabletIcon, device: 'smartphone' },
+  { iconSrc: computerIcon, device: 'computer' },
+  { iconSrc: smartTvIcon, device: 'tv' },
+  { iconSrc: consoleIcon, device: 'console' },
+  { iconSrc: airconIcon, device: 'aircon' },
+  { iconSrc: washingIcon, device: 'washing' },
+  { iconSrc: fridgeIcon, device: 'fridge' },
+  { iconSrc: microwaveIcon, device: 'microwave' },
+  { iconSrc: vacuumIcon, device: 'cleaner' },
+  { iconSrc: wifiIcon, device: 'internet' },
+  { iconSrc: audioIcon, device: 'audio' },
+  { iconSrc: emergencyAsIcon, device: 'repair' },
 ]
 
 export function ServiceSection({ onSelectCategory }: { onSelectCategory: (selection: ReservationSelection) => void }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
 
   return (
     <section id="service" className={cn(sectionPadding, snapCentered)}>
@@ -53,11 +53,12 @@ export function ServiceSection({ onSelectCategory }: { onSelectCategory: (select
         </div>
 
         <div className="grid grid-cols-4 gap-x-4 gap-y-7 pt-8 md:gap-x-6 md:gap-y-8 lg:grid-cols-6 lg:gap-y-9 max-[850px]:grid-cols-4 max-[600px]:gap-x-1 max-[600px]:gap-y-3 max-[600px]:pt-5 landing-wide:gap-x-7 landing-wide:gap-y-8">
-          {categories.map(({ id, iconSrc, device }) => {
-            const name = t.services.categories[id] || id
+          {categories.map(({ iconSrc, device }) => {
+            // 예약 화면과 같은 품목 이름을 쓴다.
+            const name = getCategoryInfo(device, lang)
             return (
               <button
-                key={id}
+                key={device}
                 type="button"
                 className="group flex cursor-pointer flex-col items-center gap-3 rounded-[20px] border border-transparent bg-white px-1.5 py-3.5 text-[14px] leading-[1.4] font-[550] break-keep text-[#20252c] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:border-[#dbeafe] hover:bg-[#fafcff] hover:shadow-[0_12px_24px_-6px_rgba(22,89,185,0.12)] max-[600px]:gap-2.5 max-[600px]:px-0 max-[600px]:py-3 max-[600px]:text-[12px] landing-wide:gap-3.5 landing-wide:px-2 landing-wide:py-4"
                 onClick={() => onSelectCategory({ device, symptom: `${name} ${t.services.symptomSuffix}` })}
