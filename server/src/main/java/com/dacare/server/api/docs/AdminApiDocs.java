@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,15 +25,11 @@ public interface AdminApiDocs {
   @Operation(summary = "기사 등록")
   @ApiResponse(responseCode = "200", description = "기사 등록 완료")
   EngineerResponse create(
-      @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
-          content = @Content(schema = @Schema(implementation = EngineerRequest.class), examples = @ExampleObject("""
-              {"name":"김기사","phone":"010-9876-5432","specialty":"생활가전","region":"서울"}
-              """))) EngineerRequest request);
+      @RequestBody(content = @Content(examples = @ExampleObject(ApiExamples.ENGINEER)))
+      EngineerRequest request);
 
   @Operation(summary = "기사 수정")
-  EngineerResponse update(@Parameter(description = "기사 번호") Long id,
-      @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
-          content = @Content(schema = @Schema(implementation = EngineerRequest.class))) EngineerRequest request);
+  EngineerResponse update(@Parameter(description = "기사 번호") Long id, EngineerRequest request);
 
   @Operation(summary = "기사 삭제")
   @ApiResponse(responseCode = "200", description = "기사 삭제 완료")
@@ -48,10 +44,8 @@ public interface AdminApiDocs {
 
   @Operation(summary = "예약 확정 및 기사 배정")
   ReservationResponse confirm(@Parameter(description = "예약 번호") Long id,
-      @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
-          content = @Content(schema = @Schema(implementation = ConfirmationRequest.class), examples = @ExampleObject("""
-              {"engineerId":1,"confirmedAt":"2026-10-01T14:00:00"}
-              """))) ConfirmationRequest request);
+      @RequestBody(content = @Content(examples = @ExampleObject(ApiExamples.CONFIRMATION)))
+      ConfirmationRequest request);
 
   @Operation(summary = "점검 완료 처리")
   ReservationResponse complete(@Parameter(description = "예약 번호") Long id);
