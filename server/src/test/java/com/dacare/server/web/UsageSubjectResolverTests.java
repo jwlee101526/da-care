@@ -2,7 +2,7 @@ package com.dacare.server.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.dacare.server.service.UsageSubject;
+import com.dacare.server.service.usage.UsageSubject;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;

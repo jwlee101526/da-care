@@ -11,11 +11,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.dacare.server.error.ErrorCode;
-import com.dacare.server.service.ApiUsageService;
-import com.dacare.server.service.ApiUsageService.AcquireResult;
-import com.dacare.server.service.UsageSubject;
 import com.dacare.server.service.diagnosis.DiagnosisService.DiagnosisResult;
 import com.dacare.server.service.diagnosis.DiagnosisTools.ToolProgress;
+import com.dacare.server.service.usage.ApiUsageService.AcquireResult;
+import com.dacare.server.service.usage.ApiUsageService;
+import com.dacare.server.service.usage.UsageSubject;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;

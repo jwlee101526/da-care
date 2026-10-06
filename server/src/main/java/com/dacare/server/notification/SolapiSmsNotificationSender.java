@@ -9,7 +9,7 @@ import com.dacare.server.domain.NotificationHistory;
 import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.repository.NotificationHistoryRepository;
-import com.dacare.server.service.ApiUsageService;
+import com.dacare.server.service.usage.ApiUsageService;
 import com.solapi.sdk.SolapiClient;
 import com.solapi.sdk.message.model.Message;
 import com.solapi.sdk.message.service.DefaultMessageService;

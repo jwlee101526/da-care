@@ -1,6 +1,6 @@
 package com.dacare.server.api.docs;
 
-import com.dacare.server.service.ApiUsageService.SubjectUsage;
+import com.dacare.server.service.usage.ApiUsageService.SubjectUsage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

@@ -1,4 +1,4 @@
-package com.dacare.server.service;
+package com.dacare.server.service.usage;
 
 import com.dacare.server.domain.ApiUsage;
 import com.dacare.server.domain.PaidApi;

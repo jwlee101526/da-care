@@ -13,13 +13,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
-import com.dacare.server.service.ApiUsageService;
-import com.dacare.server.service.ApiUsageService.AcquireResult;
-import com.dacare.server.service.diagnosis.DiagnosisExecutor;
 import com.dacare.server.service.diagnosis.DiagnosisCancelledException;
+import com.dacare.server.service.diagnosis.DiagnosisExecutor;
 import com.dacare.server.service.diagnosis.DiagnosisService;
 import com.dacare.server.service.diagnosis.DiagnosisSessionService;
-import com.dacare.server.service.UsageSubject;
+import com.dacare.server.service.usage.ApiUsageService.AcquireResult;
+import com.dacare.server.service.usage.ApiUsageService;
+import com.dacare.server.service.usage.UsageSubject;
 import com.dacare.server.web.UsageSubjectResolver;
 import java.time.Duration;
 import java.util.List;
@@ -32,9 +32,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.accept.ApiVersionResolver;
 import org.springframework.web.accept.DefaultApiVersionStrategy;
 import org.springframework.web.accept.SemanticApiVersionParser;
-import org.springframework.web.accept.ApiVersionResolver;
 
 /**
  * 모델 호출 없이 SSE 종료 이벤트와 서버 상담 기한 처리를 검증한다.

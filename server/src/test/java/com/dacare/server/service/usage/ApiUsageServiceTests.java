@@ -1,10 +1,10 @@
-package com.dacare.server.service;
+package com.dacare.server.service.usage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dacare.server.repository.ApiUsageRepository;
-import com.dacare.server.service.ApiUsageService.AcquireResult;
-import com.dacare.server.service.ApiUsageService.Usage;
+import com.dacare.server.service.usage.ApiUsageService.AcquireResult;
+import com.dacare.server.service.usage.ApiUsageService.Usage;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;

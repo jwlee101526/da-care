@@ -1,4 +1,4 @@
-package com.dacare.server.service;
+package com.dacare.server.service.usage;
 
 /**
  * AI 상담 사용량을 따로 세는 단위. 로그인 사용자는 계정, 비로그인 사용자는 IP(해시)로 구분한다.

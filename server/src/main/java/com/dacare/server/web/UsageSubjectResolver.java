@@ -1,7 +1,7 @@
 package com.dacare.server.web;
 
 import com.dacare.server.domain.Role;
-import com.dacare.server.service.UsageSubject;
+import com.dacare.server.service.usage.UsageSubject;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;

@@ -4,7 +4,7 @@ import com.dacare.server.api.dto.request.ConfirmationRequest;
 import com.dacare.server.api.dto.request.EngineerRequest;
 import com.dacare.server.api.dto.response.EngineerResponse;
 import com.dacare.server.api.dto.response.ReservationResponse;
-import com.dacare.server.service.ApiUsageService.TotalUsage;
+import com.dacare.server.service.usage.ApiUsageService.TotalUsage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

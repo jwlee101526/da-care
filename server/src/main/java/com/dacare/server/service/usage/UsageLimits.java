@@ -1,4 +1,4 @@
-package com.dacare.server.service;
+package com.dacare.server.service.usage;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

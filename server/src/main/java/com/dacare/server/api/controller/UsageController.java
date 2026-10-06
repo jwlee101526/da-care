@@ -1,8 +1,8 @@
 package com.dacare.server.api.controller;
 
 import com.dacare.server.api.docs.UsageApiDocs;
-import com.dacare.server.service.ApiUsageService;
-import com.dacare.server.service.ApiUsageService.SubjectUsage;
+import com.dacare.server.service.usage.ApiUsageService.SubjectUsage;
+import com.dacare.server.service.usage.ApiUsageService;
 import com.dacare.server.web.UsageSubjectResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;

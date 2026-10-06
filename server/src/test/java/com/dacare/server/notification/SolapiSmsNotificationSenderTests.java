@@ -9,7 +9,7 @@ import com.dacare.server.domain.NotificationHistory;
 import com.dacare.server.domain.NotificationStatus;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.repository.NotificationHistoryRepository;
-import com.dacare.server.service.ApiUsageService;
+import com.dacare.server.service.usage.ApiUsageService;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
