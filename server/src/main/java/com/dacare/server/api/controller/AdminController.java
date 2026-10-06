@@ -5,10 +5,10 @@ import com.dacare.server.api.dto.request.ConfirmationRequest;
 import com.dacare.server.api.dto.request.EngineerRequest;
 import com.dacare.server.api.dto.response.EngineerResponse;
 import com.dacare.server.api.dto.response.ReservationResponse;
+import com.dacare.server.api.dto.response.TotalUsageResponse;
 import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.service.EngineerService;
 import com.dacare.server.service.ReservationService;
-import com.dacare.server.service.usage.ApiUsageService.TotalUsage;
 import com.dacare.server.service.usage.ApiUsageService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -38,8 +38,8 @@ public class AdminController implements AdminApiDocs {
   }
 
   @GetMapping("/usage")
-  public TotalUsage usage() {
-    return usage.totalUsage();
+  public TotalUsageResponse usage() {
+    return TotalUsageResponse.from(usage.totalUsage());
   }
 
   @GetMapping("/engineers")

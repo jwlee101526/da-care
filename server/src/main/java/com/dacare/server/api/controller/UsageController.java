@@ -1,7 +1,7 @@
 package com.dacare.server.api.controller;
 
 import com.dacare.server.api.docs.UsageApiDocs;
-import com.dacare.server.service.usage.ApiUsageService.SubjectUsage;
+import com.dacare.server.api.dto.response.SubjectUsageResponse;
 import com.dacare.server.service.usage.ApiUsageService;
 import com.dacare.server.web.UsageSubjectResolver;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +23,8 @@ public class UsageController implements UsageApiDocs {
   }
 
   @GetMapping
-  public SubjectUsage mine(Authentication authentication, HttpServletRequest request) {
-    return service.diagnosisUsage(subjects.resolve(authentication, request));
+  public SubjectUsageResponse mine(Authentication authentication, HttpServletRequest request) {
+    return SubjectUsageResponse.from(
+        service.diagnosisUsage(subjects.resolve(authentication, request)));
   }
 }
