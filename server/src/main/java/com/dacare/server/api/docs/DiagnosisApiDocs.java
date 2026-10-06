@@ -1,6 +1,6 @@
 package com.dacare.server.api.docs;
 
-import com.dacare.server.api.DiagnosisController.QuestionRequest;
+import com.dacare.server.api.dto.request.QuestionRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

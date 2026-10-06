@@ -1,24 +1,19 @@
-package com.dacare.server.api;
+package com.dacare.server.api.controller;
 
 import com.dacare.server.api.docs.DiagnosisApiDocs;
-import com.dacare.server.service.ApiUsageService;
+import com.dacare.server.api.dto.request.QuestionRequest;
 import com.dacare.server.service.ApiUsageService.AcquireResult;
+import com.dacare.server.service.ApiUsageService;
 import com.dacare.server.service.DiagnosisCancelledException;
 import com.dacare.server.service.DiagnosisExecutor;
-import com.dacare.server.service.DiagnosisService;
-import com.dacare.server.service.DiagnosisService.ConversationTurn;
 import com.dacare.server.service.DiagnosisService.DiagnosisResult;
-import com.dacare.server.service.DiagnosisService.Speaker;
+import com.dacare.server.service.DiagnosisService;
 import com.dacare.server.service.DiagnosisUnavailableException;
 import com.dacare.server.service.UsageSubject;
 import com.dacare.server.web.UsageSubjectResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import java.time.Duration;
-import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -102,22 +97,5 @@ public class DiagnosisController implements DiagnosisApiDocs {
     return subject.isGuest()
         ? "이번 주 비로그인 상담 가능 횟수를 모두 사용했습니다. 로그인하면 상담을 계속 이용할 수 있습니다."
         : "이번 주 AI 상담 가능 횟수를 모두 사용했습니다. 다음 주 월요일에 다시 이용해 주세요.";
-  }
-
-  public record QuestionRequest(@NotBlank @Size(max = 2000) String question,
-                                @Size(max = 12) List<@NotNull @Valid ConversationTurnRequest> history) {
-
-    List<ConversationTurn> turns() {
-      return history == null ? List.of()
-          : history.stream().map(ConversationTurnRequest::toTurn).toList();
-    }
-  }
-
-  public record ConversationTurnRequest(@NotNull Speaker role,
-                                        @NotBlank @Size(max = 4000) String text) {
-
-    ConversationTurn toTurn() {
-      return new ConversationTurn(role, text);
-    }
   }
 }

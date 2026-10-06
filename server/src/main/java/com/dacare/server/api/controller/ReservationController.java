@@ -1,17 +1,16 @@
-package com.dacare.server.api;
+package com.dacare.server.api.controller;
 
 import com.dacare.server.api.docs.ReservationApiDocs;
-import com.dacare.server.api.validation.ValidPhoneNumber;
+import com.dacare.server.api.dto.request.GuestCancelRequest;
+import com.dacare.server.api.dto.request.GuestLookupRequest;
+import com.dacare.server.api.dto.request.GuestReservationRequest;
+import com.dacare.server.api.dto.request.ReservationRequest;
+import com.dacare.server.api.dto.response.ReservationResponse;
 import com.dacare.server.domain.PhoneNumber;
-import com.dacare.server.service.ReservationDraft;
 import com.dacare.server.service.ReservationService;
 import com.dacare.server.web.UsageSubjectResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -74,40 +73,5 @@ public class ReservationController implements ReservationApiDocs {
   @PatchMapping("/{id}/cancel")
   public ReservationResponse cancel(Authentication authentication, @PathVariable Long id) {
     return ReservationResponse.from(service.cancel(authentication.getName(), id));
-  }
-
-  public record ReservationRequest(@NotBlank @Size(max = 50) String deviceType,
-                                   @NotBlank @Size(max = 2000) String symptomDescription,
-                                   @NotBlank @Size(max = 200) String visitAddress,
-                                   @NotNull LocalDateTime preferredAt,
-                                   @Size(min = 1, max = 50) String contactName,
-                                   @ValidPhoneNumber(mobile = true) String contactPhone) {
-
-    ReservationDraft toDraft() {
-      return new ReservationDraft(deviceType, symptomDescription, visitAddress, preferredAt,
-          contactName, PhoneNumber.ofNullableMobile(contactPhone));
-    }
-  }
-
-  public record GuestReservationRequest(@NotBlank @Size(max = 50) String deviceType,
-                                        @NotBlank @Size(max = 2000) String symptomDescription,
-                                        @NotBlank @Size(max = 200) String visitAddress,
-                                        @NotNull LocalDateTime preferredAt,
-                                        @NotBlank @Size(min = 1, max = 50) String contactName,
-                                        @NotBlank @ValidPhoneNumber(mobile = true) String contactPhone) {
-
-    ReservationDraft toDraft() {
-      return new ReservationDraft(deviceType, symptomDescription, visitAddress, preferredAt,
-          contactName, PhoneNumber.ofMobile(contactPhone));
-    }
-  }
-
-  public record GuestLookupRequest(@NotBlank @Size(max = 20) String reservationCode,
-                                   @NotBlank @ValidPhoneNumber String contactPhone) {
-
-  }
-
-  public record GuestCancelRequest(@NotBlank @ValidPhoneNumber String contactPhone) {
-
   }
 }

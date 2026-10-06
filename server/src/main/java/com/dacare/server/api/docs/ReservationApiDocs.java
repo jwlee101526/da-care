@@ -1,10 +1,10 @@
 package com.dacare.server.api.docs;
 
-import com.dacare.server.api.ReservationController.GuestCancelRequest;
-import com.dacare.server.api.ReservationController.GuestLookupRequest;
-import com.dacare.server.api.ReservationController.GuestReservationRequest;
-import com.dacare.server.api.ReservationController.ReservationRequest;
-import com.dacare.server.api.ReservationResponse;
+import com.dacare.server.api.dto.request.GuestCancelRequest;
+import com.dacare.server.api.dto.request.GuestLookupRequest;
+import com.dacare.server.api.dto.request.GuestReservationRequest;
+import com.dacare.server.api.dto.request.ReservationRequest;
+import com.dacare.server.api.dto.response.ReservationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

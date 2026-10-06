@@ -1,4 +1,4 @@
-package com.dacare.server.api;
+package com.dacare.server.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.matchesPattern;

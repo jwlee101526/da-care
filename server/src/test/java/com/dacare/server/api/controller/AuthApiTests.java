@@ -1,4 +1,4 @@
-package com.dacare.server.api;
+package com.dacare.server.api.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;

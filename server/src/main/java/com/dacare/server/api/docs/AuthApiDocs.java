@@ -1,8 +1,8 @@
 package com.dacare.server.api.docs;
 
-import com.dacare.server.api.AuthController.LoginRequest;
-import com.dacare.server.api.AuthController.SignupRequest;
-import com.dacare.server.api.AuthController.TokenResponse;
+import com.dacare.server.api.dto.request.LoginRequest;
+import com.dacare.server.api.dto.request.SignupRequest;
+import com.dacare.server.api.dto.response.TokenResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;

@@ -1,4 +1,4 @@
-package com.dacare.server.api;
+package com.dacare.server.api.dto.response;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -1,4 +1,4 @@
-package com.dacare.server.api;
+package com.dacare.server.api.controller;
 
 import com.dacare.server.api.docs.UsageApiDocs;
 import com.dacare.server.service.ApiUsageService;

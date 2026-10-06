@@ -1,17 +1,16 @@
-package com.dacare.server.api;
+package com.dacare.server.api.controller;
 
 import com.dacare.server.api.docs.AdminApiDocs;
-import com.dacare.server.api.validation.ValidPhoneNumber;
-import com.dacare.server.domain.Engineer;
+import com.dacare.server.api.dto.request.ConfirmationRequest;
+import com.dacare.server.api.dto.request.EngineerRequest;
+import com.dacare.server.api.dto.response.EngineerResponse;
+import com.dacare.server.api.dto.response.ReservationResponse;
 import com.dacare.server.domain.PhoneNumber;
-import com.dacare.server.service.ApiUsageService;
 import com.dacare.server.service.ApiUsageService.TotalUsage;
+import com.dacare.server.service.ApiUsageService;
 import com.dacare.server.service.EngineerService;
 import com.dacare.server.service.ReservationService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -88,24 +87,5 @@ public class AdminController implements AdminApiDocs {
   @PatchMapping("/reservations/{id}/cancel")
   public ReservationResponse cancel(@PathVariable Long id) {
     return ReservationResponse.from(reservations.cancelByAdmin(id));
-  }
-
-  public record EngineerRequest(@NotBlank String name,
-                                @NotBlank @ValidPhoneNumber(mobile = true) String phone,
-                                @NotBlank String specialty, @NotBlank String region) {
-
-  }
-
-  public record ConfirmationRequest(@NotNull Long engineerId, @NotNull LocalDateTime confirmedAt) {
-
-  }
-
-  public record EngineerResponse(Long id, String name, String phone, String specialty,
-                                 String region) {
-
-    static EngineerResponse from(Engineer engineer) {
-      return new EngineerResponse(engineer.getId(), engineer.getName(), engineer.getPhone().value(),
-          engineer.getSpecialty(), engineer.getRegion());
-    }
   }
 }

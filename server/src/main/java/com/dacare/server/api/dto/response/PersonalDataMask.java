@@ -1,4 +1,4 @@
-package com.dacare.server.api;
+package com.dacare.server.api.dto.response;
 
 import com.dacare.server.domain.PhoneNumber;
 import java.util.Arrays;

@@ -1,4 +1,4 @@
-package com.dacare.server.api;
+package com.dacare.server.api.dto.response;
 
 import com.dacare.server.domain.Reservation;
 import java.time.LocalDateTime;
@@ -13,7 +13,7 @@ public record ReservationResponse(Long id, String code, String deviceType,
                                   String status, String engineerName, String contactName,
                                   String contactPhone) {
 
-  static ReservationResponse from(Reservation reservation) {
+  public static ReservationResponse from(Reservation reservation) {
     return of(reservation, reservation.getId(), reservation.getVisitAddress(),
         reservation.getContactName(),
         reservation.getContactPhone() == null ? null : reservation.getContactPhone().value());
@@ -22,7 +22,7 @@ public record ReservationResponse(Long id, String code, String deviceType,
   /**
    * 비회원 예약 접수 직후 응답. 방금 입력한 본인에게 돌려주는 것이므로 개인정보를 가리지 않는다.
    */
-  static ReservationResponse forGuest(Reservation reservation) {
+  public static ReservationResponse forGuest(Reservation reservation) {
     return of(reservation, null, reservation.getVisitAddress(), reservation.getContactName(),
         reservation.getContactPhone().value());
   }
@@ -30,7 +30,7 @@ public record ReservationResponse(Long id, String code, String deviceType,
   /**
    * 비회원 예약 조회·취소 응답. 이름·연락처·상세 주소를 가리며, 연락처는 표시용 문자열이다.
    */
-  static ReservationResponse maskedForGuest(Reservation reservation) {
+  public static ReservationResponse maskedForGuest(Reservation reservation) {
     return of(reservation, null, PersonalDataMask.address(reservation.getVisitAddress()),
         PersonalDataMask.name(reservation.getContactName()),
         PersonalDataMask.phone(reservation.getContactPhone()));
