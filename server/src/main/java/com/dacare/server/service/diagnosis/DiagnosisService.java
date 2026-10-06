@@ -42,6 +42,13 @@ public class DiagnosisService {
     this.systemPrompt = read(systemPrompt);
   }
 
+  /**
+   * 모델 설정이 있어 상담을 시작할 수 있는지. 없으면 한도를 차감하기 전에 거절한다.
+   */
+  public boolean isAvailable() {
+    return chatClientBuilder.getIfAvailable() != null;
+  }
+
   public DiagnosisResult diagnose(String question, List<ConversationTurn> history, String email) {
     return diagnose(question, history, email, ignored -> {
     });

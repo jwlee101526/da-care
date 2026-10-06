@@ -6,7 +6,8 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -47,6 +48,7 @@ class DiagnosisControllerTests {
 
   @BeforeEach
   void setUp() {
+    when(service.isAvailable()).thenReturn(true);
     when(usage.tryAcquireDiagnosis(any(UsageSubject.class))).thenReturn(AcquireResult.ACQUIRED);
   }
 
@@ -113,7 +115,7 @@ class DiagnosisControllerTests {
     assertThat(stream(mvc(Duration.ofSeconds(5))))
         .contains("event:error").contains("WEEKLY_LIMIT_EXCEEDED").contains("로그인하면")
         .doesNotContain("event:completed");
-    verifyNoInteractions(service);
+    verify(service, never()).diagnose(anyString(), anyList(), any(), any());
   }
 
   @Test
@@ -124,6 +126,6 @@ class DiagnosisControllerTests {
     assertThat(stream(mvc(Duration.ofSeconds(5))))
         .contains("event:error").contains("SERVICE_LIMIT_EXCEEDED")
         .doesNotContain("event:completed");
-    verifyNoInteractions(service);
+    verify(service, never()).diagnose(anyString(), anyList(), any(), any());
   }
 }

@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * 상담 한 건의 실행 흐름. 주간 한도를 차감한 뒤 전용 스레드 풀에서 상담을 실행하고, 서버 기한이 지나면 작업을 중단한다.
+ * 상담 한 건의 실행 흐름. 모델을 쓸 수 있을 때만 주간 한도를 차감한 뒤 전용 스레드 풀에서 상담을 실행하고, 서버 기한이 지나면 작업을 중단한다.
  */
 @Service
 public class DiagnosisSessionService {
@@ -36,6 +36,10 @@ public class DiagnosisSessionService {
 
   public DiagnosisSession start(String question, List<ConversationTurn> history,
       UsageSubject subject, String email, DiagnosisListener listener) {
+    if (!service.isAvailable()) {
+      listener.failed(ErrorCode.DIAGNOSIS_UNAVAILABLE);
+      return DiagnosisSession.finishedSession();
+    }
     AcquireResult acquired = usage.tryAcquireDiagnosis(subject);
     if (acquired != AcquireResult.ACQUIRED) {
       listener.failed(limitError(acquired), limitMessage(acquired, subject));

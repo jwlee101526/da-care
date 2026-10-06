@@ -37,7 +37,20 @@ class DiagnosisSessionServiceTests {
 
   @BeforeEach
   void setUp() {
+    when(service.isAvailable()).thenReturn(true);
     when(usage.tryAcquireDiagnosis(subject)).thenReturn(AcquireResult.ACQUIRED);
+  }
+
+  @Test
+  void unavailableModelIsRejectedWithoutChargingUsage() {
+    when(service.isAvailable()).thenReturn(false);
+    RecordingListener listener = new RecordingListener();
+
+    new DiagnosisSessionService(service, executor, usage, Duration.ofSeconds(5))
+        .start("질문", List.of(), subject, null, listener);
+
+    assertThat(listener.result.join()).isEqualTo(ErrorCode.DIAGNOSIS_UNAVAILABLE.name());
+    verify(usage, never()).tryAcquireDiagnosis(subject);
   }
 
   @AfterEach
