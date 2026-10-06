@@ -17,6 +17,7 @@ import com.dacare.server.service.ApiUsageService.AcquireResult;
 import com.dacare.server.service.diagnosis.DiagnosisExecutor;
 import com.dacare.server.service.diagnosis.DiagnosisCancelledException;
 import com.dacare.server.service.diagnosis.DiagnosisService;
+import com.dacare.server.service.diagnosis.DiagnosisSessionService;
 import com.dacare.server.service.UsageSubject;
 import com.dacare.server.web.UsageSubjectResolver;
 import java.time.Duration;
@@ -56,7 +57,8 @@ class DiagnosisControllerTests {
 
   private MockMvc mvc(Duration timeout) {
     ApiVersionResolver header = request -> request.getHeader("API-Version");
-    return MockMvcBuilders.standaloneSetup(new DiagnosisController(service, executor, usage, subjects, timeout))
+    return MockMvcBuilders.standaloneSetup(new DiagnosisController(
+            new DiagnosisSessionService(service, executor, usage, timeout), subjects))
         .setApiVersionStrategy(new DefaultApiVersionStrategy(List.of(header),
             new SemanticApiVersionParser(), false, null, true, null, null))
         .build();

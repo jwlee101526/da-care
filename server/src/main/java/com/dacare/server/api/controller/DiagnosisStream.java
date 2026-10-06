@@ -2,22 +2,24 @@ package com.dacare.server.api.controller;
 
 import com.dacare.server.api.error.ErrorResponse;
 import com.dacare.server.error.ErrorCode;
+import com.dacare.server.service.diagnosis.DiagnosisListener;
+import com.dacare.server.service.diagnosis.DiagnosisService.DiagnosisResult;
+import com.dacare.server.service.diagnosis.DiagnosisSession;
+import com.dacare.server.service.diagnosis.DiagnosisTools.ToolProgress;
 import java.io.IOException;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
- * 요청 하나의 SSE 응답. 작업 완료와 서버 기한 중 먼저 도착한 쪽만 종료 이벤트를 보낸다.
+ * 요청 하나의 SSE 응답. 먼저 도착한 종료 통지 하나만 종료 이벤트로 보낸다.
  */
-final class DiagnosisStream {
+final class DiagnosisStream implements DiagnosisListener {
 
   private final SseEmitter emitter;
   private final AtomicBoolean finished = new AtomicBoolean();
-  private final AtomicReference<Future<?>> task = new AtomicReference<>();
-  private final AtomicReference<ScheduledFuture<?>> deadline = new AtomicReference<>();
+  private final AtomicReference<DiagnosisSession> session = new AtomicReference<>();
+  private final AtomicBoolean cancelRequested = new AtomicBoolean();
 
   DiagnosisStream(SseEmitter emitter) {
     this.emitter = emitter;
@@ -30,54 +32,50 @@ final class DiagnosisStream {
     return emitter;
   }
 
-  void start(Future<?> task, ScheduledFuture<?> deadline) {
-    this.task.set(task);
-    this.deadline.set(deadline);
-    if (finished.get()) {
-      deadline.cancel(false);
+  void attach(DiagnosisSession session) {
+    this.session.set(session);
+    // 세션을 받기 전에 연결이 끊겼다면 바로 중단한다.
+    if (cancelRequested.get()) {
+      session.cancel();
     }
   }
 
-  void progress(Object data) {
+  @Override
+  public void progress(ToolProgress progress) {
     if (!finished.get()) {
-      send("tool", data);
+      send("tool", progress);
     }
   }
 
-  void finish(String name, Object data) {
+  @Override
+  public void completed(DiagnosisResult result) {
+    finish("completed", result);
+  }
+
+  @Override
+  public void failed(ErrorCode errorCode, String message) {
+    finish("error", ErrorResponse.of(errorCode, message));
+  }
+
+  @Override
+  public void cancelled() {
     if (finished.compareAndSet(false, true)) {
-      stopDeadline();
+      emitter.complete();
+    }
+  }
+
+  private void finish(String name, Object data) {
+    if (finished.compareAndSet(false, true)) {
       send(name, data);
       emitter.complete();
     }
   }
 
-  void fail(ErrorCode errorCode) {
-    fail(errorCode, errorCode.message());
-  }
-
-  void fail(ErrorCode errorCode, String message) {
-    finish("error", ErrorResponse.of(errorCode, message));
-  }
-
-  void close() {
-    if (finished.compareAndSet(false, true)) {
-      stopDeadline();
-      emitter.complete();
-    }
-  }
-
-  void cancel() {
-    Future<?> running = task.get();
+  private void cancel() {
+    cancelRequested.set(true);
+    DiagnosisSession running = session.get();
     if (running != null) {
-      running.cancel(true);
-    }
-  }
-
-  private void stopDeadline() {
-    ScheduledFuture<?> scheduled = deadline.get();
-    if (scheduled != null) {
-      scheduled.cancel(false);
+      running.cancel();
     }
   }
 
@@ -87,7 +85,6 @@ final class DiagnosisStream {
     } catch (IOException | IllegalStateException exception) {
       // 연결이 이미 닫혔거나 완료된 응답이다.
       finished.set(true);
-      stopDeadline();
       cancel();
       emitter.completeWithError(exception);
     }
