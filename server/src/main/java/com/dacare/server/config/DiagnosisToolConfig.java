@@ -1,6 +1,6 @@
 package com.dacare.server.config;
 
-import com.dacare.server.service.DiagnosisCancelledException;
+import com.dacare.server.service.diagnosis.DiagnosisCancelledException;
 import java.util.List;
 import org.springframework.ai.tool.execution.DefaultToolExecutionExceptionProcessor;
 import org.springframework.ai.tool.execution.ToolExecutionExceptionProcessor;

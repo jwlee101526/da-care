@@ -21,9 +21,10 @@ public class ManualImport {
   @Column(nullable = false, unique = true)
   private String source;
   @Column(nullable = false)
-  private LocalDateTime importedAt = LocalDateTime.now();
+  private LocalDateTime importedAt;
 
-  public ManualImport(String source) {
+  public ManualImport(String source, LocalDateTime importedAt) {
     this.source = source;
+    this.importedAt = importedAt;
   }
 }

@@ -8,8 +8,7 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import java.util.regex.Pattern;
 
 /**
- * 전화번호 값 객체. Google libphonenumber로 국가별 규칙에 맞춰 검증하고 E.164 형식(예: +821012345678)으로
- * 저장·비교한다.
+ * 전화번호 값 객체. Google libphonenumber로 국가별 규칙에 맞춰 검증하고 E.164 형식(예: +821012345678)으로 저장·비교한다.
  *
  * <p>국가번호 없이 입력한 번호는 {@link #DEFAULT_REGION}(한국) 번호로 해석한다. 해외 번호는 +국가번호로 입력하면
  * 그대로 받는다.
@@ -63,7 +62,9 @@ public final class PhoneNumber {
     return phone;
   }
 
-  /** 값이 없으면 null을 돌려준다. 선택 입력 필드에 쓴다. */
+  /**
+   * 값이 없으면 null을 돌려준다. 선택 입력 필드에 쓴다.
+   */
   public static PhoneNumber ofNullableMobile(String input) {
     return input == null || input.isBlank() ? null : ofMobile(input);
   }
@@ -86,22 +87,30 @@ public final class PhoneNumber {
     }
   }
 
-  /** DB에 저장된 값을 복원한다. 저장 값은 마이그레이션으로 정규화되어 있으므로 다시 검증하지 않는다. */
+  /**
+   * DB에 저장된 값을 복원한다. 저장 값은 마이그레이션으로 정규화되어 있으므로 다시 검증하지 않는다.
+   */
   static PhoneNumber restore(String stored) {
     return new PhoneNumber(stored);
   }
 
-  /** E.164 형식 값. 저장과 비교에 쓴다. */
+  /**
+   * E.164 형식 값. 저장과 비교에 쓴다.
+   */
   public String value() {
     return value;
   }
 
-  /** 국가번호(한국은 82). */
+  /**
+   * 국가번호(한국은 82).
+   */
   public int countryCode() {
     return parsed().getCountryCode();
   }
 
-  /** 휴대전화 번호인지. 미국처럼 유선과 휴대전화 번호 체계가 같은 나라의 번호도 포함한다. */
+  /**
+   * 휴대전화 번호인지. 미국처럼 유선과 휴대전화 번호 체계가 같은 나라의 번호도 포함한다.
+   */
   public boolean isMobile() {
     PhoneNumberType type = UTIL.getNumberType(parsed());
     return type == PhoneNumberType.MOBILE || type == PhoneNumberType.FIXED_LINE_OR_MOBILE;
@@ -111,17 +120,23 @@ public final class PhoneNumber {
     return countryCode() == UTIL.getCountryCodeForRegion(DEFAULT_REGION);
   }
 
-  /** 국가번호와 국내 접두어(한국의 0)를 뺀 번호. 예: 1012345678 */
+  /**
+   * 국가번호와 국내 접두어(한국의 0)를 뺀 번호. 예: 1012345678
+   */
   public String nationalSignificantNumber() {
     return UTIL.getNationalSignificantNumber(parsed());
   }
 
-  /** 국내에서 거는 번호를 숫자만 남긴 형태. 예: 01012345678 */
+  /**
+   * 국내에서 거는 번호를 숫자만 남긴 형태. 예: 01012345678
+   */
   public String nationalDialingNumber() {
     return UTIL.format(parsed(), PhoneNumberFormat.NATIONAL).replaceAll("[^0-9]", "");
   }
 
-  /** 사람이 읽는 형식. 국내 번호는 010-1234-5678, 해외 번호는 +1 201-555-0123처럼 표시한다. */
+  /**
+   * 사람이 읽는 형식. 국내 번호는 010-1234-5678, 해외 번호는 +1 201-555-0123처럼 표시한다.
+   */
   public String format() {
     try {
       return UTIL.format(parsed(),

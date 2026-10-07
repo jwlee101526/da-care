@@ -6,13 +6,16 @@ import static com.dacare.server.domain.NotificationStatus.SKIPPED;
 import static com.dacare.server.domain.NotificationStatus.SUCCESS;
 
 import com.dacare.server.domain.NotificationHistory;
+import com.dacare.server.domain.NotificationStatus;
 import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.repository.NotificationHistoryRepository;
-import com.dacare.server.service.ApiUsageService;
+import com.dacare.server.service.usage.ApiUsageService;
 import com.solapi.sdk.SolapiClient;
 import com.solapi.sdk.message.model.Message;
 import com.solapi.sdk.message.service.DefaultMessageService;
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -27,39 +30,44 @@ public class SolapiSmsNotificationSender {
   private final String sender;
   private final NotificationHistoryRepository histories;
   private final ApiUsageService usage;
+  private final Clock clock;
 
   public SolapiSmsNotificationSender(
       @Value("${app.solapi.api-key:}") String apiKey,
       @Value("${app.solapi.api-secret:}") String apiSecret,
       @Value("${app.solapi.sender:}") String sender,
-      NotificationHistoryRepository histories, ApiUsageService usage) {
+      NotificationHistoryRepository histories, ApiUsageService usage, Clock clock) {
     this.apiKey = apiKey;
     this.apiSecret = apiSecret;
     this.sender = sender;
     this.histories = histories;
     this.usage = usage;
+    this.clock = clock;
   }
 
   public void sendReservationConfirmed(Reservation reservation) {
     String message = message(reservation);
     if (!isConfigured()) {
-      histories.save(
-          new NotificationHistory(reservation, SMS, SKIPPED, message, "SOLAPI 설정 미완료"));
+      record(reservation, SKIPPED, message, "SOLAPI 설정 미완료");
       return;
     }
     if (!usage.tryAcquireSms()) {
-      histories.save(
-          new NotificationHistory(reservation, SMS, SKIPPED, message, "주간 SMS 한도 초과"));
+      record(reservation, SKIPPED, message, "주간 SMS 한도 초과");
       return;
     }
     try {
       DefaultMessageService service = SolapiClient.INSTANCE.createInstance(apiKey, apiSecret);
       service.send(createMessage(reservation, message), null);
-      histories.save(new NotificationHistory(reservation, SMS, SUCCESS, message, null));
+      record(reservation, SUCCESS, message, null);
     } catch (Exception e) {
-      histories.save(
-          new NotificationHistory(reservation, SMS, FAILED, message, e.getMessage()));
+      record(reservation, FAILED, message, e.getMessage());
     }
+  }
+
+  private void record(Reservation reservation, NotificationStatus status, String message,
+      String failureReason) {
+    histories.save(new NotificationHistory(reservation, SMS, status, message, failureReason,
+        LocalDateTime.now(clock)));
   }
 
   private Message createMessage(Reservation reservation, String text) {
@@ -72,8 +80,7 @@ public class SolapiSmsNotificationSender {
   }
 
   /**
-   * 솔라피는 수신번호를 국가번호와 분리해 받는다. 국내 번호는 국내 형식(01012345678)으로, 해외 번호는 국가번호와
-   * 국내 접두어를 뺀 번호로 보낸다.
+   * 솔라피는 수신번호를 국가번호와 분리해 받는다. 국내 번호는 국내 형식(01012345678)으로, 해외 번호는 국가번호와 국내 접두어를 뺀 번호로 보낸다.
    */
   private void setRecipient(Message message, PhoneNumber to) {
     if (to.isDomestic()) {

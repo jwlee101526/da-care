@@ -1,7 +1,7 @@
 package com.dacare.server.web;
 
 import com.dacare.server.domain.Role;
-import com.dacare.server.service.UsageSubject;
+import com.dacare.server.service.usage.UsageSubject;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -16,8 +16,8 @@ import org.springframework.stereotype.Component;
 /**
  * 요청을 AI 상담 사용량 집계 단위로 바꾼다. 로그인 사용자는 계정, 비로그인 사용자는 클라이언트 IP로 센다.
  * <p>
- * 비로그인 한도는 비용 보호용이라 클라이언트가 지우거나 조작할 수 있는 쿠키·브라우저 식별자 대신 서버가 관찰한 IP를 쓴다.
- * IP는 개인정보이므로 원문 대신 서버 비밀값으로 만든 HMAC으로 저장한다.
+ * 비로그인 한도는 비용 보호용이라 클라이언트가 지우거나 조작할 수 있는 쿠키·브라우저 식별자 대신 서버가 관찰한 IP를 쓴다. IP는 개인정보이므로 원문 대신 서버 비밀값으로
+ * 만든 HMAC으로 저장한다.
  */
 @Component
 public class UsageSubjectResolver {
@@ -28,8 +28,8 @@ public class UsageSubjectResolver {
   private final SecretKeySpec hashKey;
 
   /**
-   * @param clientIpHeader 앞단 프록시가 덮어써 클라이언트가 위조할 수 없는 실제 IP 헤더(예: Render의 True-Client-IP).
-   *                       비어 있으면 서블릿 컨테이너가 신뢰 프록시 체인을 거쳐 구한 원격 주소를 쓴다.
+   * @param clientIpHeader 앞단 프록시가 덮어써 클라이언트가 위조할 수 없는 실제 IP 헤더(예: Render의 True-Client-IP). 비어 있으면
+   *                       서블릿 컨테이너가 신뢰 프록시 체인을 거쳐 구한 원격 주소를 쓴다.
    */
   public UsageSubjectResolver(@Value("${app.usage.client-ip-header:}") String clientIpHeader,
       @Value("${app.usage.ip-hash-secret}") String hashSecret) {

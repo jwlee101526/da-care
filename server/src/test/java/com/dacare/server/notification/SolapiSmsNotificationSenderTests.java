@@ -9,7 +9,8 @@ import com.dacare.server.domain.NotificationHistory;
 import com.dacare.server.domain.NotificationStatus;
 import com.dacare.server.domain.Reservation;
 import com.dacare.server.repository.NotificationHistoryRepository;
-import com.dacare.server.service.ApiUsageService;
+import com.dacare.server.service.usage.ApiUsageService;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -19,7 +20,8 @@ class SolapiSmsNotificationSenderTests {
   private final NotificationHistoryRepository histories = mock(NotificationHistoryRepository.class);
   private final ApiUsageService usage = mock(ApiUsageService.class);
   private final SolapiSmsNotificationSender sender = new SolapiSmsNotificationSender("key",
-      "secret", "010-0000-0000", histories, usage);
+      "secret", "010-0000-0000", histories, usage,
+      Clock.systemDefaultZone());
 
   @Test
   void skipsSendingWhenWeeklyLimitIsReached() {

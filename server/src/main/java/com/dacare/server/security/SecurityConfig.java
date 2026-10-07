@@ -2,12 +2,12 @@ package com.dacare.server.security;
 
 import com.dacare.server.api.error.ErrorResponse;
 import com.dacare.server.domain.Role;
+import com.dacare.server.error.ErrorCode;
 import com.dacare.server.web.SpaRoutes;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -36,7 +36,8 @@ public class SecurityConfig {
       JsonMapper jsonMapper) throws Exception {
     return http.csrf(AbstractHttpConfigurer::disable)
         .cors(Customizer.withDefaults())
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(authorize -> authorize
             .requestMatchers(PUBLIC_API).permitAll()
             .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.name())
@@ -46,19 +47,19 @@ public class SecurityConfig {
             .anyRequest().denyAll())
         .exceptionHandling(exceptions -> exceptions
             .authenticationEntryPoint((request, response, exception) -> writeError(response,
-                jsonMapper, HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "로그인이 필요합니다."))
+                jsonMapper, ErrorCode.UNAUTHORIZED))
             .accessDeniedHandler((request, response, exception) -> writeError(response,
-                jsonMapper, HttpStatus.FORBIDDEN, "FORBIDDEN", "접근 권한이 없습니다.")))
+                jsonMapper, ErrorCode.FORBIDDEN)))
         .addFilterBefore(new JwtAuthenticationFilter(jwtService),
             UsernamePasswordAuthenticationFilter.class)
         .build();
   }
 
   private static void writeError(HttpServletResponse response, JsonMapper jsonMapper,
-      HttpStatus status, String code, String message) throws IOException {
-    response.setStatus(status.value());
+      ErrorCode errorCode) throws IOException {
+    response.setStatus(errorCode.status().value());
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     response.setCharacterEncoding("UTF-8");
-    jsonMapper.writeValue(response.getOutputStream(), ErrorResponse.of(code, message));
+    jsonMapper.writeValue(response.getOutputStream(), ErrorResponse.of(errorCode));
   }
 }

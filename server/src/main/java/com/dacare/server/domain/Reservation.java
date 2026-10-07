@@ -27,14 +27,16 @@ public class Reservation {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
   @Column(nullable = false, unique = true, updatable = false, length = ReservationCode.LENGTH)
-  private String code;
+  private ReservationCode code;
   @ManyToOne(optional = true)
   @JoinColumn(name = "customer_id", nullable = true)
   private Customer customer;
   @ManyToOne
   private Engineer engineer;
-  @Column(nullable = false)
-  private String deviceType;
+  @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(Types.VARCHAR)
+  @Column(nullable = false, length = 20)
+  private DeviceType deviceType;
   @Column(nullable = false, length = 2000)
   private String symptomDescription;
   @Column(nullable = false)
@@ -44,7 +46,9 @@ public class Reservation {
   private LocalDateTime confirmedAt;
   private String contactName;
   private PhoneNumber contactPhone;
-  /** 완료 또는 취소된 시각. 비회원 조회 가능 기간을 이 시각부터 센다. */
+  /**
+   * 완료 또는 취소된 시각. 비회원 조회 가능 기간을 이 시각부터 센다.
+   */
   private LocalDateTime closedAt;
 
   @Enumerated(EnumType.STRING)
@@ -52,11 +56,11 @@ public class Reservation {
   @Column(nullable = false, length = 20)
   private ReservationStatus status;
   @Column(nullable = false, updatable = false)
-  private LocalDateTime createdAt = LocalDateTime.now();
+  private LocalDateTime createdAt;
 
-  private Reservation(String code, Customer customer, String deviceType,
+  private Reservation(ReservationCode code, Customer customer, DeviceType deviceType,
       String symptomDescription, String visitAddress, LocalDateTime preferredAt,
-      String contactName, PhoneNumber contactPhone) {
+      String contactName, PhoneNumber contactPhone, LocalDateTime createdAt) {
     this.code = code;
     this.customer = customer;
     this.deviceType = deviceType;
@@ -66,22 +70,27 @@ public class Reservation {
     this.contactName = contactName;
     this.contactPhone = contactPhone;
     this.status = ReservationStatus.PENDING;
+    this.createdAt = createdAt;
   }
 
-  /** 회원 예약. 고객 계정과 연결되며 '내 예약'에서 조회한다. */
-  public static Reservation forCustomer(String code, Customer customer, String deviceType,
-      String symptomDescription, String visitAddress, LocalDateTime preferredAt,
-      String contactName, PhoneNumber contactPhone) {
+  /**
+   * 회원 예약. 고객 계정과 연결되며 '내 예약'에서 조회한다.
+   */
+  public static Reservation forCustomer(ReservationCode code, Customer customer,
+      DeviceType deviceType, String symptomDescription, String visitAddress, LocalDateTime preferredAt,
+      String contactName, PhoneNumber contactPhone, LocalDateTime now) {
     return new Reservation(code, customer, deviceType, symptomDescription, visitAddress,
-        preferredAt, contactName, contactPhone);
+        preferredAt, contactName, contactPhone, now);
   }
 
-  /** 비회원 예약. 예약 번호와 휴대전화 번호로만 조회할 수 있다. */
-  public static Reservation forGuest(String code, String deviceType, String symptomDescription,
-      String visitAddress, LocalDateTime preferredAt, String contactName,
-      PhoneNumber contactPhone) {
+  /**
+   * 비회원 예약. 예약 번호와 휴대전화 번호로만 조회할 수 있다.
+   */
+  public static Reservation forGuest(ReservationCode code, DeviceType deviceType,
+      String symptomDescription, String visitAddress, LocalDateTime preferredAt, String contactName,
+      PhoneNumber contactPhone, LocalDateTime now) {
     return new Reservation(code, null, deviceType, symptomDescription, visitAddress,
-        preferredAt, contactName, contactPhone);
+        preferredAt, contactName, contactPhone, now);
   }
 
   public boolean isGuest() {

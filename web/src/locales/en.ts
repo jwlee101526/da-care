@@ -52,20 +52,6 @@ export const en: LocaleDict = {
     title: 'What device needs repair?',
     desc: 'Select a device category for a 3-second instant estimate and on-site booking.',
     symptomSuffix: 'Inspection & Repair Request',
-    categories: {
-      'phone-tablet': 'Phone & Tablet',
-      computer: 'Laptop & PC',
-      tv: 'Smart TV',
-      console: 'Gaming Console',
-      aircon: 'Air Conditioner',
-      washing: 'Washer & Dryer',
-      fridge: 'Refrigerator',
-      microwave: 'Kitchen Appliances',
-      cleaner: 'Vacuum Cleaner',
-      internet: 'Internet / Wi-Fi',
-      etc: 'Other Electronics',
-      repair: 'Emergency On-Site AS',
-    },
   },
   process: {
     eyebrow: 'HOW IT WORKS',
@@ -91,7 +77,7 @@ export const en: LocaleDict = {
       },
       {
         question: 'Which devices can I choose from?',
-        answer: 'We support smartphones and tablets, laptops and PCs, smart TVs, game consoles, air conditioners, washers, refrigerators, kitchen appliances, and vacuum cleaners. For other devices, please select Other Electronics.',
+        answer: 'You can choose smartphones and tablets, laptops and PCs, smart TVs, air conditioners, washers and dryers, refrigerators, microwaves and induction cooktops, vacuum cleaners, gaming consoles, networks and routers, or audio systems. For devices not on the list or urgent failures, please request Emergency Service.',
       },
       {
         question: 'Where can I check estimated repair costs?',

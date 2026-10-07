@@ -5,6 +5,7 @@ import com.dacare.server.error.ErrorCode;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -16,7 +17,7 @@ public class GlobalExceptionHandler {
   ResponseEntity<ErrorResponse> business(BusinessException e) {
     ErrorCode errorCode = e.errorCode();
     return ResponseEntity.status(errorCode.status())
-        .body(ErrorResponse.of(errorCode.name(), e.getMessage()));
+        .body(ErrorResponse.of(errorCode, e.getMessage()));
   }
 
   /**
@@ -24,7 +25,17 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(IllegalArgumentException.class)
   ResponseEntity<ErrorResponse> illegal(IllegalArgumentException e) {
-    return ResponseEntity.badRequest().body(ErrorResponse.of("INVALID_REQUEST", e.getMessage()));
+    return ResponseEntity.status(ErrorCode.INVALID_REQUEST.status())
+        .body(ErrorResponse.of(ErrorCode.INVALID_REQUEST, e.getMessage()));
+  }
+
+  /**
+   * 본문이 JSON이 아니거나, 정해진 값만 받는 항목(기기 분류 등)에 알 수 없는 값이 온 경우.
+   */
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  ResponseEntity<ErrorResponse> unreadable(HttpMessageNotReadableException e) {
+    return ResponseEntity.status(ErrorCode.INVALID_REQUEST.status())
+        .body(ErrorResponse.of(ErrorCode.INVALID_REQUEST));
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -32,7 +43,7 @@ public class GlobalExceptionHandler {
     Map<String, String> fields = new LinkedHashMap<>();
     e.getBindingResult().getFieldErrors()
         .forEach(error -> fields.putIfAbsent(error.getField(), error.getDefaultMessage()));
-    return ResponseEntity.badRequest()
-        .body(new ErrorResponse("VALIDATION_ERROR", "입력값을 확인하세요.", fields));
+    return ResponseEntity.status(ErrorCode.VALIDATION_ERROR.status())
+        .body(ErrorResponse.withFields(ErrorCode.VALIDATION_ERROR, fields));
   }
 }

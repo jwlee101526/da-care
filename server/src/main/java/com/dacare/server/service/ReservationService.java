@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,8 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReservationService {
 
   /**
-   * 비회원 예약을 완료·취소 후에도 조회할 수 있는 기간. 해지된 번호가 다른 사람에게 다시 배정되는 경우 등을 고려해 지난 예약이 계속
-   * 열려 있지 않게 한다. 전체 이력은 회원의 '내 예약'에서 제공한다.
+   * 비회원 예약을 완료·취소 후에도 조회할 수 있는 기간. 해지된 번호가 다른 사람에게 다시 배정되는 경우 등을 고려해 지난 예약이 계속 열려 있지 않게 한다. 전체 이력은
+   * 회원의 '내 예약'에서 제공한다.
    */
   static final Duration GUEST_LOOKUP_PERIOD = Duration.ofDays(90);
 
@@ -59,14 +60,16 @@ public class ReservationService {
     return receive(Reservation.forCustomer(newCode(), customer, draft.deviceType(),
         draft.symptomDescription(), draft.visitAddress(), draft.preferredAt(),
         Objects.requireNonNullElse(draft.contactName(), customer.getName()),
-        Objects.requireNonNullElse(draft.contactPhone(), customer.getPhone())));
+        Objects.requireNonNullElse(draft.contactPhone(), customer.getPhone()),
+        LocalDateTime.now(clock)));
   }
 
   @Transactional
   public Reservation createGuest(ReservationDraft draft) {
     requireFuture(draft.preferredAt(), "희망 방문 일시는 미래여야 합니다.");
     return receive(Reservation.forGuest(newCode(), draft.deviceType(), draft.symptomDescription(),
-        draft.visitAddress(), draft.preferredAt(), draft.contactName(), draft.contactPhone()));
+        draft.visitAddress(), draft.preferredAt(), draft.contactName(), draft.contactPhone(),
+        LocalDateTime.now(clock)));
   }
 
   /**
@@ -76,9 +79,10 @@ public class ReservationService {
    */
   public Reservation findGuest(String code, PhoneNumber contactPhone, String clientKey) {
     // 형식이 틀린 입력도 같은 실패로 세어 응답만으로 형식 검사 결과가 드러나지 않게 한다.
-    String normalized = ReservationCode.normalize(code).orElse(code);
+    Optional<ReservationCode> parsed = ReservationCode.parse(code);
+    String normalized = parsed.map(ReservationCode::value).orElse(code);
     throttle.check(normalized, contactPhone, clientKey);
-    Reservation reservation = reservations.findByCode(normalized)
+    Reservation reservation = parsed.flatMap(reservations::findByCode)
         .filter(found -> matchesGuest(found, contactPhone))
         .orElseThrow(() -> {
           throttle.recordFailure(normalized, contactPhone, clientKey);
@@ -107,7 +111,7 @@ public class ReservationService {
    * @param code 고객이 알고 있는 예약 번호(예: 4821-7390)
    */
   public Reservation mineOneByCode(String email, String code) {
-    Reservation reservation = ReservationCode.normalize(code).flatMap(reservations::findByCode)
+    Reservation reservation = ReservationCode.parse(code).flatMap(reservations::findByCode)
         .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
     return requireOwner(email, reservation);
   }
@@ -180,8 +184,8 @@ public class ReservationService {
   /**
    * 이미 발급한 번호와 겹치지 않는 예약 번호. 동시에 같은 번호를 뽑는 드문 경우는 DB 유일 제약이 막는다.
    */
-  private String newCode() {
-    String code;
+  private ReservationCode newCode() {
+    ReservationCode code;
     do {
       code = ReservationCode.generate();
     } while (reservations.existsByCode(code));

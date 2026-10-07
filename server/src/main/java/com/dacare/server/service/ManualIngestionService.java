@@ -8,6 +8,8 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -44,8 +46,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 제품 매뉴얼 PDF(manual/{기기 분류}/*.pdf)를 목차 항목 하나당 벡터 하나로 저장한다.
  * <p>
- * 목차의 최하위 항목이 가리키는 위치부터 다음 목차 항목 직전까지를 한 섹션으로 보므로, 한 페이지에 여러 섹션이 있어도
- * 나뉜다. 목차가 없는 PDF는 페이지 단위로 나눈다. 기기 분류는 상위 폴더 이름으로 정한다.
+ * 목차의 최하위 항목이 가리키는 위치부터 다음 목차 항목 직전까지를 한 섹션으로 보므로, 한 페이지에 여러 섹션이 있어도 나뉜다. 목차가 없는 PDF는 페이지 단위로 나눈다.
+ * 기기 분류는 상위 폴더 이름으로 정한다.
  * <p>
  * 매뉴얼 파일과 임베딩 모델로 버전을 계산해, 둘 중 하나라도 바뀌면 이전 버전 벡터를 지우고 다시 수집한다.
  */
@@ -63,11 +65,14 @@ public class ManualIngestionService {
       .build();
   private final ManualImportRepository imports;
   private final String embeddingModel;
+  private final Clock clock;
 
   public ManualIngestionService(ManualImportRepository imports,
-      @Value("${spring.ai.openai.embedding.model:text-embedding-ada-002}") String embeddingModel) {
+      @Value("${spring.ai.openai.embedding.model:text-embedding-ada-002}") String embeddingModel,
+      Clock clock) {
     this.imports = imports;
     this.embeddingModel = embeddingModel;
+    this.clock = clock;
   }
 
   @Transactional
@@ -91,7 +96,7 @@ public class ManualIngestionService {
     vectorStore.delete(filter.and(filter.eq("source", "manual"), filter.ne("version", version))
         .build());
     vectorStore.delete(filter.eq("file_name", LEGACY_PDF).build());
-    imports.save(new ManualImport(source));
+    imports.save(new ManualImport(source, LocalDateTime.now(clock)));
   }
 
   /**

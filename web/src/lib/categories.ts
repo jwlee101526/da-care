@@ -120,18 +120,14 @@ export const DEVICE_CATEGORIES: CategoryDefinition[] = [
   },
 ]
 
-export function getCategoryInfo(deviceType: string, lang: 'ko' | 'en' = 'ko'): string {
-  const normalized = deviceType.toLowerCase()
-  if (normalized === 'laptop') return lang === 'en' ? 'Laptop / PC' : '데스크탑 · PC / 노트북'
-  if (normalized === 'appliance') return lang === 'en' ? 'Home Appliance' : '생활 가전'
-  if (normalized === 'etc') return lang === 'en' ? 'Other Device' : '기타 기기'
-  const match = DEVICE_CATEGORIES.find(c => c.deviceType === normalized)
+/** 상담 카드는 예약 품목에 없는 기타 기기(etc)도 표시한다. */
+export function getCategoryInfo(deviceType: DeviceType | 'etc', lang: 'ko' | 'en' = 'ko'): string {
+  if (deviceType === 'etc') return lang === 'en' ? 'Other Device' : '기타 기기'
+  const match = DEVICE_CATEGORIES.find(c => c.deviceType === deviceType)
   if (match) return lang === 'en' ? match.labelEn : match.labelKo
   return deviceType
 }
 
-export function getCategoryDefinition(deviceType: string): CategoryDefinition | undefined {
-  const normalized = deviceType.toLowerCase()
-  if (normalized === 'laptop') return DEVICE_CATEGORIES.find(c => c.deviceType === 'computer')
-  return DEVICE_CATEGORIES.find(c => c.deviceType === normalized)
+export function getCategoryDefinition(deviceType: DeviceType): CategoryDefinition | undefined {
+  return DEVICE_CATEGORIES.find(c => c.deviceType === deviceType)
 }
