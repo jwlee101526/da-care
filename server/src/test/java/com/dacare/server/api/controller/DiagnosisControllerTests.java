@@ -19,6 +19,7 @@ import com.dacare.server.service.diagnosis.DiagnosisService;
 import com.dacare.server.service.diagnosis.DiagnosisSessionService;
 import com.dacare.server.service.usage.ApiUsageService.AcquireResult;
 import com.dacare.server.service.usage.ApiUsageService;
+import com.dacare.server.service.usage.DiagnosisUsageRecorder;
 import com.dacare.server.service.usage.UsageSubject;
 import com.dacare.server.web.UsageSubjectResolver;
 import java.time.Duration;
@@ -44,6 +45,7 @@ class DiagnosisControllerTests {
   private final DiagnosisService service = mock(DiagnosisService.class);
   private final DiagnosisExecutor executor = new DiagnosisExecutor(2, 2);
   private final ApiUsageService usage = mock(ApiUsageService.class);
+  private final DiagnosisUsageRecorder recorder = mock(DiagnosisUsageRecorder.class);
   private final UsageSubjectResolver subjects = new UsageSubjectResolver("", "test-secret");
 
   @BeforeEach
@@ -60,7 +62,7 @@ class DiagnosisControllerTests {
   private MockMvc mvc(Duration timeout) {
     ApiVersionResolver header = request -> request.getHeader("API-Version");
     return MockMvcBuilders.standaloneSetup(new DiagnosisController(
-            new DiagnosisSessionService(service, executor, usage, timeout), subjects))
+            new DiagnosisSessionService(service, executor, usage, recorder, timeout), subjects))
         .setApiVersionStrategy(new DefaultApiVersionStrategy(List.of(header),
             new SemanticApiVersionParser(), false, null, true, null, null))
         .build();
@@ -80,7 +82,7 @@ class DiagnosisControllerTests {
 
   @Test
   void completedResultIsSentAsFinalEvent() throws Exception {
-    when(service.diagnose(anyString(), anyList(), isNull(), any())).thenReturn(
+    when(service.diagnose(anyString(), anyList(), isNull(), any(), any())).thenReturn(
         new DiagnosisService.DiagnosisResult("안내된 순서대로 점검해 보세요.", List.of(), List.of()));
 
     assertThat(stream(mvc(Duration.ofSeconds(5))))
@@ -91,7 +93,7 @@ class DiagnosisControllerTests {
   @Test
   void deadlineSendsTimeoutErrorAndInterruptsWork() throws Exception {
     CountDownLatch interrupted = new CountDownLatch(1);
-    when(service.diagnose(anyString(), anyList(), isNull(), any())).thenAnswer(invocation -> {
+    when(service.diagnose(anyString(), anyList(), isNull(), any(), any())).thenAnswer(invocation -> {
       try {
         Thread.sleep(10_000);
       } catch (InterruptedException exception) {
@@ -115,7 +117,7 @@ class DiagnosisControllerTests {
     assertThat(stream(mvc(Duration.ofSeconds(5))))
         .contains("event:error").contains("WEEKLY_LIMIT_EXCEEDED").contains("로그인하면")
         .doesNotContain("event:completed");
-    verify(service, never()).diagnose(anyString(), anyList(), any(), any());
+    verify(service, never()).diagnose(anyString(), anyList(), any(), any(), any());
   }
 
   @Test
@@ -126,6 +128,6 @@ class DiagnosisControllerTests {
     assertThat(stream(mvc(Duration.ofSeconds(5))))
         .contains("event:error").contains("SERVICE_LIMIT_EXCEEDED")
         .doesNotContain("event:completed");
-    verify(service, never()).diagnose(anyString(), anyList(), any(), any());
+    verify(service, never()).diagnose(anyString(), anyList(), any(), any(), any());
   }
 }

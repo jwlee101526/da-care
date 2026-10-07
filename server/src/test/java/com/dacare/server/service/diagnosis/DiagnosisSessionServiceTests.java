@@ -4,21 +4,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.dacare.server.domain.DiagnosisOutcome;
 import com.dacare.server.error.ErrorCode;
 import com.dacare.server.service.diagnosis.DiagnosisService.DiagnosisResult;
 import com.dacare.server.service.diagnosis.DiagnosisTools.ToolProgress;
 import com.dacare.server.service.usage.ApiUsageService.AcquireResult;
 import com.dacare.server.service.usage.ApiUsageService;
+import com.dacare.server.service.usage.DiagnosisUsageRecorder;
 import com.dacare.server.service.usage.UsageSubject;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
@@ -32,6 +37,7 @@ class DiagnosisSessionServiceTests {
 
   private final DiagnosisService service = mock(DiagnosisService.class);
   private final ApiUsageService usage = mock(ApiUsageService.class);
+  private final DiagnosisUsageRecorder recorder = mock(DiagnosisUsageRecorder.class);
   private final UsageSubject subject = UsageSubject.guest("ip-hash");
   private final DiagnosisExecutor executor = new DiagnosisExecutor(2, 2);
 
@@ -46,7 +52,7 @@ class DiagnosisSessionServiceTests {
     when(service.isAvailable()).thenReturn(false);
     RecordingListener listener = new RecordingListener();
 
-    new DiagnosisSessionService(service, executor, usage, Duration.ofSeconds(5))
+    new DiagnosisSessionService(service, executor, usage, recorder, Duration.ofSeconds(5))
         .start("질문", List.of(), subject, null, listener);
 
     assertThat(listener.result.join()).isEqualTo(ErrorCode.DIAGNOSIS_UNAVAILABLE.name());
@@ -64,7 +70,7 @@ class DiagnosisSessionServiceTests {
     when(busy.submit(any())).thenThrow(new RejectedExecutionException());
     RecordingListener listener = new RecordingListener();
 
-    new DiagnosisSessionService(service, busy, usage, Duration.ofSeconds(5))
+    new DiagnosisSessionService(service, busy, usage, recorder, Duration.ofSeconds(5))
         .start("질문", List.of(), subject, null, listener);
 
     assertThat(listener.result.join()).isEqualTo(ErrorCode.DIAGNOSIS_BUSY.name());
@@ -73,11 +79,11 @@ class DiagnosisSessionServiceTests {
 
   @Test
   void unexpectedFailureIsReportedAsDiagnosisFailed() throws Exception {
-    when(service.diagnose(anyString(), anyList(), isNull(), any()))
+    when(service.diagnose(anyString(), anyList(), isNull(), any(), any()))
         .thenThrow(new IllegalStateException("boom"));
     RecordingListener listener = new RecordingListener();
 
-    new DiagnosisSessionService(service, executor, usage, Duration.ofSeconds(5))
+    new DiagnosisSessionService(service, executor, usage, recorder, Duration.ofSeconds(5))
         .start("질문", List.of(), subject, null, listener);
 
     assertThat(listener.result.get(2, TimeUnit.SECONDS))
@@ -87,14 +93,66 @@ class DiagnosisSessionServiceTests {
 
   @Test
   void completedResultIsReported() throws Exception {
-    when(service.diagnose(anyString(), anyList(), isNull(), any()))
+    when(service.diagnose(anyString(), anyList(), isNull(), any(), any()))
         .thenReturn(new DiagnosisResult("점검해 보세요.", List.of(), List.of()));
     RecordingListener listener = new RecordingListener();
 
-    new DiagnosisSessionService(service, executor, usage, Duration.ofSeconds(5))
+    new DiagnosisSessionService(service, executor, usage, recorder, Duration.ofSeconds(5))
         .start("질문", List.of(), subject, null, listener);
 
     assertThat(listener.result.get(2, TimeUnit.SECONDS)).isEqualTo("completed");
+  }
+
+  @Test
+  void eachOutcomeIsRecordedWithMeteredUsage() throws Exception {
+    when(service.diagnose(anyString(), anyList(), isNull(), any(), any()))
+        .thenReturn(new DiagnosisResult("점검해 보세요.", List.of(), List.of()))
+        .thenThrow(new IllegalStateException("boom"))
+        .thenThrow(new DiagnosisCancelledException());
+    DiagnosisSessionService sessions = new DiagnosisSessionService(service, executor, usage,
+        recorder, Duration.ofSeconds(5));
+
+    sessions.start("질문", List.of(), subject, null, new RecordingListener());
+    verify(recorder, timeout(2000)).record(eq(subject), eq(DiagnosisOutcome.COMPLETED), any(),
+        any());
+    sessions.start("질문", List.of(), subject, null, new RecordingListener());
+    verify(recorder, timeout(2000)).record(eq(subject), eq(DiagnosisOutcome.FAILED), any(), any());
+    sessions.start("질문", List.of(), subject, null, new RecordingListener());
+    verify(recorder, timeout(2000)).record(eq(subject), eq(DiagnosisOutcome.CANCELLED), any(),
+        any());
+  }
+
+  @Test
+  void deadlineIsRecordedAsTimeout() throws Exception {
+    CountDownLatch release = new CountDownLatch(1);
+    when(service.diagnose(anyString(), anyList(), isNull(), any(), any())).thenAnswer(invocation -> {
+      try {
+        release.await();
+      } catch (InterruptedException exception) {
+        throw new DiagnosisCancelledException();
+      }
+      return null;
+    });
+    RecordingListener listener = new RecordingListener();
+
+    new DiagnosisSessionService(service, executor, usage, recorder, Duration.ofMillis(200))
+        .start("질문", List.of(), subject, null, listener);
+
+    assertThat(listener.result.get(2, TimeUnit.SECONDS))
+        .isEqualTo(ErrorCode.DIAGNOSIS_TIMEOUT.name());
+    verify(recorder, timeout(2000)).record(eq(subject), eq(DiagnosisOutcome.TIMEOUT), any(),
+        any());
+  }
+
+  @Test
+  void rejectedTaskIsNotRecorded() {
+    DiagnosisExecutor busy = mock(DiagnosisExecutor.class);
+    when(busy.submit(any())).thenThrow(new RejectedExecutionException());
+
+    new DiagnosisSessionService(service, busy, usage, recorder, Duration.ofSeconds(5))
+        .start("질문", List.of(), subject, null, new RecordingListener());
+
+    verify(recorder, never()).record(any(), any(), any(), any());
   }
 
   /**
