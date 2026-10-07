@@ -19,8 +19,28 @@ export type DiagnosisCard =
 export type UsageItem = { used: number; limit: number; remaining: number }
 /** 요청자(로그인 계정 또는 비로그인 IP) 기준 이번 주 AI 상담 사용량. remaining은 서비스 전체 잔여량을 넘지 않는다. */
 export type MyUsage = { periodStart: string; resetsAt: string; diagnosis: UsageItem }
+/** 이번 주 AI 상담의 모델 사용량 집계. 실패·시간 초과·취소된 상담의 토큰도 포함한다. */
+export type DiagnosisMetrics = {
+  consultations: number
+  completed: number
+  failed: number
+  timedOut: number
+  cancelled: number
+  averageDurationMs: number
+  averageModelCalls: number
+  inputTokens: number
+  cachedInputTokens: number
+  outputTokens: number
+  reasoningTokens: number
+}
 /** 서비스 전체 이번 주 사용량(관리자 전용). */
-export type TotalUsage = { periodStart: string; resetsAt: string; diagnosis: UsageItem; sms: UsageItem }
+export type TotalUsage = {
+  periodStart: string
+  resetsAt: string
+  diagnosis: UsageItem
+  sms: UsageItem
+  diagnosisMetrics: DiagnosisMetrics
+}
 export type Diagnosis = { answer: string; cards: DiagnosisCard[]; executedTools: string[] }
 export type DiagnosisToolProgress = { tool: string; status: 'started' | 'completed'; card?: DiagnosisCard | null }
 export type DiagnosisStreamEvent =
