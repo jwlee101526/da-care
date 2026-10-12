@@ -17,12 +17,15 @@ import com.solapi.sdk.message.service.DefaultMessageService;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SolapiSmsNotificationSender {
 
+  private static final Logger log = LoggerFactory.getLogger(SolapiSmsNotificationSender.class);
   private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern(
       "yyyy-MM-dd HH:mm");
   private final String apiKey;
@@ -48,18 +51,23 @@ public class SolapiSmsNotificationSender {
   public void sendReservationConfirmed(Reservation reservation) {
     String message = message(reservation);
     if (!isConfigured()) {
+      log.info("SMS 발송 건너뜀: reservation={} reason=SOLAPI 설정 미완료", reservation.getId());
       record(reservation, SKIPPED, message, "SOLAPI 설정 미완료");
       return;
     }
     if (!usage.tryAcquireSms()) {
+      log.warn("SMS 발송 건너뜀: reservation={} reason=주간 SMS 한도 초과", reservation.getId());
       record(reservation, SKIPPED, message, "주간 SMS 한도 초과");
       return;
     }
     try {
       DefaultMessageService service = SolapiClient.INSTANCE.createInstance(apiKey, apiSecret);
       service.send(createMessage(reservation, message), null);
+      // 유료 API 사용 기록. 수신 번호 같은 개인정보는 남기지 않는다.
+      log.info("SMS 발송 성공: reservation={}", reservation.getId());
       record(reservation, SUCCESS, message, null);
     } catch (Exception e) {
+      log.error("SMS 발송 실패: reservation={}", reservation.getId(), e);
       record(reservation, FAILED, message, e.getMessage());
     }
   }

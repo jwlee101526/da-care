@@ -31,6 +31,11 @@ public class DiagnosisUsageRecorder {
 
   public void record(UsageSubject subject, DiagnosisOutcome outcome, DiagnosisMeter.Snapshot usage,
       Duration duration) {
+    log.info("AI 상담 사용량: outcome={} subject={} model={} modelCalls={} toolCalls={} "
+            + "inputTokens={} cachedInputTokens={} outputTokens={} reasoningTokens={} durationMs={}",
+        outcome, subject.type(), usage.model(), usage.modelCalls(), usage.toolCalls(),
+        usage.inputTokens(), usage.cachedInputTokens(), usage.outputTokens(),
+        usage.reasoningTokens(), duration.toMillis());
     // 취소된 상담 스레드는 interrupt 상태라 커넥션 획득이 실패할 수 있다. 저장하는 동안만 해제했다가 되돌린다.
     boolean interrupted = Thread.interrupted();
     try {
@@ -39,7 +44,7 @@ public class DiagnosisUsageRecorder {
           usage.cachedInputTokens(), usage.outputTokens(), usage.reasoningTokens(),
           ApiUsageService.weekStart(clock), LocalDateTime.now(clock)));
     } catch (RuntimeException exception) {
-      log.warn("상담 사용량 기록 실패: {}", exception.getMessage());
+      log.error("AI 상담 사용량 기록 실패", exception);
     } finally {
       if (interrupted) {
         Thread.currentThread().interrupt();

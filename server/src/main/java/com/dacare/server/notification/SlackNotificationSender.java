@@ -13,6 +13,8 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -20,6 +22,7 @@ import org.springframework.web.client.RestClient;
 @Component
 public class SlackNotificationSender {
 
+  private static final Logger log = LoggerFactory.getLogger(SlackNotificationSender.class);
   private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern(
       "yyyy년 M월 d일 (E) HH:mm");
 
@@ -47,6 +50,7 @@ public class SlackNotificationSender {
       client.post().uri(webhookUrl).body(Map.of("text", message)).retrieve().toBodilessEntity();
       record(reservation, SUCCESS, message, null);
     } catch (RuntimeException e) {
+      log.error("Slack 알림 실패: reservation={}", reservation.getId(), e);
       record(reservation, FAILED, message, e.getMessage());
     }
   }

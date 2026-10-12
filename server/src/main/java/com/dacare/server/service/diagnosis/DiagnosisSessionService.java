@@ -11,6 +11,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class DiagnosisSessionService {
+
+  private static final Logger log = LoggerFactory.getLogger(DiagnosisSessionService.class);
 
   private final DiagnosisService service;
   private final DiagnosisExecutor executor;
@@ -48,6 +52,7 @@ public class DiagnosisSessionService {
     }
     AcquireResult acquired = usage.tryAcquireDiagnosis(subject);
     if (acquired != AcquireResult.ACQUIRED) {
+      log.info("AI 상담 한도 초과로 거절: result={} subject={}", acquired, subject.type());
       listener.failed(limitError(acquired), limitMessage(acquired, subject));
       return DiagnosisSession.finishedSession();
     }
@@ -65,6 +70,7 @@ public class DiagnosisSessionService {
             session.cancel();
           }, timeout));
     } catch (RejectedExecutionException exception) {
+      log.warn("AI 상담 대기열이 가득 차 거절: subject={}", subject.type());
       usage.releaseDiagnosis(subject);
       session.finish();
       listener.failed(ErrorCode.DIAGNOSIS_BUSY);
@@ -85,6 +91,7 @@ public class DiagnosisSessionService {
     } catch (DiagnosisUnavailableException exception) {
       listener.failed(exception.errorCode(), exception.getMessage());
     } catch (RuntimeException exception) {
+      log.error("AI 상담 처리 중 예상하지 못한 오류", exception);
       listener.failed(ErrorCode.DIAGNOSIS_FAILED);
     } finally {
       session.finish();

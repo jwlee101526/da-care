@@ -83,7 +83,9 @@ public class DiagnosisService {
       if (Thread.currentThread().isInterrupted() || cause instanceof DiagnosisCancelledException) {
         throw new DiagnosisCancelledException();
       }
-      log.warn("진단 요청 실패: {} / {}", cause.getClass().getSimpleName(), cause.getMessage());
+
+      log.warn("진단 요청 실패: {} / {}", cause.getClass().getSimpleName(), cause.getMessage(),
+          exception);
       throw new DiagnosisUnavailableException(exception);
     }
   }

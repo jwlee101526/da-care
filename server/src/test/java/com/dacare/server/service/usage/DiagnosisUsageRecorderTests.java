@@ -14,13 +14,17 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
 /**
  * H2에 상담 사용량을 저장해 한국 시간 주 기준 집계와 interrupt 상태에서의 기록을 검증한다.
  */
 @SpringBootTest
+@ExtendWith(OutputCaptureExtension.class)
 class DiagnosisUsageRecorderTests {
 
   private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
@@ -54,6 +58,17 @@ class DiagnosisUsageRecorderTests {
     assertThat(repository.findAll()).filteredOn(log -> log.getPeriodStart()
             .equals(LocalDate.of(2026, 10, 5)))
         .extracting(DiagnosisUsageLog::getSubjectType).containsExactlyInAnyOrder("GUEST", "CUSTOMER");
+  }
+
+  @Test
+  void usageIsLoggedWithoutPersonalData(CapturedOutput output) {
+    recorder.record(UsageSubject.customer("demo@dacare.com"), DiagnosisOutcome.FAILED,
+        new Snapshot("gpt-5-mini", 2, 1, 1500, 1024, 200, 64), Duration.ofMillis(3200));
+
+    assertThat(output.getOut()).contains("AI 상담 사용량: outcome=FAILED subject=CUSTOMER "
+            + "model=gpt-5-mini modelCalls=2 toolCalls=1 inputTokens=1500 cachedInputTokens=1024 "
+            + "outputTokens=200 reasoningTokens=64 durationMs=3200")
+        .doesNotContain("demo@dacare.com");
   }
 
   @Test
