@@ -1,4 +1,6 @@
 const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
+/** 서버 상태 확인 주소 */
+export const serverHealthUrl = `${baseUrl}/actuator/health`
 
 export class ApiError extends Error {
   status: number
@@ -55,6 +57,16 @@ export async function api<T>(path: string, options: RequestInit = {}, token?: st
     throw new ApiError(response.status, body.message ?? '요청 처리 중 오류가 발생했습니다.', body.fields ?? {})
   }
   return response.status === 204 ? undefined as T : response.json() as Promise<T>
+}
+
+/** 서버가 제한 시간 안에 정상 응답하는지 확인한다. 연결 실패,시간 초과,5xx는 모두 false다. */
+export async function checkServerHealth() {
+  try {
+    const response = await fetch(serverHealthUrl, { cache: 'no-store', signal: AbortSignal.timeout(8000) })
+    return response.ok
+  } catch {
+    return false
+  }
 }
 
 export function fetchMyUsage(token?: string | null) {

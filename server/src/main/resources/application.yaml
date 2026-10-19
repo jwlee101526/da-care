@@ -42,6 +42,14 @@ springdoc:
 scalar:
   enabled: false
 
+management:
+  endpoints:
+    web:
+      # 웹이 다른 도메인에서 서버 가동 여부를 확인할 수 있게 한다. 액추에이터는 WebConfig의 CORS 설정을 따르지 않는다.
+      cors:
+        allowed-origins: ${CORS_ALLOWED_ORIGINS:}
+        allowed-methods: GET
+
 app:
   jwt:
     secret: ${JWT_SECRET}
