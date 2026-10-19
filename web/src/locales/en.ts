@@ -125,6 +125,18 @@ export const en: LocaleDict = {
   modal: {
     brand: 'DA-CARE',
   },
+  serverStatus: {
+    title: 'The server is not running right now',
+    description: 'The server is on standby or not running. Open the link below, wait about a minute, then try again.',
+    wake: 'Check server status',
+    browse: 'Browse without the server first',
+    retry: 'Try again',
+    checking: 'Checking',
+    stillWaiting: 'Still getting ready. Please check again in a moment.',
+    readyTitle: 'The server is running again',
+    readyDescription: 'All features are now available.',
+    start: 'Get started',
+  },
   chat: {
     launcher: 'AI Chat',
     launcherOpenAria: 'Open AI chat',
