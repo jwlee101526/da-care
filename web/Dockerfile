@@ -5,7 +5,8 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@10.17.1 --activate
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# pnpm 패키지 저장소를 빌드 캐시에 두어, 잠금 파일이 바뀌어도 이미 받은 패키지는 다시 내려받지 않는다.
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store pnpm install --frozen-lockfile --store-dir /pnpm/store
 
 COPY . .
 ARG VITE_SHOW_DEMO_ACCOUNT=false
