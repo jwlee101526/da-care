@@ -58,7 +58,8 @@ public interface AdminApiDocs {
   void delete(@Parameter(description = "기사 번호") Long id);
 
   @Operation(summary = "서비스 전체 이번 주 사용량 조회",
-      description = "AI 상담과 SMS의 이번 주 서비스 전체 사용 횟수와 주간 한도를 반환합니다.")
+      description = "AI 상담과 SMS의 이번 주 서비스 전체 사용 횟수와 주간 한도, "
+          + "AI 상담의 모델 호출 수·토큰 사용량·소요 시간 집계를 반환합니다.")
   @ApiResponse(responseCode = "200", description = "조회 완료")
   TotalUsageResponse usage();
 

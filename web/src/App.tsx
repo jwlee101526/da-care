@@ -13,6 +13,8 @@ import { LanguageProvider, useLanguage } from './context/LanguageContext'
 import type { ReservationSelection } from './types'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { Toaster } from './components/ui/sonner'
+import { ServerStatusDialog } from './components/ServerStatusDialog'
+import { isDevEnvironment } from './lib/env'
 
 // 첫 화면(랜딩)을 뺀 페이지는 방문할 때 불러온다.
 const AuthPage = lazy(() => import('./pages/AuthPage').then(module => ({ default: module.AuthPage })))
@@ -93,6 +95,7 @@ function AppShell() {
       </Suspense>
       <ChatWidget isOpen={isChatOpen} onToggle={() => setIsChatOpen(value => !value)} onBookWithSymptom={openReservation} />
       <Toaster position="top-center" richColors />
+      {isDevEnvironment && <ServerStatusDialog />}
     </>
   )
 }

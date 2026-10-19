@@ -10,6 +10,7 @@ import dacareLogo from '../assets/brand/dacare-logo.svg'
 import { buttonVariants } from '../components/ui/button'
 import { formError } from '../components/formError'
 import { cn } from '@/lib/utils'
+import { isDevEnvironment } from '@/lib/env'
 
 const fieldLabel = 'flex flex-col gap-1.5 text-left text-[13px] font-semibold text-ink-body'
 const fieldInput = 'box-border min-h-[46px] w-full rounded-lg border border-line-strong bg-white px-3.5 py-2.5 text-[14px] text-ink transition-[border-color,box-shadow] duration-150 ease-[ease] placeholder:text-[13px] placeholder:text-ink-faint focus:border-brand focus:shadow-[0_0_0_3px_rgba(36,87,214,0.15)] focus:outline-none'
@@ -18,7 +19,7 @@ const demoDesc = 'mt-0 mb-2.5 text-[12px] leading-[1.45] text-ink-subtle'
 const backLink = 'mt-4 inline-flex items-center justify-center text-center text-[13px] text-ink-subtle transition-colors duration-150 ease-[ease] hover:text-navy'
 
 export function AuthPage({ signup = false }: { signup?: boolean }) {
-  const showDemoAccount = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO_ACCOUNT === 'true'
+  const showDemoAccount = isDevEnvironment
   const auth = useAuth()
   const { lang } = useLanguage()
   const navigate = useNavigate()

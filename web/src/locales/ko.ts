@@ -123,6 +123,18 @@ export const ko = {
   modal: {
     brand: '다케어',
   },
+  serverStatus: {
+    title: '현재 서버가 미동작 중입니다',
+    description: '서버가 대기 상태거나 동작하지 않는 상태입니다. 아래 링크로 접속 후 1분 정도 대기 한 뒤 다시 시도해 주세요.',
+    wake: '서버 상태 확인',
+    browse: '서버 없이 먼저 둘러보기',
+    retry: '재시도',
+    checking: '확인 중',
+    stillWaiting: '아직 준비 중입니다. 잠시 후 다시 확인해 주세요.',
+    readyTitle: '서버가 다시 작동합니다',
+    readyDescription: '이제 모든 기능을 모두 이용할 수 있습니다.',
+    start: '이용하기',
+  },
   chat: {
     launcher: 'AI 채팅 상담',
     launcherOpenAria: 'AI 챗봇 상담 열기',

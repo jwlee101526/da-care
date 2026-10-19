@@ -56,15 +56,23 @@ public class DiagnosisService {
 
   public DiagnosisResult diagnose(String question, List<ConversationTurn> history, String email,
       Consumer<DiagnosisTools.ToolProgress> progress) {
+    return diagnose(question, history, email, progress, new DiagnosisMeter());
+  }
+
+  /**
+   * @param meter 모델 호출 수와 토큰 사용량을 기록받는다. 실패해도 그때까지의 사용량이 남는다.
+   */
+  public DiagnosisResult diagnose(String question, List<ConversationTurn> history, String email,
+      Consumer<DiagnosisTools.ToolProgress> progress, DiagnosisMeter meter) {
     ChatClient.Builder builder = chatClientBuilder.getIfAvailable();
     if (builder == null) {
       throw new DiagnosisUnavailableException();
     }
     DiagnosisTools tools = new DiagnosisTools(vectorStore.getIfAvailable(), reservations, email,
-        similarityThreshold, progress);
+        similarityThreshold, progress.andThen(meter::onToolProgress));
     try {
       Answer answer = builder.build().prompt().system(systemPrompt)
-          .messages(messages(question, history)).tools(tools).call()
+          .messages(messages(question, history)).tools(tools).advisors(meter).call()
           .entity(Answer.class, spec -> spec.useProviderStructuredOutput().validateSchema());
       if (answer == null || answer.answer() == null || answer.answer().isBlank()) {
         throw new DiagnosisUnavailableException();
@@ -75,7 +83,9 @@ public class DiagnosisService {
       if (Thread.currentThread().isInterrupted() || cause instanceof DiagnosisCancelledException) {
         throw new DiagnosisCancelledException();
       }
-      log.warn("진단 요청 실패: {} / {}", cause.getClass().getSimpleName(), cause.getMessage());
+
+      log.warn("진단 요청 실패: {} / {}", cause.getClass().getSimpleName(), cause.getMessage(),
+          exception);
       throw new DiagnosisUnavailableException(exception);
     }
   }

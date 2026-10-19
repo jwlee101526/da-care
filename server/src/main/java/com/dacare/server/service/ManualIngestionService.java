@@ -32,6 +32,8 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlin
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineNode;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.ContentFormatter;
 import org.springframework.ai.document.DefaultContentFormatter;
 import org.springframework.ai.document.Document;
@@ -54,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ManualIngestionService {
 
+  private static final Logger log = LoggerFactory.getLogger(ManualIngestionService.class);
   private static final String LOCATION = "classpath:manual/*/*.pdf";
   private static final String LEGACY_PDF = "device-troubleshooting.pdf";
   /**
@@ -83,7 +86,7 @@ public class ManualIngestionService {
     if (imports.existsBySource(source)) {
       return;
     }
-    vectorStore.write(files.stream().flatMap(file -> parse(file).stream()).map(section -> {
+    List<Document> documents = files.stream().flatMap(file -> parse(file).stream()).map(section -> {
       Document document = new Document(documentId(version, section), section.text(),
           Map.of("source", "manual", "version", version, "device", section.device(),
               "file_name", section.fileName(), "manual_title", section.manualTitle(),
@@ -91,7 +94,11 @@ public class ManualIngestionService {
               "start_page", section.startPage(), "end_page", section.endPage()));
       document.setContentFormatter(EMBED_FORMAT);
       return document;
-    }).toList());
+    }).toList();
+    // 문서마다 유료 임베딩 API를 호출한다. 같은 버전은 다시 임베딩하지 않는다.
+    log.info("매뉴얼 임베딩: version={} model={} files={} documents={}", version, embeddingModel,
+        files.size(), documents.size());
+    vectorStore.write(documents);
     FilterExpressionBuilder filter = new FilterExpressionBuilder();
     vectorStore.delete(filter.and(filter.eq("source", "manual"), filter.ne("version", version))
         .build());

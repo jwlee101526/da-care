@@ -1,4 +1,6 @@
 const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
+/** 서버 상태 확인 주소 */
+export const serverHealthUrl = `${baseUrl}/actuator/health`
 
 export class ApiError extends Error {
   status: number
@@ -19,8 +21,28 @@ export type DiagnosisCard =
 export type UsageItem = { used: number; limit: number; remaining: number }
 /** 요청자(로그인 계정 또는 비로그인 IP) 기준 이번 주 AI 상담 사용량. remaining은 서비스 전체 잔여량을 넘지 않는다. */
 export type MyUsage = { periodStart: string; resetsAt: string; diagnosis: UsageItem }
+/** 이번 주 AI 상담의 모델 사용량 집계. 실패·시간 초과·취소된 상담의 토큰도 포함한다. */
+export type DiagnosisMetrics = {
+  consultations: number
+  completed: number
+  failed: number
+  timedOut: number
+  cancelled: number
+  averageDurationMs: number
+  averageModelCalls: number
+  inputTokens: number
+  cachedInputTokens: number
+  outputTokens: number
+  reasoningTokens: number
+}
 /** 서비스 전체 이번 주 사용량(관리자 전용). */
-export type TotalUsage = { periodStart: string; resetsAt: string; diagnosis: UsageItem; sms: UsageItem }
+export type TotalUsage = {
+  periodStart: string
+  resetsAt: string
+  diagnosis: UsageItem
+  sms: UsageItem
+  diagnosisMetrics: DiagnosisMetrics
+}
 export type Diagnosis = { answer: string; cards: DiagnosisCard[]; executedTools: string[] }
 export type DiagnosisToolProgress = { tool: string; status: 'started' | 'completed'; card?: DiagnosisCard | null }
 export type DiagnosisStreamEvent =
@@ -35,6 +57,16 @@ export async function api<T>(path: string, options: RequestInit = {}, token?: st
     throw new ApiError(response.status, body.message ?? '요청 처리 중 오류가 발생했습니다.', body.fields ?? {})
   }
   return response.status === 204 ? undefined as T : response.json() as Promise<T>
+}
+
+/** 서버가 제한 시간 안에 정상 응답하는지 확인한다. 연결 실패,시간 초과,5xx는 모두 false다. */
+export async function checkServerHealth() {
+  try {
+    const response = await fetch(serverHealthUrl, { cache: 'no-store', signal: AbortSignal.timeout(8000) })
+    return response.ok
+  } catch {
+    return false
+  }
 }
 
 export function fetchMyUsage(token?: string | null) {

@@ -123,6 +123,13 @@ public class ApiUsageService {
   }
 
   private LocalDate currentPeriod() {
+    return weekStart(clock);
+  }
+
+  /**
+   * Clock 시간대 기준 이번 주 월요일. 상담 사용량 기록도 같은 주 기준을 쓴다.
+   */
+  static LocalDate weekStart(Clock clock) {
     return LocalDate.now(clock).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
   }
 

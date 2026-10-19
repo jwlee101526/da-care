@@ -1,13 +1,18 @@
 package com.dacare.server.service.diagnosis;
 
+import com.dacare.server.domain.DiagnosisOutcome;
 import com.dacare.server.error.ErrorCode;
 import com.dacare.server.service.diagnosis.DiagnosisService.ConversationTurn;
 import com.dacare.server.service.usage.ApiUsageService.AcquireResult;
 import com.dacare.server.service.usage.ApiUsageService;
+import com.dacare.server.service.usage.DiagnosisUsageRecorder;
 import com.dacare.server.service.usage.UsageSubject;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -17,16 +22,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class DiagnosisSessionService {
 
+  private static final Logger log = LoggerFactory.getLogger(DiagnosisSessionService.class);
+
   private final DiagnosisService service;
   private final DiagnosisExecutor executor;
   private final ApiUsageService usage;
+  private final DiagnosisUsageRecorder recorder;
   private final Duration timeout;
 
   public DiagnosisSessionService(DiagnosisService service, DiagnosisExecutor executor,
-      ApiUsageService usage, @Value("${app.diagnosis.timeout}") Duration timeout) {
+      ApiUsageService usage, DiagnosisUsageRecorder recorder,
+      @Value("${app.diagnosis.timeout}") Duration timeout) {
     this.service = service;
     this.executor = executor;
     this.usage = usage;
+    this.recorder = recorder;
     this.timeout = timeout;
   }
 
@@ -42,18 +52,25 @@ public class DiagnosisSessionService {
     }
     AcquireResult acquired = usage.tryAcquireDiagnosis(subject);
     if (acquired != AcquireResult.ACQUIRED) {
+      log.info("AI 상담 한도 초과로 거절: result={} subject={}", acquired, subject.type());
       listener.failed(limitError(acquired), limitMessage(acquired, subject));
       return DiagnosisSession.finishedSession();
     }
     DiagnosisSession session = new DiagnosisSession();
+    long startedAt = System.nanoTime();
+    AtomicBoolean timedOut = new AtomicBoolean();
     try {
-      session.start(executor.submit(() -> run(session, question, history, email, listener)),
+      session.start(
+          executor.submit(() -> run(session, question, history, subject, email, listener,
+              new Measurement(startedAt, timedOut))),
           executor.schedule(() -> {
+            timedOut.set(true);
             // 작업 중단보다 안내를 먼저 보낸다. 중단된 작업이 먼저 종료를 알리면 안내가 유실된다.
             listener.failed(ErrorCode.DIAGNOSIS_TIMEOUT);
             session.cancel();
           }, timeout));
     } catch (RejectedExecutionException exception) {
+      log.warn("AI 상담 대기열이 가득 차 거절: subject={}", subject.type());
       usage.releaseDiagnosis(subject);
       session.finish();
       listener.failed(ErrorCode.DIAGNOSIS_BUSY);
@@ -62,18 +79,33 @@ public class DiagnosisSessionService {
   }
 
   private void run(DiagnosisSession session, String question, List<ConversationTurn> history,
-      String email, DiagnosisListener listener) {
+      UsageSubject subject, String email, DiagnosisListener listener, Measurement measurement) {
+    DiagnosisMeter meter = new DiagnosisMeter();
+    DiagnosisOutcome outcome = DiagnosisOutcome.FAILED;
     try {
-      listener.completed(service.diagnose(question, history, email, listener::progress));
+      listener.completed(service.diagnose(question, history, email, listener::progress, meter));
+      outcome = DiagnosisOutcome.COMPLETED;
     } catch (DiagnosisCancelledException exception) {
+      outcome = DiagnosisOutcome.CANCELLED;
       listener.cancelled();
     } catch (DiagnosisUnavailableException exception) {
       listener.failed(exception.errorCode(), exception.getMessage());
     } catch (RuntimeException exception) {
+      log.error("AI 상담 처리 중 예상하지 못한 오류", exception);
       listener.failed(ErrorCode.DIAGNOSIS_FAILED);
     } finally {
       session.finish();
+      // 기한 안내가 나갔으면 작업이 어떻게 끝났든 사용자에게는 시간 초과다.
+      recorder.record(subject, measurement.timedOut().get() ? DiagnosisOutcome.TIMEOUT : outcome,
+          meter.snapshot(), Duration.ofNanos(System.nanoTime() - measurement.startedAt()));
     }
+  }
+
+  /**
+   * 사용량 기록용 측정값. 소요 시간은 대기열에서 기다린 시간을 포함한다.
+   */
+  private record Measurement(long startedAt, AtomicBoolean timedOut) {
+
   }
 
   private static ErrorCode limitError(AcquireResult result) {

@@ -55,6 +55,21 @@ class GuestReservationApiTests {
   }
 
   @Test
+  void longestSymptomIsAcceptedAndNotificationHistoryIsSaved() throws Exception {
+    String body = mvc.perform(post("/api/reservations/guest").header("API-Version", "1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(createBody("+821011110010").replace("탈수 시 소음", "소".repeat(2000))))
+        .andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString();
+    String code = JsonPath.read(body, "$.code");
+
+    Integer messageLength = jdbc.queryForObject("""
+        SELECT LENGTH(h.message) FROM notification_history h
+        JOIN reservation r ON h.reservation_id = r.id WHERE r.code = ?""", Integer.class, code);
+    assertThat(messageLength).isEqualTo(2000);
+  }
+
+  @Test
   void looksUpWithMaskedPersonalDataAndCancels() throws Exception {
     String phone = "+821011110001";
     String code = createGuest(phone);

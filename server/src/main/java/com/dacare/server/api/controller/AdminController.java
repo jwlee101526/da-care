@@ -10,6 +10,7 @@ import com.dacare.server.domain.PhoneNumber;
 import com.dacare.server.service.EngineerService;
 import com.dacare.server.service.ReservationService;
 import com.dacare.server.service.usage.ApiUsageService;
+import com.dacare.server.service.usage.DiagnosisUsageRecorder;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,17 +30,19 @@ public class AdminController implements AdminApiDocs {
   private final EngineerService engineers;
   private final ReservationService reservations;
   private final ApiUsageService usage;
+  private final DiagnosisUsageRecorder diagnosisUsage;
 
   public AdminController(EngineerService engineers, ReservationService reservations,
-      ApiUsageService usage) {
+      ApiUsageService usage, DiagnosisUsageRecorder diagnosisUsage) {
     this.engineers = engineers;
     this.reservations = reservations;
     this.usage = usage;
+    this.diagnosisUsage = diagnosisUsage;
   }
 
   @GetMapping("/usage")
   public TotalUsageResponse usage() {
-    return TotalUsageResponse.from(usage.totalUsage());
+    return TotalUsageResponse.from(usage.totalUsage(), diagnosisUsage.currentWeek());
   }
 
   @GetMapping("/engineers")
