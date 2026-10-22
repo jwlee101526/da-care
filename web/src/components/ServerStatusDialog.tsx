@@ -9,28 +9,30 @@ const footerButton = 'cursor-pointer disabled:cursor-default disabled:opacity-70
 const pollIntervalMs = 3000
 const pollLimitMs = 90_000
 
-type Status = 'waking' | 'ready' | 'stillWaiting'
+type Status = 'idle' | 'waking' | 'ready' | 'stillWaiting'
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-// dev 환경에서 앱을 열 때 서버가 대기 중이면 안내한다. 상태 확인 요청이 곧 서버를 깨우므로
-// 다이얼로그가 열려 있는 동안 자동으로 다시 확인하고, 서버가 응답하면 같은 다이얼로그에서 알려 준다.
+// dev 환경에서 앱을 열 때 서버가 대기 중이면 안내한다. 상태 확인 요청이 곧 서버를 깨우므로 자동으로 다시 확인하고,
+// 둘러보려고 다이얼로그를 닫았더라도 서버가 응답하면 다이얼로그를 다시 열어 알려 준다.
 export function ServerStatusDialog() {
   const { t } = useLanguage()
   const text = t.serverStatus
   const [isOpen, setIsOpen] = useState(false)
-  const [status, setStatus] = useState<Status>('waking')
+  const [status, setStatus] = useState<Status>('idle')
 
   useEffect(() => {
     let ignore = false
     checkServerHealth().then(isUp => {
-      if (!ignore && !isUp) setIsOpen(true)
+      if (ignore || isUp) return
+      setStatus('waking')
+      setIsOpen(true)
     })
     return () => { ignore = true }
   }, [])
 
   useEffect(() => {
-    if (!isOpen || status !== 'waking') return
+    if (status !== 'waking') return
     let ignore = false
     const deadline = Date.now() + pollLimitMs
     const poll = async () => {
@@ -41,6 +43,7 @@ export function ServerStatusDialog() {
         if (ignore) return
         if (isUp) {
           setStatus('ready')
+          setIsOpen(true)
           return
         }
       }
@@ -48,7 +51,7 @@ export function ServerStatusDialog() {
     }
     poll()
     return () => { ignore = true }
-  }, [isOpen, status])
+  }, [status])
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
