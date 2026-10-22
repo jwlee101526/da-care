@@ -1,6 +1,6 @@
 const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
 /** 서버 상태 확인 주소 */
-export const serverHealthUrl = `${baseUrl}/actuator/health`
+const serverHealthUrl = `${baseUrl}/actuator/health`
 
 export class ApiError extends Error {
   status: number
