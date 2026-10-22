@@ -125,9 +125,10 @@ export const ko = {
   },
   serverStatus: {
     title: '서버를 준비 중입니다',
-    description: '대기 상태였던 서버를 깨우고 있습니다. 보통 1분 안에 준비되며, 준비가 끝나면 바로 알려 드립니다.',
-    browse: '서버 없이 먼저 둘러보기',
+    description: '대기 상태였던 서버를 재가동 중입니다. 보통 1분 안에 준비되며, 준비가 끝나면 바로 알려 드립니다.',
+    browse: '먼저 둘러보기',
     retry: '다시 확인',
+    checking: '서버 상태를 확인하고 있습니다.',
     stillWaiting: '준비가 조금 더 걸리고 있습니다. 잠시 후 다시 확인해 주세요.',
     readyTitle: '서버가 다시 작동합니다',
     readyDescription: '이제 모든 기능을 모두 이용할 수 있습니다.',

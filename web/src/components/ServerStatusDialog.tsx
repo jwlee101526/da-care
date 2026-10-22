@@ -71,13 +71,13 @@ export function ServerStatusDialog() {
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                {status === 'waking' && <Loader2 size={20} className="animate-spin text-brand" />}
-                {text.title}
-              </DialogTitle>
+              <DialogTitle>{text.title}</DialogTitle>
               <DialogDescription>{text.description}</DialogDescription>
             </DialogHeader>
-            {status === 'stillWaiting' && <p className="m-0 text-[13px] leading-[1.5] text-ink-subtle" role="status">{text.stillWaiting}</p>}
+            <p className="m-0 flex items-center gap-2 text-[13px] leading-[1.5] text-ink-subtle" role="status">
+              {status === 'waking' && <Loader2 size={16} className="shrink-0 animate-spin text-brand" />}
+              {status === 'waking' ? text.checking : text.stillWaiting}
+            </p>
             <DialogFooter>
               <DialogClose className={buttonVariants({ variant: 'secondary', size: 'compact', className: footerButton })}>
                 {text.browse}

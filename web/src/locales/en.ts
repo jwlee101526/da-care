@@ -127,9 +127,10 @@ export const en: LocaleDict = {
   },
   serverStatus: {
     title: 'Getting the server ready',
-    description: 'The server was resting and is waking up now. This usually takes under a minute, and we will let you know as soon as it is ready.',
-    browse: 'Browse without the server first',
+    description: 'The server was on standby and is restarting now. This usually takes under a minute, and we will let you know as soon as it is ready.',
+    browse: 'Browse first',
     retry: 'Check again',
+    checking: 'Checking the server status.',
     stillWaiting: 'This is taking a little longer. Please check again in a moment.',
     readyTitle: 'The server is running again',
     readyDescription: 'All features are now available.',
